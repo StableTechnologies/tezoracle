@@ -1,0 +1,21 @@
+{
+  "name": "tezoracle",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Configurable N-of-M Tezos price oracle. Testnet and non-authoritative shadow only.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/validator/smoke.test.ts tests/packing/smoke.test.ts",
+    "build": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}
