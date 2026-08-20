@@ -42,7 +42,7 @@ This project does not depend on Acurast, Acelon, or Ubinetic.
 
 ## Quick start
 
-Requirements: Node.js 20+, Python 3.11+, npm.
+Requirements: Node.js 22+, Python 3.11+, npm.
 
 ```bash
 git clone https://github.com/StableTechnologies/TezOracle.git
@@ -59,15 +59,15 @@ python -m pip install -r requirements-dev.txt
 python -m pytest
 ```
 
-The current tree is a public baseline: layout, docs, and CI skeleton. Payload freeze, packing parity, the N-of-M contract, Class A adapters, coordinator/relayer, and local e2e follow in later PRs. Signing is blocked until packing golden vectors pass.
+Payload, evidence, observer agreement, and the parameter register are frozen under `docs/` and `config/`. Canonical packing is frozen: TypeScript and SmartPy must match `tests/packing/vectors/` byte-for-byte. The N-of-M contract, Class A adapters, coordinator/relayer, and local e2e follow.
 
 ## Repository layout
 
 | Path | Role |
 | --- | --- |
-| `src/contract/` | SmartPy N-of-M contract |
+| `src/contract/` | SmartPy packing reference and later N-of-M contract |
 | `src/validator/` | Class A TypeScript validator |
-| `src/packing/` | Canonical payload packing |
+| `src/packing/` | Canonical TypeScript PACK / digest |
 | `src/coordinator/` | Non-authoritative round coordinator |
 | `src/relayer/` | Permissionless submission |
 | `tests/` | Contract, validator, packing, and later e2e tests |
@@ -86,8 +86,13 @@ The current tree is a public baseline: layout, docs, and CI skeleton. Payload fr
 | [docs/ENGINEERING_RESPONSE_RU.md](docs/ENGINEERING_RESPONSE_RU.md) | Russian translation of the design response |
 | [docs/TEZFIN_ORACLE_ENGINEERING_RESPONSE_2026_08_14.md](docs/TEZFIN_ORACLE_ENGINEERING_RESPONSE_2026_08_14.md) | Itemized pre-implementation response (Items 1–7) |
 | [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Executable work items for the initial phase |
+| [docs/PAYLOAD_SPEC.md](docs/PAYLOAD_SPEC.md) | Frozen Michelson payload type, field order, PACK, domain `TEZORACLE_V1` |
+| [docs/EVIDENCE_SPEC.md](docs/EVIDENCE_SPEC.md) | Quorum-shared digest vs signer-local evidence; fail-closed mismatch |
+| [docs/OBSERVER_AGREEMENT.md](docs/OBSERVER_AGREEMENT.md) | Windows, median, rounding, rounds, candidate verification |
+| [docs/PARAMETER_SCHEMA.md](docs/PARAMETER_SCHEMA.md) | Register schema, lifecycle, delayed activation |
+| [tests/packing/README.md](tests/packing/README.md) | Frozen PACK vectors and test-only signatures |
 
-Payload, evidence, observer-agreement, parameter-schema, contract, Class A, coordinator, relayer, and oracle-interface specs are added when those workstreams start. Until then, treat [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) as the controlling overview.
+Contract, Class A, coordinator, relayer, and oracle-interface specs are added when those workstreams start.
 
 ## License
 

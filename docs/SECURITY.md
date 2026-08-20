@@ -51,7 +51,7 @@ The coordinator and relayer are **untrusted for price and policy**. They may tra
 | Insufficient quorum | Configurable `N` of `M`; 1-of-1 is testnet/shadow only. |
 | Governance foot-gun | Pause is immediate. Unpause, signer-set changes, N/M, class minima, policy hash, and asset changes are delayed. |
 | Secrets in git or CI | `.gitignore` excludes key material; `.env.example` is placeholders; CI has no secrets. |
-| Silent packing drift | Signing is blocked until SmartPy and TypeScript golden vectors match byte-for-byte. |
+| Silent packing drift | TypeScript and SmartPy packing tests must match frozen golden vectors byte-for-byte. |
 
 ## Failure modes
 
@@ -71,7 +71,7 @@ USDtz and tzBTC publication groups may fail independently of `CORE`. They are no
 
 Every signed payload includes:
 
-- a domain tag (proposed `TEZORACLE_V1`)
+- a domain tag (`TEZORACLE_V1`)
 - `chain_id`
 - `oracle_address`
 - `config_version` and `policy_hash`

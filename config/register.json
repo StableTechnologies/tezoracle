@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "register_id": "tezoracle-parameter-register",
+  "lifecycle": "testnet",
+  "authoritative": false,
+  "domain": "TEZORACLE_V1",
+  "config_version": 1,
+  "notes": "Initial freeze. Testnet and non-authoritative shadow only. Not TezFin production authority.",
+  "publication_groups": {
+    "CORE": {
+      "asset_ids": ["BTC_USD", "USDT_USD", "XTZ_USD"]
+    },
+    "USDTZ": {
+      "asset_ids": ["USDTZ_USD"]
+    },
+    "TZBTC": {
+      "asset_ids": ["TZBTC_USD"]
+    }
+  },
+  "time_policy": {
+    "validity_window_seconds": 180,
+    "max_clock_skew_seconds": 5,
+    "activation_delay_levels": 1,
+    "min_activation_delay_levels": 1
+  },
+  "payload": {
+    "price_nat_max": "79228162514264337593543950335",
+    "decimals_min": 0,
+    "decimals_max": 18,
+    "digest_size_bytes": 32
+  },
+  "governance": {
+    "delayed_activation": true,
+    "pause_immediate": true,
+    "unpause_delayed": true,
+    "production_requires_separate_approval": true
+  },
+  "assets": ["BTC_USD", "TZBTC_USD", "USDTZ_USD", "USDT_USD", "XTZ_USD"]
+}

@@ -1,0 +1,304 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tezoracle.local/config/schema.json",
+  "title": "TezOracle parameter register snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["register", "assets"],
+  "properties": {
+    "register": { "$ref": "#/$defs/register" },
+    "assets": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/asset" },
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Z0-9_]+$"
+      },
+      "minProperties": 1
+    }
+  },
+  "$defs": {
+    "nat": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "nat1": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "natString": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)$"
+    },
+    "bps": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000
+    },
+    "lifecycle": {
+      "type": "string",
+      "enum": ["draft", "testnet", "shadow", "production"]
+    },
+    "group": {
+      "type": "string",
+      "enum": ["CORE", "USDTZ", "TZBTC"]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "venue",
+        "independence_group",
+        "adapter_status",
+        "market_id",
+        "base_asset",
+        "quote_asset",
+        "endpoint",
+        "query",
+        "method",
+        "timeout_ms",
+        "max_response_bytes",
+        "price_path",
+        "timestamp_path",
+        "timestamp_encoding",
+        "quote_conversion"
+      ],
+      "properties": {
+        "source_id": { "type": "string", "minLength": 1 },
+        "venue": { "type": "string", "minLength": 1 },
+        "independence_group": { "type": "string", "minLength": 1 },
+        "adapter_status": { "type": "string", "enum": ["initial_phase", "stretch"] },
+        "market_id": { "type": "string", "minLength": 1 },
+        "base_asset": { "type": "string", "minLength": 1 },
+        "quote_asset": { "type": "string", "enum": ["USD", "USDT"] },
+        "endpoint": { "type": "string", "pattern": "^https://[^/]+/.*$" },
+        "query": { "type": "string" },
+        "method": { "type": "string", "const": "GET" },
+        "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 30000 },
+        "max_response_bytes": { "type": "integer", "minimum": 1, "maximum": 1048576 },
+        "price_path": { "type": "string", "minLength": 1 },
+        "timestamp_path": { "type": "string", "minLength": 1 },
+        "timestamp_encoding": {
+          "type": "string",
+          "enum": ["unix_ms", "unix_s_fractional", "rfc3339"]
+        },
+        "quote_conversion": { "type": "string", "enum": ["none", "usdt_usd"] },
+        "result_pair_key": { "type": "string", "minLength": 1 }
+      }
+    },
+    "dex": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "pools",
+        "quote_size",
+        "min_liquidity",
+        "max_price_impact_bps",
+        "twap_window_seconds",
+        "min_twap_observations",
+        "cross_pool_deviation_bps",
+        "cold_start_policy",
+        "degraded_one_pool_mode"
+      ],
+      "properties": {
+        "status": { "type": "string", "enum": ["pending_review", "approved"] },
+        "pools": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "pool_address",
+              "token_a_address",
+              "token_a_id",
+              "token_a_decimals",
+              "token_b_address",
+              "token_b_id",
+              "token_b_decimals",
+              "expected_code_hash"
+            ],
+            "properties": {
+              "pool_address": { "type": "string" },
+              "token_a_address": { "type": "string" },
+              "token_a_id": { "type": ["integer", "null"] },
+              "token_a_decimals": { "$ref": "#/$defs/nat" },
+              "token_b_address": { "type": "string" },
+              "token_b_id": { "type": ["integer", "null"] },
+              "token_b_decimals": { "$ref": "#/$defs/nat" },
+              "expected_code_hash": { "type": "string" }
+            }
+          }
+        },
+        "quote_size": { "anyOf": [{ "$ref": "#/$defs/natString" }, { "type": "null" }] },
+        "min_liquidity": { "anyOf": [{ "$ref": "#/$defs/natString" }, { "type": "null" }] },
+        "max_price_impact_bps": { "anyOf": [{ "$ref": "#/$defs/bps" }, { "type": "null" }] },
+        "twap_window_seconds": { "anyOf": [{ "$ref": "#/$defs/nat1" }, { "type": "null" }] },
+        "min_twap_observations": { "anyOf": [{ "$ref": "#/$defs/nat1" }, { "type": "null" }] },
+        "cross_pool_deviation_bps": { "anyOf": [{ "$ref": "#/$defs/bps" }, { "type": "null" }] },
+        "cold_start_policy": { "type": "string", "const": "fail_closed" },
+        "degraded_one_pool_mode": { "type": "boolean", "const": false }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_id",
+        "group",
+        "lifecycle",
+        "authoritative",
+        "consumable",
+        "decimals",
+        "unit",
+        "timestamp_semantics",
+        "min_independent_observations",
+        "max_observation_age_seconds",
+        "max_source_deviation_bps",
+        "max_set_deviation_bps",
+        "max_signer_deviation_bps",
+        "aggregation",
+        "rounding_mode",
+        "absolute_min_price",
+        "absolute_max_price",
+        "max_movement_bps",
+        "derivation",
+        "sources"
+      ],
+      "properties": {
+        "asset_id": { "type": "string", "pattern": "^[A-Z0-9_]+$" },
+        "group": { "$ref": "#/$defs/group" },
+        "lifecycle": { "$ref": "#/$defs/lifecycle" },
+        "authoritative": { "type": "boolean" },
+        "consumable": { "type": "boolean" },
+        "decimals": { "type": "integer", "minimum": 0, "maximum": 18 },
+        "unit": { "type": "string", "const": "USD" },
+        "timestamp_semantics": { "type": "string", "const": "venue_observation_time" },
+        "min_independent_observations": { "$ref": "#/$defs/nat1" },
+        "max_observation_age_seconds": { "$ref": "#/$defs/nat1" },
+        "max_source_deviation_bps": { "$ref": "#/$defs/bps" },
+        "max_set_deviation_bps": { "$ref": "#/$defs/bps" },
+        "max_signer_deviation_bps": { "$ref": "#/$defs/bps" },
+        "aggregation": { "type": "string", "const": "median_lower" },
+        "rounding_mode": { "type": "string", "const": "half_away_from_zero" },
+        "absolute_min_price": { "$ref": "#/$defs/natString" },
+        "absolute_max_price": { "$ref": "#/$defs/natString" },
+        "max_movement_bps": { "$ref": "#/$defs/bps" },
+        "derivation": {
+          "type": "string",
+          "enum": ["cex_median", "dex_twap_times_usd", "peg_factor_times_usd"]
+        },
+        "notes": { "type": "string" },
+        "sources": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/source" }
+        },
+        "dex": { "$ref": "#/$defs/dex" }
+      }
+    },
+    "register": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "register_id",
+        "lifecycle",
+        "authoritative",
+        "domain",
+        "config_version",
+        "publication_groups",
+        "time_policy",
+        "payload",
+        "governance",
+        "assets"
+      ],
+      "properties": {
+        "schema_version": { "type": "integer", "const": 1 },
+        "register_id": { "type": "string", "const": "tezoracle-parameter-register" },
+        "lifecycle": { "$ref": "#/$defs/lifecycle" },
+        "authoritative": { "type": "boolean" },
+        "domain": { "type": "string", "const": "TEZORACLE_V1" },
+        "config_version": { "$ref": "#/$defs/nat1" },
+        "notes": { "type": "string" },
+        "publication_groups": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["CORE", "USDTZ", "TZBTC"],
+          "properties": {
+            "CORE": { "$ref": "#/$defs/groupSpec" },
+            "USDTZ": { "$ref": "#/$defs/groupSpec" },
+            "TZBTC": { "$ref": "#/$defs/groupSpec" }
+          }
+        },
+        "time_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "validity_window_seconds",
+            "max_clock_skew_seconds",
+            "activation_delay_levels",
+            "min_activation_delay_levels"
+          ],
+          "properties": {
+            "validity_window_seconds": { "$ref": "#/$defs/nat1" },
+            "max_clock_skew_seconds": { "$ref": "#/$defs/nat" },
+            "activation_delay_levels": { "$ref": "#/$defs/nat1" },
+            "min_activation_delay_levels": { "$ref": "#/$defs/nat1" }
+          }
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "price_nat_max",
+            "decimals_min",
+            "decimals_max",
+            "digest_size_bytes"
+          ],
+          "properties": {
+            "price_nat_max": { "$ref": "#/$defs/natString" },
+            "decimals_min": { "$ref": "#/$defs/nat" },
+            "decimals_max": { "type": "integer", "minimum": 0, "maximum": 18 },
+            "digest_size_bytes": { "type": "integer", "const": 32 }
+          }
+        },
+        "governance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "delayed_activation",
+            "pause_immediate",
+            "unpause_delayed",
+            "production_requires_separate_approval"
+          ],
+          "properties": {
+            "delayed_activation": { "type": "boolean", "const": true },
+            "pause_immediate": { "type": "boolean", "const": true },
+            "unpause_delayed": { "type": "boolean", "const": true },
+            "production_requires_separate_approval": { "type": "boolean", "const": true }
+          }
+        },
+        "assets": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[A-Z0-9_]+$" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "groupSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset_ids"],
+      "properties": {
+        "asset_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[A-Z0-9_]+$" },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}

@@ -8,9 +8,6 @@ on:
 permissions:
   contents: read
 
-# Skeleton checks only. Packing-vector parity (byte-for-byte SmartPy vs TypeScript)
-# is added after the payload freeze; that job must not depend on secrets.
-
 jobs:
   typescript:
     name: TypeScript
@@ -36,3 +33,21 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -r requirements-dev.txt
       - run: python -m pytest
+
+  packing-parity:
+    name: Packing parity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: npm ci
+      - run: npm run test:packing
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pytest tests/packing/test_vectors.py

@@ -1,1 +1,2 @@
 pytest>=8.0,<9
+smartpy-tezos==0.24.2
