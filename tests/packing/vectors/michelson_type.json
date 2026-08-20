@@ -1,0 +1,157 @@
+{
+  "prim": "pair",
+  "args": [
+    {
+      "prim": "string",
+      "annots": [
+        "%domain"
+      ]
+    },
+    {
+      "prim": "pair",
+      "args": [
+        {
+          "prim": "chain_id",
+          "annots": [
+            "%chain_id"
+          ]
+        },
+        {
+          "prim": "pair",
+          "args": [
+            {
+              "prim": "address",
+              "annots": [
+                "%oracle_address"
+              ]
+            },
+            {
+              "prim": "pair",
+              "args": [
+                {
+                  "prim": "nat",
+                  "annots": [
+                    "%config_version"
+                  ]
+                },
+                {
+                  "prim": "pair",
+                  "args": [
+                    {
+                      "prim": "bytes",
+                      "annots": [
+                        "%policy_hash"
+                      ]
+                    },
+                    {
+                      "prim": "pair",
+                      "args": [
+                        {
+                          "prim": "string",
+                          "annots": [
+                            "%publication_group"
+                          ]
+                        },
+                        {
+                          "prim": "pair",
+                          "args": [
+                            {
+                              "prim": "nat",
+                              "annots": [
+                                "%round"
+                              ]
+                            },
+                            {
+                              "prim": "pair",
+                              "args": [
+                                {
+                                  "prim": "timestamp",
+                                  "annots": [
+                                    "%valid_from"
+                                  ]
+                                },
+                                {
+                                  "prim": "pair",
+                                  "args": [
+                                    {
+                                      "prim": "timestamp",
+                                      "annots": [
+                                        "%valid_until"
+                                      ]
+                                    },
+                                    {
+                                      "prim": "pair",
+                                      "args": [
+                                        {
+                                          "prim": "bytes",
+                                          "annots": [
+                                            "%evidence_digest"
+                                          ]
+                                        },
+                                        {
+                                          "prim": "list",
+                                          "annots": [
+                                            "%assets"
+                                          ],
+                                          "args": [
+                                            {
+                                              "prim": "pair",
+                                              "args": [
+                                                {
+                                                  "prim": "string",
+                                                  "annots": [
+                                                    "%asset_id"
+                                                  ]
+                                                },
+                                                {
+                                                  "prim": "pair",
+                                                  "args": [
+                                                    {
+                                                      "prim": "nat",
+                                                      "annots": [
+                                                        "%price"
+                                                      ]
+                                                    },
+                                                    {
+                                                      "prim": "pair",
+                                                      "args": [
+                                                        {
+                                                          "prim": "nat",
+                                                          "annots": [
+                                                            "%decimals"
+                                                          ]
+                                                        },
+                                                        {
+                                                          "prim": "timestamp",
+                                                          "annots": [
+                                                            "%observation_time"
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

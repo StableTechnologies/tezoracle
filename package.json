@@ -10,7 +10,9 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test tests/validator/smoke.test.ts tests/packing/smoke.test.ts",
+    "test": "node --import tsx --test tests/validator/smoke.test.ts tests/packing/vectors.test.ts tests/config/register.test.ts",
+    "test:packing": "node --import tsx --test tests/packing/vectors.test.ts",
+    "packing:freeze-vectors": "tsx scripts/freeze-packing-vectors.ts",
     "build": "tsc --noEmit"
   },
   "devDependencies": {

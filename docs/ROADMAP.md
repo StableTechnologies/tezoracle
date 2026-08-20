@@ -10,7 +10,7 @@ Anything not listed under initial scope requires **separate approval**. Passing 
 | --- | --- |
 | Repository, docs, CI | Public baseline, Apache-2.0, no secrets, passing skeleton CI |
 | Payload, evidence, observer agreement, parameter register | Frozen specs; USDT, XTZ, BTC as draft/testnet; USDtz and tzBTC non-authoritative stubs |
-| Packing and golden vectors | SmartPy and TypeScript byte-for-byte; signing blocked until green |
+| Packing and golden vectors | SmartPy and TypeScript byte-for-byte; frozen in `tests/packing/vectors/` |
 | N-of-M contract | Configurable `N`, `M`, class minima; pending/active; delayed unpause/governance; view `(nat, timestamp)` |
 | TezFin boundary docs | Upstream price + observation time; aliases/age/bounds remain in TezFin |
 | Class A | Adapter interface, two CEX adapters, derivation, candidate verify, testnet signing |

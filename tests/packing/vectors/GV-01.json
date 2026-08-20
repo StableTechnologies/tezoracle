@@ -1,0 +1,201 @@
+{
+  "id": "GV-01",
+  "description": "CORE batch on Ghostnet with typical six-decimal prices",
+  "payload": {
+    "domain": "TEZORACLE_V1",
+    "chain_id": "NetXnHfVqm9iesp",
+    "oracle_address": "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy",
+    "config_version": "1",
+    "policy_hash": "5201392d4c452aabb1e891bd7fc0abab9ee8d2f5d49565854792c8b7ea9aac09",
+    "publication_group": "CORE",
+    "round": "1",
+    "valid_from": "1786680000",
+    "valid_until": "1786680180",
+    "evidence_digest": "7468717354217443009f4c1aac3b6d0c4aefa9fab0a20c03f1daecd7c889aa57",
+    "assets": [
+      {
+        "asset_id": "BTC_USD",
+        "price": "65000000000",
+        "decimals": "6",
+        "observation_time": "1786679900"
+      },
+      {
+        "asset_id": "USDT_USD",
+        "price": "1000100",
+        "decimals": "6",
+        "observation_time": "1786679920"
+      },
+      {
+        "asset_id": "XTZ_USD",
+        "price": "750000",
+        "decimals": "6",
+        "observation_time": "1786679850"
+      }
+    ]
+  },
+  "micheline": {
+    "prim": "Pair",
+    "args": [
+      {
+        "string": "TEZORACLE_V1"
+      },
+      {
+        "prim": "Pair",
+        "args": [
+          {
+            "string": "NetXnHfVqm9iesp"
+          },
+          {
+            "prim": "Pair",
+            "args": [
+              {
+                "string": "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy"
+              },
+              {
+                "prim": "Pair",
+                "args": [
+                  {
+                    "int": "1"
+                  },
+                  {
+                    "prim": "Pair",
+                    "args": [
+                      {
+                        "bytes": "5201392d4c452aabb1e891bd7fc0abab9ee8d2f5d49565854792c8b7ea9aac09"
+                      },
+                      {
+                        "prim": "Pair",
+                        "args": [
+                          {
+                            "string": "CORE"
+                          },
+                          {
+                            "prim": "Pair",
+                            "args": [
+                              {
+                                "int": "1"
+                              },
+                              {
+                                "prim": "Pair",
+                                "args": [
+                                  {
+                                    "int": "1786680000"
+                                  },
+                                  {
+                                    "prim": "Pair",
+                                    "args": [
+                                      {
+                                        "int": "1786680180"
+                                      },
+                                      {
+                                        "prim": "Pair",
+                                        "args": [
+                                          {
+                                            "bytes": "7468717354217443009f4c1aac3b6d0c4aefa9fab0a20c03f1daecd7c889aa57"
+                                          },
+                                          [
+                                            {
+                                              "prim": "Pair",
+                                              "args": [
+                                                {
+                                                  "string": "BTC_USD"
+                                                },
+                                                {
+                                                  "prim": "Pair",
+                                                  "args": [
+                                                    {
+                                                      "int": "65000000000"
+                                                    },
+                                                    {
+                                                      "prim": "Pair",
+                                                      "args": [
+                                                        {
+                                                          "int": "6"
+                                                        },
+                                                        {
+                                                          "int": "1786679900"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "prim": "Pair",
+                                              "args": [
+                                                {
+                                                  "string": "USDT_USD"
+                                                },
+                                                {
+                                                  "prim": "Pair",
+                                                  "args": [
+                                                    {
+                                                      "int": "1000100"
+                                                    },
+                                                    {
+                                                      "prim": "Pair",
+                                                      "args": [
+                                                        {
+                                                          "int": "6"
+                                                        },
+                                                        {
+                                                          "int": "1786679920"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "prim": "Pair",
+                                              "args": [
+                                                {
+                                                  "string": "XTZ_USD"
+                                                },
+                                                {
+                                                  "prim": "Pair",
+                                                  "args": [
+                                                    {
+                                                      "int": "750000"
+                                                    },
+                                                    {
+                                                      "prim": "Pair",
+                                                      "args": [
+                                                        {
+                                                          "int": "6"
+                                                        },
+                                                        {
+                                                          "int": "1786679850"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "packed_hex": "050707010000000c54455a4f5241434c455f563107070a00000004af1864d907070a00000016019142eb01374f37f03023eefc82f2ede96e8ae515000707000107070a000000205201392d4c452aabb1e891bd7fc0abab9ee8d2f5d49565854792c8b7ea9aac0907070100000004434f52450707000107070080cbf4a70d070700b4cdf4a70d07070a000000207468717354217443009f4c1aac3b6d0c4aefa9fab0a20c03f1daecd7c889aa57020000005e070701000000074254435f55534407070080a8eaa4e40307070006009cc9f4a70d07070100000008555344545f555344070700a48a7a0707000600b0c9f4a70d0707010000000758545a5f555344070700b0c65b0707000600aac8f4a70d",
+  "blake2b_hex": "3766e3efc1d451de531abac9d7f7d3fce0e1386a26b5bdd6378946a52d115f3a"
+}
