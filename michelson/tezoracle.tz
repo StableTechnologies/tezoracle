@@ -1,0 +1,2605 @@
+parameter (or (or (or (string %activate_asset_unpause) (or (unit %activate_config) (unit %activate_unpause))) (or (string %cancel_asset_unpause) (or (unit %cancel_pending_config) (unit %cancel_pending_unpause)))) (or (or (unit %pause) (or (string %pause_asset) (string %propose_asset_unpause))) (or (pair %propose_config (nat %activation_delay_levels) (pair (address %admin) (pair (map %assets string (pair (nat %decimals) (pair (nat %max_observation_age_seconds) (pair (nat %absolute_min_price) (pair (nat %absolute_max_price) (nat %max_movement_bps)))))) (pair (map %class_minima string nat) (pair (nat %config_version) (pair (map %groups string (list string)) (pair (address %guardian) (pair (nat %max_clock_skew_seconds) (pair (nat %min_activation_delay_levels) (pair (bytes %policy_hash) (pair (nat %price_nat_max) (pair (map %signers nat (pair (key %public_key) (pair (string %class_id) (bool %active)))) (pair (nat %threshold_m) (pair (nat %threshold_n) (nat %validity_window_seconds))))))))))))))) (or (unit %propose_unpause) (pair %submit (pair %payload (string %domain) (pair (chain_id %chain_id) (pair (address %oracle_address) (pair (nat %config_version) (pair (bytes %policy_hash) (pair (string %publication_group) (pair (nat %round) (pair (timestamp %valid_from) (pair (timestamp %valid_until) (pair (bytes %evidence_digest) (list %assets (pair (string %asset_id) (pair (nat %price) (pair (nat %decimals) (timestamp %observation_time))))))))))))))) (list %signatures (pair (nat %index) (signature %signature))))))));
+storage   (pair (nat %activation_delay_levels) (pair (address %admin) (pair (map %assets string (pair (nat %absolute_max_price) (pair (nat %absolute_min_price) (pair (option %active (pair (nat %accepted_level) (pair (nat %config_version) (pair (timestamp %observation_time) (pair (nat %price) (nat %round)))))) (pair (nat %decimals) (pair (timestamp %last_observation_time) (pair (nat %max_movement_bps) (pair (nat %max_observation_age_seconds) (pair (bool %paused) (pair (option %pending (pair (nat %accepted_level) (pair (nat %activation_level) (pair (nat %config_version) (pair (timestamp %observation_time) (pair (nat %price) (nat %round))))))) (option %pending_unpause_level nat))))))))))) (pair (map %class_minima string nat) (pair (nat %config_version) (pair (map %groups string (list string)) (pair (address %guardian) (pair (map %last_round string nat) (pair (nat %max_clock_skew_seconds) (pair (nat %min_activation_delay_levels) (pair (bool %paused) (pair (option %pending_config (pair (nat %activate_at_level) (pair %init (nat %activation_delay_levels) (pair (address %admin) (pair (map %assets string (pair (nat %decimals) (pair (nat %max_observation_age_seconds) (pair (nat %absolute_min_price) (pair (nat %absolute_max_price) (nat %max_movement_bps)))))) (pair (map %class_minima string nat) (pair (nat %config_version) (pair (map %groups string (list string)) (pair (address %guardian) (pair (nat %max_clock_skew_seconds) (pair (nat %min_activation_delay_levels) (pair (bytes %policy_hash) (pair (nat %price_nat_max) (pair (map %signers nat (pair (key %public_key) (pair (string %class_id) (bool %active)))) (pair (nat %threshold_m) (pair (nat %threshold_n) (nat %validity_window_seconds))))))))))))))))) (pair (option %pending_unpause_level nat) (pair (bytes %policy_hash) (pair (nat %price_nat_max) (pair (map %signers nat (pair (key %public_key) (pair (string %class_id) (bool %active)))) (pair (nat %threshold_m) (pair (nat %threshold_n) (nat %validity_window_seconds)))))))))))))))))));
+code
+  {
+    LAMBDA
+      (pair (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair nat (pair timestamp (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))
+      (pair unit (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair nat (pair timestamp (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))
+      {
+        UNPAIR;
+        EMPTY_MAP string (pair nat (pair nat (pair (option (pair nat (pair nat (pair timestamp (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))));
+        DUP 2;
+        GET 5;
+        ITER
+          {
+            DUP 4;
+            GET 5;
+            DUP 2;
+            CAR;
+            MEM;
+            IF
+              {
+                DUP 4;
+                GET 5;
+                DUP 2;
+                CAR;
+                GET;
+                IF_NONE
+                  {
+                    PUSH int 361;
+                    FAILWITH;
+                  }
+                  {};
+                DIG 2;
+                DUP 2;
+                GET 18;
+                DUP 3;
+                GET 17;
+                DUP 4;
+                GET 15;
+                DUP 6;
+                GET 5;
+                DUP 7;
+                GET 10;
+                DUP 7;
+                GET 9;
+                DUP 9;
+                GET 3;
+                DUP 9;
+                GET 5;
+                DUP 11;
+                GET 7;
+                DUP 12;
+                GET 9;
+                PAIR 10;
+                DIG 2;
+                DROP;
+                SOME;
+                DIG 2;
+                CAR;
+                UPDATE;
+              }
+              {
+                SWAP;
+                NONE nat;
+                NONE (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))));
+                PUSH bool False;
+                DUP 5;
+                GET 5;
+                DUP 6;
+                GET 10;
+                PUSH timestamp "1970-01-01T00:00:00Z";
+                DUP 8;
+                GET 3;
+                NONE (pair nat (pair nat (pair timestamp (pair nat nat))));
+                DUP 10;
+                GET 7;
+                DUP 11;
+                GET 9;
+                PAIR 10;
+                SOME;
+                DIG 2;
+                CAR;
+                UPDATE;
+              };
+          };
+        DIG 2;
+        DUP 3;
+        GET 3;
+        UPDATE 3;
+        DUP 3;
+        GET 13;
+        UPDATE 13;
+        DUP 3;
+        GET 9;
+        UPDATE 9;
+        DUP 3;
+        GET 19;
+        UPDATE 27;
+        DUP 3;
+        GET 27;
+        UPDATE 35;
+        DUP 3;
+        GET 25;
+        UPDATE 33;
+        DUP 3;
+        CAR;
+        UPDATE 1;
+        DUP 3;
+        GET 17;
+        UPDATE 19;
+        DUP 3;
+        GET 15;
+        UPDATE 17;
+        DUP 3;
+        GET 28;
+        UPDATE 36;
+        DUP 3;
+        GET 21;
+        UPDATE 29;
+        DUP 3;
+        GET 23;
+        UPDATE 31;
+        DUP 3;
+        GET 7;
+        UPDATE 7;
+        DUG 2;
+        DUG 2;
+        GET 11;
+        UPDATE 11;
+        SWAP;
+        UPDATE 5;
+        UNIT;
+        PAIR;
+      };
+    SWAP;
+    LAMBDA
+      (pair unit (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair nat (pair timestamp (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))
+      (pair unit (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair nat (pair timestamp (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))
+      {
+        UNPAIR;
+        DUP 2;
+        GET 5;
+        ITER
+          {
+            DUP;
+            CDR;
+            DUP;
+            GET 17;
+            IF_NONE
+              {
+                DROP 2;
+              }
+              {
+                DROP;
+                DUP;
+                GET 17;
+                IF_NONE
+                  {
+                    PUSH int 327;
+                    FAILWITH;
+                  }
+                  {};
+                DUP;
+                GET 3;
+                LEVEL;
+                COMPARE;
+                GE;
+                IF
+                  {
+                    PUSH bool True;
+                    DUP 3;
+                    GET 5;
+                    IF_NONE
+                      {}
+                      {
+                        DROP 2;
+                        DUP 2;
+                        GET 5;
+                        IF_NONE
+                          {
+                            PUSH int 331;
+                            FAILWITH;
+                          }
+                          {};
+                        GET 7;
+                        LAMBDA
+                          (pair nat (pair nat nat))
+                          bool
+                          {
+                            DUP;
+                            GET 4;
+                            DUP 2;
+                            GET 3;
+                            DIG 2;
+                            CAR;
+                            DUP 3;
+                            DUP 3;
+                            COMPARE;
+                            GE;
+                            IF
+                              {
+                                DUP 3;
+                                DIG 2;
+                                SUB;
+                                ISNAT;
+                                IF_NONE
+                                  {
+                                    PUSH int 283;
+                                    FAILWITH;
+                                  }
+                                  {};
+                                DUG 2;
+                                MUL;
+                                PUSH nat 10000;
+                                DIG 2;
+                                MUL;
+                                COMPARE;
+                                GT;
+                              }
+                              {
+                                SWAP;
+                                DUP 3;
+                                SUB;
+                                ISNAT;
+                                IF_NONE
+                                  {
+                                    PUSH int 286;
+                                    FAILWITH;
+                                  }
+                                  {};
+                                DUG 2;
+                                MUL;
+                                PUSH nat 10000;
+                                DIG 2;
+                                MUL;
+                                COMPARE;
+                                GT;
+                              };
+                          };
+                        SWAP;
+                        DUP 3;
+                        GET 9;
+                        DUP 5;
+                        GET 11;
+                        PAIR 3;
+                        EXEC;
+                        NOT;
+                      };
+                    DUP;
+                    IF
+                      {
+                        DIG 2;
+                        DUP 3;
+                        GET 10;
+                        DUP 4;
+                        GET 9;
+                        DUP 5;
+                        GET 7;
+                        DUP 6;
+                        GET 5;
+                        DUP 7;
+                        CAR;
+                        PAIR 5;
+                        DIG 2;
+                        DROP;
+                        DIG 2;
+                        DROP;
+                        SOME;
+                        UPDATE 5;
+                        NONE (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))));
+                        UPDATE 17;
+                      }
+                      {
+                        DROP 2;
+                        PUSH bool True;
+                        UPDATE 15;
+                        NONE (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))));
+                        UPDATE 17;
+                      };
+                    DIG 3;
+                    DUP;
+                    GET 5;
+                    DIG 2;
+                    SOME;
+                    DIG 3;
+                    CAR;
+                    UPDATE;
+                    UPDATE 5;
+                    SWAP;
+                  }
+                  {
+                    DROP 3;
+                  };
+              };
+          };
+        DROP;
+        UNIT;
+        PAIR;
+      };
+    SWAP;
+    LAMBDA
+      (pair string (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair nat (pair timestamp (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))
+      (pair (pair nat timestamp) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair nat (pair timestamp (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))
+      {
+        UNPAIR;
+        DUP 2;
+        GET 21;
+        IF
+          {
+            PUSH string "PAUSED";
+            FAILWITH;
+          }
+          {};
+        DUP 2;
+        GET 5;
+        DUP 2;
+        GET;
+        IF_NONE
+          {
+            PUSH string "ASSET_ID";
+            FAILWITH;
+          }
+          {};
+        DUP;
+        GET 15;
+        IF
+          {
+            PUSH string "ASSET_PAUSED";
+            FAILWITH;
+          }
+          {};
+        NONE (pair nat timestamp);
+        PUSH bool False;
+        DUP 3;
+        GET 17;
+        IF_NONE
+          {
+            DIG 3;
+            DROP;
+          }
+          {
+            DROP;
+            DUP 3;
+            GET 17;
+            IF_NONE
+              {
+                PUSH int 411;
+                FAILWITH;
+              }
+              {};
+            DUP;
+            GET 3;
+            LEVEL;
+            COMPARE;
+            GE;
+            IF
+              {
+                PUSH bool True;
+                DUP 5;
+                GET 5;
+                IF_NONE
+                  {}
+                  {
+                    DROP 2;
+                    DUP 4;
+                    GET 5;
+                    IF_NONE
+                      {
+                        PUSH int 415;
+                        FAILWITH;
+                      }
+                      {};
+                    GET 7;
+                    LAMBDA
+                      (pair nat (pair nat nat))
+                      bool
+                      {
+                        DUP;
+                        GET 4;
+                        DUP 2;
+                        GET 3;
+                        DIG 2;
+                        CAR;
+                        DUP 3;
+                        DUP 3;
+                        COMPARE;
+                        GE;
+                        IF
+                          {
+                            DUP 3;
+                            DIG 2;
+                            SUB;
+                            ISNAT;
+                            IF_NONE
+                              {
+                                PUSH int 283;
+                                FAILWITH;
+                              }
+                              {};
+                            DUG 2;
+                            MUL;
+                            PUSH nat 10000;
+                            DIG 2;
+                            MUL;
+                            COMPARE;
+                            GT;
+                          }
+                          {
+                            SWAP;
+                            DUP 3;
+                            SUB;
+                            ISNAT;
+                            IF_NONE
+                              {
+                                PUSH int 286;
+                                FAILWITH;
+                              }
+                              {};
+                            DUG 2;
+                            MUL;
+                            PUSH nat 10000;
+                            DIG 2;
+                            MUL;
+                            COMPARE;
+                            GT;
+                          };
+                      };
+                    SWAP;
+                    DUP 3;
+                    GET 9;
+                    DUP 7;
+                    GET 11;
+                    PAIR 3;
+                    EXEC;
+                    NOT;
+                  };
+                DUP;
+                IF
+                  {
+                    DIG 2;
+                    DROP;
+                    DIG 2;
+                    DROP 2;
+                    DIG 2;
+                    DROP;
+                    DUP;
+                    GET 7;
+                    SWAP;
+                    GET 9;
+                    PAIR;
+                    SOME;
+                    PUSH bool True;
+                  }
+                  {
+                    DROP 2;
+                    DIG 3;
+                    DROP;
+                  };
+              }
+              {
+                DROP;
+                DIG 3;
+                DROP;
+              };
+          };
+        IF
+          {
+            SWAP;
+            DROP;
+          }
+          {
+            DUP 2;
+            GET 5;
+            IF_NONE
+              {
+                SWAP;
+                DROP;
+              }
+              {
+                DROP 2;
+                GET 5;
+                IF_NONE
+                  {
+                    PUSH int 433;
+                    FAILWITH;
+                  }
+                  {};
+                DUP;
+                GET 5;
+                SWAP;
+                GET 7;
+                PAIR;
+                SOME;
+              };
+          };
+        IF_NONE
+          {
+            PUSH string "NO_PRICE";
+            FAILWITH;
+          }
+          {};
+        PAIR;
+      };
+    SWAP;
+    UNPAIR;
+    IF_LEFT
+      {
+        IF_LEFT
+          {
+            IF_LEFT
+              {
+                DUP 4;
+                UNIT;
+                SWAP;
+                DIG 3;
+                DIG 2;
+                PAIR;
+                EXEC;
+                CDR;
+                DUG 4;
+                DUG 4;
+                DIG 3;
+                DIG 4;
+                DUP 2;
+                GET 5;
+                DUP 2;
+                GET;
+                IF_NONE
+                  {
+                    PUSH string "ASSET_ID";
+                    FAILWITH;
+                  }
+                  {};
+                DUP;
+                GET 18;
+                IF_NONE
+                  {
+                    PUSH string "NO_PENDING";
+                    FAILWITH;
+                  }
+                  {};
+                DUP;
+                LEVEL;
+                DIG 2;
+                DROP;
+                DIG 5;
+                DROP;
+                DIG 5;
+                DROP;
+                DIG 5;
+                DROP;
+                COMPARE;
+                GE;
+                IF
+                  {}
+                  {
+                    PUSH string "DELAY";
+                    FAILWITH;
+                  };
+                PUSH bool False;
+                UPDATE 15;
+                NONE nat;
+                UPDATE 18;
+                DIG 2;
+                DUP;
+                GET 5;
+                DIG 2;
+                SOME;
+                DIG 3;
+                UPDATE;
+                UPDATE 5;
+                NIL operation;
+              }
+              {
+                IF_LEFT
+                  {
+                    DUP 4;
+                    UNIT;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUG 4;
+                    DUG 4;
+                    DIG 3;
+                    DIG 4;
+                    DUP 2;
+                    GET 23;
+                    IF_NONE
+                      {
+                        PUSH string "NO_PENDING";
+                        FAILWITH;
+                      }
+                      {};
+                    DUP;
+                    CAR;
+                    LEVEL;
+                    DIG 3;
+                    DROP;
+                    DIG 4;
+                    DROP;
+                    DIG 4;
+                    DROP;
+                    COMPARE;
+                    GE;
+                    IF
+                      {}
+                      {
+                        PUSH string "DELAY";
+                        FAILWITH;
+                      };
+                    CDR;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    NONE (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))));
+                    UPDATE 23;
+                    NIL operation;
+                    DUP 2;
+                    GET 9;
+                    EMIT %tezoracle_config nat;
+                    CONS;
+                  }
+                  {
+                    DUP 4;
+                    UNIT;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUG 4;
+                    DUG 4;
+                    DIG 3;
+                    DIG 4;
+                    DUP 2;
+                    GET 25;
+                    IF_NONE
+                      {
+                        PUSH string "NO_PENDING";
+                        FAILWITH;
+                      }
+                      {};
+                    DUP;
+                    LEVEL;
+                    DIG 2;
+                    DROP;
+                    DIG 2;
+                    DROP;
+                    DIG 3;
+                    DROP;
+                    DIG 3;
+                    DROP;
+                    DIG 3;
+                    DROP;
+                    COMPARE;
+                    GE;
+                    IF
+                      {}
+                      {
+                        PUSH string "DELAY";
+                        FAILWITH;
+                      };
+                    PUSH bool False;
+                    UPDATE 21;
+                    NONE nat;
+                    UPDATE 25;
+                    NIL operation;
+                  };
+              };
+          }
+          {
+            IF_LEFT
+              {
+                DIG 2;
+                DROP;
+                DIG 3;
+                DROP;
+                DUP 2;
+                GET 3;
+                SENDER;
+                COMPARE;
+                EQ;
+                IF
+                  {}
+                  {
+                    PUSH string "NOT_ADMIN";
+                    FAILWITH;
+                  };
+                DIG 2;
+                UNIT;
+                SWAP;
+                DIG 3;
+                DIG 2;
+                PAIR;
+                EXEC;
+                CDR;
+                SWAP;
+                DUP 2;
+                GET 5;
+                DUP 2;
+                GET;
+                IF_NONE
+                  {
+                    PUSH string "ASSET_ID";
+                    FAILWITH;
+                  }
+                  {};
+                DUP;
+                GET 18;
+                IF_NONE
+                  {
+                    PUSH string "NO_PENDING";
+                    FAILWITH;
+                  }
+                  {
+                    DROP;
+                  };
+                NONE nat;
+                UPDATE 18;
+                DIG 2;
+                DUP;
+                GET 5;
+                DIG 2;
+                SOME;
+                DIG 3;
+                UPDATE;
+                UPDATE 5;
+                NIL operation;
+              }
+              {
+                IF_LEFT
+                  {
+                    DROP;
+                    SWAP;
+                    DROP;
+                    DIG 2;
+                    DROP;
+                    DUP;
+                    GET 3;
+                    SENDER;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {}
+                      {
+                        PUSH string "NOT_ADMIN";
+                        FAILWITH;
+                      };
+                    UNIT;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUP;
+                    GET 23;
+                    IF_NONE
+                      {
+                        PUSH string "NO_PENDING";
+                        FAILWITH;
+                      }
+                      {
+                        DROP;
+                      };
+                    NONE (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))));
+                    UPDATE 23;
+                    NIL operation;
+                    DUP 2;
+                    GET 9;
+                    EMIT %tezoracle_config nat;
+                    CONS;
+                  }
+                  {
+                    DROP;
+                    SWAP;
+                    DROP;
+                    DIG 2;
+                    DROP;
+                    DUP;
+                    GET 3;
+                    SENDER;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {}
+                      {
+                        PUSH string "NOT_ADMIN";
+                        FAILWITH;
+                      };
+                    UNIT;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUP;
+                    GET 25;
+                    IF_NONE
+                      {
+                        PUSH string "NO_PENDING";
+                        FAILWITH;
+                      }
+                      {
+                        DROP;
+                      };
+                    NONE nat;
+                    UPDATE 25;
+                    NIL operation;
+                  };
+              };
+          };
+      }
+      {
+        IF_LEFT
+          {
+            IF_LEFT
+              {
+                DROP;
+                SWAP;
+                DROP;
+                DIG 2;
+                DROP;
+                DUP;
+                GET 3;
+                SENDER;
+                COMPARE;
+                EQ;
+                IF
+                  {
+                    PUSH bool True;
+                  }
+                  {
+                    DUP;
+                    GET 13;
+                    SENDER;
+                    COMPARE;
+                    EQ;
+                  };
+                IF
+                  {}
+                  {
+                    PUSH string "NOT_AUTHORIZED";
+                    FAILWITH;
+                  };
+                UNIT;
+                PAIR;
+                EXEC;
+                CDR;
+                PUSH bool True;
+                UPDATE 21;
+                NONE nat;
+                UPDATE 25;
+                NIL operation;
+                PUSH bool True;
+                EMIT %tezoracle_pause bool;
+                CONS;
+              }
+              {
+                IF_LEFT
+                  {
+                    DIG 2;
+                    DROP;
+                    DIG 3;
+                    DROP;
+                    DUP 2;
+                    GET 3;
+                    SENDER;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {
+                        PUSH bool True;
+                      }
+                      {
+                        DUP 2;
+                        GET 13;
+                        SENDER;
+                        COMPARE;
+                        EQ;
+                      };
+                    IF
+                      {}
+                      {
+                        PUSH string "NOT_AUTHORIZED";
+                        FAILWITH;
+                      };
+                    DIG 2;
+                    UNIT;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    SWAP;
+                    DUP 2;
+                    GET 5;
+                    DUP 2;
+                    GET;
+                    IF_NONE
+                      {
+                        PUSH string "ASSET_ID";
+                        FAILWITH;
+                      }
+                      {};
+                    PUSH bool True;
+                    UPDATE 15;
+                    NONE nat;
+                    UPDATE 18;
+                    DIG 2;
+                    DUP;
+                    GET 5;
+                    DIG 2;
+                    SOME;
+                    DUP 4;
+                    UPDATE;
+                    UPDATE 5;
+                    SWAP;
+                    EMIT %tezoracle_pause string;
+                    NIL operation;
+                    SWAP;
+                    CONS;
+                  }
+                  {
+                    DUP 2;
+                    GET 3;
+                    SENDER;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {}
+                      {
+                        PUSH string "NOT_ADMIN";
+                        FAILWITH;
+                      };
+                    DUP 4;
+                    UNIT;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUG 4;
+                    DUG 4;
+                    DIG 3;
+                    DIG 4;
+                    DUP 2;
+                    GET 5;
+                    DUP 2;
+                    GET;
+                    IF_NONE
+                      {
+                        PUSH string "ASSET_ID";
+                        FAILWITH;
+                      }
+                      {};
+                    DUP;
+                    GET 15;
+                    IF
+                      {}
+                      {
+                        PUSH string "NOT_PAUSED";
+                        FAILWITH;
+                      };
+                    DUP 3;
+                    CAR;
+                    LEVEL;
+                    DIG 5;
+                    DROP;
+                    DIG 5;
+                    DROP;
+                    DIG 5;
+                    DROP;
+                    ADD;
+                    SOME;
+                    UPDATE 18;
+                    DIG 2;
+                    DUP;
+                    GET 5;
+                    DIG 2;
+                    SOME;
+                    DIG 3;
+                    UPDATE;
+                    UPDATE 5;
+                    NIL operation;
+                  };
+              };
+          }
+          {
+            IF_LEFT
+              {
+                DUP 2;
+                GET 3;
+                SENDER;
+                COMPARE;
+                EQ;
+                IF
+                  {}
+                  {
+                    PUSH string "NOT_ADMIN";
+                    FAILWITH;
+                  };
+                DUP 4;
+                UNIT;
+                SWAP;
+                DIG 3;
+                DIG 2;
+                PAIR;
+                EXEC;
+                CDR;
+                DUG 4;
+                DUG 4;
+                DIG 3;
+                DIG 4;
+                LAMBDA
+                  (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat))))))))))))))
+                  bool
+                  {
+                    PUSH nat 1;
+                    DUP 2;
+                    GET 9;
+                    COMPARE;
+                    GE;
+                    IF
+                      {}
+                      {
+                        PUSH string "BAD_CONFIG";
+                        FAILWITH;
+                      };
+                    PUSH nat 32;
+                    DUP 2;
+                    GET 19;
+                    SIZE;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {}
+                      {
+                        PUSH string "POLICY";
+                        FAILWITH;
+                      };
+                    PUSH nat 1;
+                    DUP 2;
+                    GET 17;
+                    COMPARE;
+                    GE;
+                    IF
+                      {}
+                      {
+                        PUSH string "BAD_CONFIG";
+                        FAILWITH;
+                      };
+                    DUP;
+                    GET 17;
+                    DUP 2;
+                    CAR;
+                    COMPARE;
+                    GE;
+                    IF
+                      {}
+                      {
+                        PUSH string "BAD_CONFIG";
+                        FAILWITH;
+                      };
+                    PUSH nat 0;
+                    DUP 2;
+                    GET 15;
+                    COMPARE;
+                    GE;
+                    IF
+                      {}
+                      {
+                        PUSH string "BAD_CONFIG";
+                        FAILWITH;
+                      };
+                    PUSH nat 1;
+                    DUP 2;
+                    GET 28;
+                    COMPARE;
+                    GE;
+                    IF
+                      {}
+                      {
+                        PUSH string "BAD_CONFIG";
+                        FAILWITH;
+                      };
+                    PUSH nat 1;
+                    DUP 2;
+                    GET 21;
+                    COMPARE;
+                    GE;
+                    IF
+                      {}
+                      {
+                        PUSH string "BAD_CONFIG";
+                        FAILWITH;
+                      };
+                    LAMBDA
+                      (pair (map string nat) (pair (map nat (pair key (pair string bool))) (pair nat nat)))
+                      bool
+                      {
+                        DUP;
+                        GET 6;
+                        DUP 2;
+                        GET 5;
+                        DUP 3;
+                        GET 3;
+                        DUP 4;
+                        CAR;
+                        PUSH nat 1;
+                        DUP 5;
+                        COMPARE;
+                        GE;
+                        IF
+                          {}
+                          {
+                            PUSH string "BAD_CONFIG";
+                            FAILWITH;
+                          };
+                        PUSH nat 1;
+                        DUP 4;
+                        COMPARE;
+                        GE;
+                        IF
+                          {}
+                          {
+                            PUSH string "BAD_CONFIG";
+                            FAILWITH;
+                          };
+                        DUP 3;
+                        DUP 5;
+                        COMPARE;
+                        LE;
+                        IF
+                          {}
+                          {
+                            PUSH string "BAD_CONFIG";
+                            FAILWITH;
+                          };
+                        PUSH nat 16;
+                        DUP 4;
+                        COMPARE;
+                        LE;
+                        IF
+                          {}
+                          {
+                            PUSH string "BAD_CONFIG";
+                            FAILWITH;
+                          };
+                        PUSH nat 0;
+                        EMPTY_MAP string nat;
+                        DUP 4;
+                        ITER
+                          {
+                            PUSH nat 1;
+                            DUP 2;
+                            GET 5;
+                            SIZE;
+                            COMPARE;
+                            GE;
+                            IF
+                              {}
+                              {
+                                PUSH string "BAD_CONFIG";
+                                FAILWITH;
+                              };
+                            DUP;
+                            GET 6;
+                            IF
+                              {
+                                DIG 2;
+                                PUSH nat 1;
+                                ADD;
+                                DUG 2;
+                                DUP 2;
+                                DUP 2;
+                                GET 5;
+                                GET;
+                                IF_NONE
+                                  {
+                                    PUSH nat 0;
+                                  }
+                                  {};
+                                DIG 2;
+                                PUSH nat 1;
+                                DIG 2;
+                                ADD;
+                                SOME;
+                                DUP 3;
+                                GET 5;
+                                UPDATE;
+                                SWAP;
+                              }
+                              {};
+                            DUP 5;
+                            ITER
+                              {
+                                DUP;
+                                CAR;
+                                DUP 3;
+                                CAR;
+                                COMPARE;
+                                LT;
+                                IF
+                                  {
+                                    GET 3;
+                                    DUP 2;
+                                    GET 3;
+                                    COMPARE;
+                                    NEQ;
+                                    IF
+                                      {}
+                                      {
+                                        PUSH string "BAD_CONFIG";
+                                        FAILWITH;
+                                      };
+                                  }
+                                  {
+                                    DROP;
+                                  };
+                              };
+                            DROP;
+                          };
+                        DUP 5;
+                        DUP 3;
+                        COMPARE;
+                        EQ;
+                        IF
+                          {}
+                          {
+                            PUSH string "BAD_CONFIG";
+                            FAILWITH;
+                          };
+                        PUSH nat 0;
+                        DUP 4;
+                        ITER
+                          {
+                            SWAP;
+                            DUP 2;
+                            CDR;
+                            ADD;
+                            SWAP;
+                            DUP 3;
+                            DUP 2;
+                            CAR;
+                            GET;
+                            IF_NONE
+                              {
+                                PUSH nat 0;
+                              }
+                              {};
+                            SWAP;
+                            CDR;
+                            COMPARE;
+                            LE;
+                            IF
+                              {}
+                              {
+                                PUSH string "BAD_CONFIG";
+                                FAILWITH;
+                              };
+                          };
+                        SWAP;
+                        DROP;
+                        SWAP;
+                        DROP;
+                        SWAP;
+                        DROP;
+                        SWAP;
+                        DROP;
+                        SWAP;
+                        DROP;
+                        DIG 2;
+                        DROP;
+                        COMPARE;
+                        LE;
+                        IF
+                          {}
+                          {
+                            PUSH string "BAD_CONFIG";
+                            FAILWITH;
+                          };
+                        PUSH bool True;
+                      };
+                    DUP 2;
+                    GET 27;
+                    DUP 3;
+                    GET 25;
+                    DUP 4;
+                    GET 23;
+                    DUP 5;
+                    GET 7;
+                    PAIR 4;
+                    EXEC;
+                    IF
+                      {}
+                      {
+                        PUSH string "Assert failure: assert_quorum_config(sp.record(class_minima = init.class_minima, signers = init.signers, threshold_m = init.threshold_m, threshold_n = init.threshold_n))";
+                        FAILWITH;
+                      };
+                    LAMBDA
+                      (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (map string (list string)))
+                      bool
+                      {
+                        DUP;
+                        CDR;
+                        DUP 2;
+                        CAR;
+                        EMPTY_MAP string bool;
+                        PUSH int 0;
+                        DUP 4;
+                        ITER
+                          {
+                            SWAP;
+                            PUSH int 1;
+                            ADD;
+                            SWAP;
+                            PUSH nat 1;
+                            DUP 2;
+                            CAR;
+                            SIZE;
+                            COMPARE;
+                            GE;
+                            IF
+                              {}
+                              {
+                                PUSH string "BAD_CONFIG";
+                                FAILWITH;
+                              };
+                            PUSH nat 1;
+                            DUP 2;
+                            CDR;
+                            SIZE;
+                            COMPARE;
+                            GE;
+                            IF
+                              {}
+                              {
+                                PUSH string "BAD_CONFIG";
+                                FAILWITH;
+                              };
+                            DUP;
+                            CDR;
+                            ITER
+                              {
+                                DUP 5;
+                                DUP 2;
+                                MEM;
+                                IF
+                                  {}
+                                  {
+                                    PUSH string "BAD_CONFIG";
+                                    FAILWITH;
+                                  };
+                                DUP 4;
+                                DUP 2;
+                                MEM;
+                                IF
+                                  {
+                                    PUSH string "BAD_CONFIG";
+                                    FAILWITH;
+                                  }
+                                  {};
+                                DIG 3;
+                                PUSH (option bool) (Some True);
+                                DIG 2;
+                                UPDATE;
+                                DUG 2;
+                              };
+                            DROP;
+                          };
+                        DIG 3;
+                        DROP;
+                        DIG 3;
+                        DROP;
+                        PUSH int 1;
+                        SWAP;
+                        COMPARE;
+                        GE;
+                        IF
+                          {}
+                          {
+                            PUSH string "BAD_CONFIG";
+                            FAILWITH;
+                          };
+                        SWAP;
+                        SIZE;
+                        SWAP;
+                        SIZE;
+                        COMPARE;
+                        EQ;
+                        IF
+                          {}
+                          {
+                            PUSH string "BAD_CONFIG";
+                            FAILWITH;
+                          };
+                        PUSH bool True;
+                      };
+                    DUP 2;
+                    GET 11;
+                    DUP 3;
+                    GET 5;
+                    PAIR;
+                    EXEC;
+                    IF
+                      {}
+                      {
+                        PUSH string "Assert failure: assert_asset_groups(sp.record(assets = init.assets, groups = init.groups))";
+                        FAILWITH;
+                      };
+                    DUP;
+                    GET 5;
+                    ITER
+                      {
+                        PUSH nat 18;
+                        DUP 2;
+                        GET 3;
+                        COMPARE;
+                        LE;
+                        IF
+                          {}
+                          {
+                            PUSH string "BAD_CONFIG";
+                            FAILWITH;
+                          };
+                        PUSH nat 1;
+                        DUP 2;
+                        GET 5;
+                        COMPARE;
+                        GE;
+                        IF
+                          {}
+                          {
+                            PUSH string "BAD_CONFIG";
+                            FAILWITH;
+                          };
+                        PUSH nat 1;
+                        DUP 2;
+                        GET 7;
+                        COMPARE;
+                        GE;
+                        IF
+                          {}
+                          {
+                            PUSH string "BAD_CONFIG";
+                            FAILWITH;
+                          };
+                        DUP;
+                        GET 7;
+                        SWAP;
+                        GET 9;
+                        COMPARE;
+                        GE;
+                        IF
+                          {}
+                          {
+                            PUSH string "BAD_CONFIG";
+                            FAILWITH;
+                          };
+                      };
+                    DROP;
+                    PUSH bool True;
+                  };
+                DUP 2;
+                EXEC;
+                IF
+                  {}
+                  {
+                    PUSH string "Assert failure: assert_init_params(params)";
+                    FAILWITH;
+                  };
+                PUSH nat 1;
+                DUP 3;
+                GET 9;
+                ADD;
+                DUP 2;
+                GET 9;
+                COMPARE;
+                EQ;
+                IF
+                  {}
+                  {
+                    PUSH string "CONFIG";
+                    FAILWITH;
+                  };
+                DUP;
+                DUP 3;
+                CAR;
+                LEVEL;
+                DIG 5;
+                DROP;
+                DIG 5;
+                DROP;
+                DIG 5;
+                DROP;
+                ADD;
+                PAIR;
+                SOME;
+                DIG 2;
+                SWAP;
+                UPDATE 23;
+                SWAP;
+                GET 9;
+                EMIT %tezoracle_config nat;
+                NIL operation;
+                SWAP;
+                CONS;
+              }
+              {
+                IF_LEFT
+                  {
+                    DUP 2;
+                    GET 3;
+                    SENDER;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {}
+                      {
+                        PUSH string "NOT_ADMIN";
+                        FAILWITH;
+                      };
+                    DUP 4;
+                    UNIT;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUG 4;
+                    DUG 4;
+                    DIG 3;
+                    DIG 4;
+                    DUP 2;
+                    GET 21;
+                    IF
+                      {}
+                      {
+                        PUSH string "NOT_PAUSED";
+                        FAILWITH;
+                      };
+                    DUP 2;
+                    CAR;
+                    LEVEL;
+                    DIG 2;
+                    DROP;
+                    DIG 3;
+                    DROP;
+                    DIG 3;
+                    DROP;
+                    DIG 3;
+                    DROP;
+                    ADD;
+                    SOME;
+                    UPDATE 25;
+                    NIL operation;
+                  }
+                  {
+                    DUP 2;
+                    GET 21;
+                    IF
+                      {
+                        PUSH string "PAUSED";
+                        FAILWITH;
+                      }
+                      {};
+                    DUP 4;
+                    UNIT;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUG 4;
+                    DUG 4;
+                    DIG 3;
+                    DIG 4;
+                    PUSH string "TEZORACLE_V1";
+                    DUP 2;
+                    CAR;
+                    CAR;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {}
+                      {
+                        PUSH string "DOMAIN";
+                        FAILWITH;
+                      };
+                    CHAIN_ID;
+                    DUP 2;
+                    CAR;
+                    GET 3;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {}
+                      {
+                        PUSH string "CHAIN";
+                        FAILWITH;
+                      };
+                    SELF_ADDRESS;
+                    DUP 2;
+                    CAR;
+                    GET 5;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {}
+                      {
+                        PUSH string "ORACLE";
+                        FAILWITH;
+                      };
+                    PUSH nat 1;
+                    DUP 2;
+                    CAR;
+                    GET 7;
+                    COMPARE;
+                    GE;
+                    IF
+                      {}
+                      {
+                        PUSH string "CONFIG";
+                        FAILWITH;
+                      };
+                    DUP 2;
+                    GET 9;
+                    DUP 2;
+                    CAR;
+                    GET 7;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {}
+                      {
+                        PUSH string "CONFIG";
+                        FAILWITH;
+                      };
+                    PUSH nat 32;
+                    DUP 2;
+                    CAR;
+                    GET 9;
+                    SIZE;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {}
+                      {
+                        PUSH string "POLICY";
+                        FAILWITH;
+                      };
+                    DUP 2;
+                    GET 27;
+                    DUP 2;
+                    CAR;
+                    GET 9;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {}
+                      {
+                        PUSH string "POLICY";
+                        FAILWITH;
+                      };
+                    DUP 2;
+                    GET 11;
+                    DUP 2;
+                    CAR;
+                    GET 11;
+                    GET;
+                    IF_NONE
+                      {
+                        PUSH string "GROUP";
+                        FAILWITH;
+                      }
+                      {};
+                    PUSH nat 1;
+                    DUP 3;
+                    CAR;
+                    GET 13;
+                    COMPARE;
+                    GE;
+                    IF
+                      {}
+                      {
+                        PUSH string "ROUND";
+                        FAILWITH;
+                      };
+                    DUP 3;
+                    GET 15;
+                    DUP 3;
+                    CAR;
+                    GET 11;
+                    GET;
+                    IF_NONE
+                      {
+                        PUSH nat 0;
+                      }
+                      {};
+                    DUP;
+                    DUP 4;
+                    CAR;
+                    GET 13;
+                    COMPARE;
+                    GT;
+                    IF
+                      {}
+                      {
+                        PUSH string "ROUND";
+                        FAILWITH;
+                      };
+                    DUP 3;
+                    CAR;
+                    GET 17;
+                    DUP 4;
+                    CAR;
+                    GET 15;
+                    COMPARE;
+                    LT;
+                    IF
+                      {}
+                      {
+                        PUSH string "WINDOW";
+                        FAILWITH;
+                      };
+                    NOW;
+                    DUP 4;
+                    CAR;
+                    GET 15;
+                    COMPARE;
+                    LE;
+                    IF
+                      {}
+                      {
+                        PUSH string "WINDOW";
+                        FAILWITH;
+                      };
+                    DUP 3;
+                    CAR;
+                    GET 17;
+                    NOW;
+                    COMPARE;
+                    LE;
+                    IF
+                      {}
+                      {
+                        PUSH string "WINDOW";
+                        FAILWITH;
+                      };
+                    DUP 3;
+                    CAR;
+                    GET 15;
+                    DUP 4;
+                    CAR;
+                    GET 17;
+                    SUB;
+                    DUP 5;
+                    GET 36;
+                    INT;
+                    DUP 2;
+                    COMPARE;
+                    LE;
+                    IF
+                      {}
+                      {
+                        PUSH string "WINDOW";
+                        FAILWITH;
+                      };
+                    PUSH nat 32;
+                    DUP 5;
+                    CAR;
+                    GET 19;
+                    SIZE;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {}
+                      {
+                        PUSH string "EVIDENCE";
+                        FAILWITH;
+                      };
+                    DUP 4;
+                    CAR;
+                    GET 20;
+                    MAP
+                      {
+                        CAR;
+                      };
+                    DUP 4;
+                    PACK;
+                    DUP 2;
+                    PACK;
+                    COMPARE;
+                    EQ;
+                    IF
+                      {}
+                      {
+                        PUSH string "ASSETS_SET";
+                        FAILWITH;
+                      };
+                    DUP 5;
+                    CAR;
+                    GET 20;
+                    ITER
+                      {
+                        DUP 7;
+                        GET 5;
+                        DUP 2;
+                        CAR;
+                        GET;
+                        IF_NONE
+                          {
+                            PUSH string "ASSET_ID";
+                            FAILWITH;
+                          }
+                          {};
+                        DUP;
+                        GET 15;
+                        IF
+                          {
+                            PUSH string "ASSET_PAUSED";
+                            FAILWITH;
+                          }
+                          {};
+                        DUP;
+                        GET 7;
+                        DUP 3;
+                        GET 5;
+                        COMPARE;
+                        EQ;
+                        IF
+                          {}
+                          {
+                            PUSH string "DECIMALS";
+                            FAILWITH;
+                          };
+                        PUSH nat 1;
+                        DUP 3;
+                        GET 3;
+                        COMPARE;
+                        GE;
+                        IF
+                          {}
+                          {
+                            PUSH string "PRICE";
+                            FAILWITH;
+                          };
+                        DUP 8;
+                        GET 29;
+                        DUP 3;
+                        GET 3;
+                        COMPARE;
+                        LE;
+                        IF
+                          {}
+                          {
+                            PUSH string "PRICE";
+                            FAILWITH;
+                          };
+                        DUP;
+                        GET 3;
+                        DUP 3;
+                        GET 3;
+                        COMPARE;
+                        GE;
+                        IF
+                          {}
+                          {
+                            PUSH string "BOUNDS";
+                            FAILWITH;
+                          };
+                        DUP;
+                        CAR;
+                        DUP 3;
+                        GET 3;
+                        COMPARE;
+                        LE;
+                        IF
+                          {}
+                          {
+                            PUSH string "BOUNDS";
+                            FAILWITH;
+                          };
+                        PUSH timestamp "1970-01-01T00:00:01Z";
+                        DUP 3;
+                        GET 6;
+                        COMPARE;
+                        GE;
+                        IF
+                          {}
+                          {
+                            PUSH string "OBS_ZERO";
+                            FAILWITH;
+                          };
+                        DUP 8;
+                        GET 17;
+                        INT;
+                        NOW;
+                        ADD;
+                        DUP 3;
+                        GET 6;
+                        COMPARE;
+                        LE;
+                        IF
+                          {}
+                          {
+                            PUSH string "OBS_FUTURE";
+                            FAILWITH;
+                          };
+                        DUP 2;
+                        GET 6;
+                        NOW;
+                        SUB;
+                        DUP 2;
+                        GET 13;
+                        INT;
+                        SWAP;
+                        COMPARE;
+                        LE;
+                        IF
+                          {}
+                          {
+                            PUSH string "OBS_STALE";
+                            FAILWITH;
+                          };
+                        PUSH timestamp "1970-01-01T00:00:01Z";
+                        DUP 2;
+                        GET 9;
+                        COMPARE;
+                        GE;
+                        IF
+                          {
+                            GET 9;
+                            SWAP;
+                            GET 6;
+                            COMPARE;
+                            GE;
+                            IF
+                              {}
+                              {
+                                PUSH string "OBS_REGRESS";
+                                FAILWITH;
+                              };
+                          }
+                          {
+                            DROP 2;
+                          };
+                      };
+                    DUP 5;
+                    CDR;
+                    SIZE;
+                    PUSH nat 16;
+                    DUP 2;
+                    COMPARE;
+                    LE;
+                    IF
+                      {}
+                      {
+                        PUSH string "QUORUM";
+                        FAILWITH;
+                      };
+                    DUP 7;
+                    GET 35;
+                    DUP 2;
+                    COMPARE;
+                    GE;
+                    IF
+                      {}
+                      {
+                        PUSH string "QUORUM";
+                        FAILWITH;
+                      };
+                    DUP 6;
+                    CAR;
+                    PACK;
+                    EMPTY_SET nat;
+                    PUSH nat 0;
+                    EMPTY_MAP string nat;
+                    DUP 10;
+                    CDR;
+                    ITER
+                      {
+                        DUP 4;
+                        DUP 2;
+                        CAR;
+                        MEM;
+                        IF
+                          {
+                            PUSH string "DUPLICATE";
+                            FAILWITH;
+                          }
+                          {};
+                        DIG 3;
+                        PUSH bool True;
+                        DUP 3;
+                        CAR;
+                        UPDATE;
+                        DUG 3;
+                        DUP 12;
+                        GET 31;
+                        DUP 2;
+                        CAR;
+                        GET;
+                        IF_NONE
+                          {
+                            PUSH string "UNKNOWN_SIGNER";
+                            FAILWITH;
+                          }
+                          {};
+                        DUP;
+                        GET 4;
+                        IF
+                          {}
+                          {
+                            PUSH string "INACTIVE_SIGNER";
+                            FAILWITH;
+                          };
+                        DUP 6;
+                        DIG 2;
+                        CDR;
+                        DUP 3;
+                        CAR;
+                        CHECK_SIGNATURE;
+                        IF
+                          {}
+                          {
+                            PUSH string "SIGNATURE";
+                            FAILWITH;
+                          };
+                        DIG 2;
+                        PUSH nat 1;
+                        ADD;
+                        DUG 2;
+                        DUP 2;
+                        DUP 2;
+                        GET 3;
+                        GET;
+                        IF_NONE
+                          {
+                            PUSH nat 0;
+                          }
+                          {};
+                        DIG 2;
+                        PUSH nat 1;
+                        DIG 2;
+                        ADD;
+                        SOME;
+                        DIG 2;
+                        GET 3;
+                        UPDATE;
+                      };
+                    DUP 11;
+                    GET 35;
+                    DUP 3;
+                    COMPARE;
+                    GE;
+                    IF
+                      {}
+                      {
+                        PUSH string "QUORUM";
+                        FAILWITH;
+                      };
+                    DUP 11;
+                    GET 7;
+                    ITER
+                      {
+                        DUP 2;
+                        DUP 2;
+                        CAR;
+                        GET;
+                        IF_NONE
+                          {
+                            PUSH nat 0;
+                          }
+                          {};
+                        SWAP;
+                        CDR;
+                        SWAP;
+                        COMPARE;
+                        GE;
+                        IF
+                          {}
+                          {
+                            PUSH string "CLASS_MIN";
+                            FAILWITH;
+                          };
+                      };
+                    DUP 11;
+                    CAR;
+                    LEVEL;
+                    ADD;
+                    DUP 11;
+                    CAR;
+                    GET 20;
+                    ITER
+                      {
+                        DUP 13;
+                        GET 5;
+                        DUP 2;
+                        CAR;
+                        GET;
+                        IF_NONE
+                          {
+                            PUSH int 518;
+                            FAILWITH;
+                          }
+                          {};
+                        DUP 13;
+                        CAR;
+                        GET 13;
+                        DUP 3;
+                        GET 3;
+                        DUP 4;
+                        GET 6;
+                        DUP 16;
+                        CAR;
+                        GET 7;
+                        DUP 7;
+                        LEVEL;
+                        PAIR 6;
+                        SOME;
+                        UPDATE 17;
+                        DUP 2;
+                        GET 6;
+                        UPDATE 9;
+                        DIG 13;
+                        DUP;
+                        GET 5;
+                        DIG 2;
+                        SOME;
+                        DIG 3;
+                        CAR;
+                        UPDATE;
+                        UPDATE 5;
+                        DUG 11;
+                      };
+                    DROP 10;
+                    DIG 2;
+                    DROP;
+                    DIG 2;
+                    DROP;
+                    DIG 2;
+                    DROP;
+                    SWAP;
+                    DUP;
+                    GET 15;
+                    DUP 3;
+                    CAR;
+                    GET 13;
+                    SOME;
+                    DUP 4;
+                    CAR;
+                    GET 11;
+                    UPDATE;
+                    UPDATE 15;
+                    SWAP;
+                    NIL operation;
+                    SWAP;
+                    DUP;
+                    CAR;
+                    GET 13;
+                    SWAP;
+                    DUP;
+                    CAR;
+                    GET 11;
+                    SWAP;
+                    CAR;
+                    GET 7;
+                    PAIR 3;
+                    EMIT %tezoracle_submit (pair (nat %config_version) (pair (string %group) (nat %round)));
+                    CONS;
+                  };
+              };
+          };
+      };
+    PAIR;
+  };
+view
+  "get_price" string (pair (nat %price) (timestamp %observation_time))
+  {
+    UNPAIR;
+    LAMBDA
+      (pair string (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair nat (pair timestamp (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))
+      (pair (pair nat timestamp) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair nat (pair timestamp (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))
+      {
+        UNPAIR;
+        DUP 2;
+        GET 21;
+        IF
+          {
+            PUSH string "PAUSED";
+            FAILWITH;
+          }
+          {};
+        DUP 2;
+        GET 5;
+        DUP 2;
+        GET;
+        IF_NONE
+          {
+            PUSH string "ASSET_ID";
+            FAILWITH;
+          }
+          {};
+        DUP;
+        GET 15;
+        IF
+          {
+            PUSH string "ASSET_PAUSED";
+            FAILWITH;
+          }
+          {};
+        NONE (pair nat timestamp);
+        PUSH bool False;
+        DUP 3;
+        GET 17;
+        IF_NONE
+          {
+            DIG 3;
+            DROP;
+          }
+          {
+            DROP;
+            DUP 3;
+            GET 17;
+            IF_NONE
+              {
+                PUSH int 411;
+                FAILWITH;
+              }
+              {};
+            DUP;
+            GET 3;
+            LEVEL;
+            COMPARE;
+            GE;
+            IF
+              {
+                PUSH bool True;
+                DUP 5;
+                GET 5;
+                IF_NONE
+                  {}
+                  {
+                    DROP 2;
+                    DUP 4;
+                    GET 5;
+                    IF_NONE
+                      {
+                        PUSH int 415;
+                        FAILWITH;
+                      }
+                      {};
+                    GET 7;
+                    LAMBDA
+                      (pair nat (pair nat nat))
+                      bool
+                      {
+                        DUP;
+                        GET 4;
+                        DUP 2;
+                        GET 3;
+                        DIG 2;
+                        CAR;
+                        DUP 3;
+                        DUP 3;
+                        COMPARE;
+                        GE;
+                        IF
+                          {
+                            DUP 3;
+                            DIG 2;
+                            SUB;
+                            ISNAT;
+                            IF_NONE
+                              {
+                                PUSH int 283;
+                                FAILWITH;
+                              }
+                              {};
+                            DUG 2;
+                            MUL;
+                            PUSH nat 10000;
+                            DIG 2;
+                            MUL;
+                            COMPARE;
+                            GT;
+                          }
+                          {
+                            SWAP;
+                            DUP 3;
+                            SUB;
+                            ISNAT;
+                            IF_NONE
+                              {
+                                PUSH int 286;
+                                FAILWITH;
+                              }
+                              {};
+                            DUG 2;
+                            MUL;
+                            PUSH nat 10000;
+                            DIG 2;
+                            MUL;
+                            COMPARE;
+                            GT;
+                          };
+                      };
+                    SWAP;
+                    DUP 3;
+                    GET 9;
+                    DUP 7;
+                    GET 11;
+                    PAIR 3;
+                    EXEC;
+                    NOT;
+                  };
+                DUP;
+                IF
+                  {
+                    DIG 2;
+                    DROP;
+                    DIG 2;
+                    DROP 2;
+                    DIG 2;
+                    DROP;
+                    DUP;
+                    GET 7;
+                    SWAP;
+                    GET 9;
+                    PAIR;
+                    SOME;
+                    PUSH bool True;
+                  }
+                  {
+                    DROP 2;
+                    DIG 3;
+                    DROP;
+                  };
+              }
+              {
+                DROP;
+                DIG 3;
+                DROP;
+              };
+          };
+        IF
+          {
+            SWAP;
+            DROP;
+          }
+          {
+            DUP 2;
+            GET 5;
+            IF_NONE
+              {
+                SWAP;
+                DROP;
+              }
+              {
+                DROP 2;
+                GET 5;
+                IF_NONE
+                  {
+                    PUSH int 433;
+                    FAILWITH;
+                  }
+                  {};
+                DUP;
+                GET 5;
+                SWAP;
+                GET 7;
+                PAIR;
+                SOME;
+              };
+          };
+        IF_NONE
+          {
+            PUSH string "NO_PRICE";
+            FAILWITH;
+          }
+          {};
+        PAIR;
+      };
+    DUG 2;
+    PAIR;
+    EXEC;
+    CAR;
+  };
+view
+  "get_price_with_timestamp" string (pair (nat %price) (timestamp %observation_time))
+  {
+    UNPAIR;
+    LAMBDA
+      (pair string (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair nat (pair timestamp (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))
+      (pair (pair nat timestamp) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair nat (pair timestamp (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))
+      {
+        UNPAIR;
+        DUP 2;
+        GET 21;
+        IF
+          {
+            PUSH string "PAUSED";
+            FAILWITH;
+          }
+          {};
+        DUP 2;
+        GET 5;
+        DUP 2;
+        GET;
+        IF_NONE
+          {
+            PUSH string "ASSET_ID";
+            FAILWITH;
+          }
+          {};
+        DUP;
+        GET 15;
+        IF
+          {
+            PUSH string "ASSET_PAUSED";
+            FAILWITH;
+          }
+          {};
+        NONE (pair nat timestamp);
+        PUSH bool False;
+        DUP 3;
+        GET 17;
+        IF_NONE
+          {
+            DIG 3;
+            DROP;
+          }
+          {
+            DROP;
+            DUP 3;
+            GET 17;
+            IF_NONE
+              {
+                PUSH int 411;
+                FAILWITH;
+              }
+              {};
+            DUP;
+            GET 3;
+            LEVEL;
+            COMPARE;
+            GE;
+            IF
+              {
+                PUSH bool True;
+                DUP 5;
+                GET 5;
+                IF_NONE
+                  {}
+                  {
+                    DROP 2;
+                    DUP 4;
+                    GET 5;
+                    IF_NONE
+                      {
+                        PUSH int 415;
+                        FAILWITH;
+                      }
+                      {};
+                    GET 7;
+                    LAMBDA
+                      (pair nat (pair nat nat))
+                      bool
+                      {
+                        DUP;
+                        GET 4;
+                        DUP 2;
+                        GET 3;
+                        DIG 2;
+                        CAR;
+                        DUP 3;
+                        DUP 3;
+                        COMPARE;
+                        GE;
+                        IF
+                          {
+                            DUP 3;
+                            DIG 2;
+                            SUB;
+                            ISNAT;
+                            IF_NONE
+                              {
+                                PUSH int 283;
+                                FAILWITH;
+                              }
+                              {};
+                            DUG 2;
+                            MUL;
+                            PUSH nat 10000;
+                            DIG 2;
+                            MUL;
+                            COMPARE;
+                            GT;
+                          }
+                          {
+                            SWAP;
+                            DUP 3;
+                            SUB;
+                            ISNAT;
+                            IF_NONE
+                              {
+                                PUSH int 286;
+                                FAILWITH;
+                              }
+                              {};
+                            DUG 2;
+                            MUL;
+                            PUSH nat 10000;
+                            DIG 2;
+                            MUL;
+                            COMPARE;
+                            GT;
+                          };
+                      };
+                    SWAP;
+                    DUP 3;
+                    GET 9;
+                    DUP 7;
+                    GET 11;
+                    PAIR 3;
+                    EXEC;
+                    NOT;
+                  };
+                DUP;
+                IF
+                  {
+                    DIG 2;
+                    DROP;
+                    DIG 2;
+                    DROP 2;
+                    DIG 2;
+                    DROP;
+                    DUP;
+                    GET 7;
+                    SWAP;
+                    GET 9;
+                    PAIR;
+                    SOME;
+                    PUSH bool True;
+                  }
+                  {
+                    DROP 2;
+                    DIG 3;
+                    DROP;
+                  };
+              }
+              {
+                DROP;
+                DIG 3;
+                DROP;
+              };
+          };
+        IF
+          {
+            SWAP;
+            DROP;
+          }
+          {
+            DUP 2;
+            GET 5;
+            IF_NONE
+              {
+                SWAP;
+                DROP;
+              }
+              {
+                DROP 2;
+                GET 5;
+                IF_NONE
+                  {
+                    PUSH int 433;
+                    FAILWITH;
+                  }
+                  {};
+                DUP;
+                GET 5;
+                SWAP;
+                GET 7;
+                PAIR;
+                SOME;
+              };
+          };
+        IF_NONE
+          {
+            PUSH string "NO_PRICE";
+            FAILWITH;
+          }
+          {};
+        PAIR;
+      };
+    DUG 2;
+    PAIR;
+    EXEC;
+    CAR;
+  };

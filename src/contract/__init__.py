@@ -1,7 +1,7 @@
-"""SmartPy / Python contract package placeholder.
+"""SmartPy / Python contract package.
 
-The N-of-M Michelson contract is specified in later PRs. This module exists so
-the Python CI job has an importable package today.
+The N-of-M Michelson contract lives in `oracle.py`. This phase is
+testnet and non-authoritative shadow only.
 """
 
 __version__ = "0.0.0"

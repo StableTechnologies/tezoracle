@@ -5,7 +5,7 @@
 **Date:** 14 August 2026  
 **Status:** Design response and implementation baseline; not production approval
 
-> Archived in `docs/` as the 14 August 2026 design record. The authorized TezOracle implementation phase is **testnet and non-authoritative shadow only**. Controlling repo docs are [ARCHITECTURE.md](ARCHITECTURE.md), [SECURITY.md](SECURITY.md), and [ROADMAP.md](ROADMAP.md). Upstream does **not** duplicate TezFin `configureMaxPriceAge` or `configurePriceBounds`; that boundary is recorded in the later `ORACLE_INTERFACE` spec.
+> Archived in `docs/` as the 14 August 2026 design record. The authorized TezOracle implementation phase is **testnet and non-authoritative shadow only**. Controlling repo docs are [ARCHITECTURE.md](ARCHITECTURE.md), [SECURITY.md](SECURITY.md), and [ROADMAP.md](ROADMAP.md). Upstream does **not** duplicate TezFin `configureMaxPriceAge` or `configurePriceBounds`; that boundary is [ORACLE_INTERFACE.md](ORACLE_INTERFACE.md).
 
 ## 1. Executive response
 
