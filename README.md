@@ -56,17 +56,20 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --require-hashes -r requirements-dev.txt
 python -m pytest
+python scripts/compile_oracle.py   # writes michelson/tezoracle.tz
 ```
 
 `.env.example` is placeholders only. Copy it to `.env` only for later local/testnet runs. Never add production secrets.
 
 The current tree includes the public baseline, the frozen payload/register/evidence specs, and TypeScript/SmartPy packing golden vectors. `policy_hash` and `evidence_digest` in those vectors are recomputed from `config/` and `tests/packing/evidence/`. The N-of-M contract, Class A adapters, coordinator/relayer, and local e2e follow in later PRs. Signing product code is blocked until packing golden vectors pass.
 
+
 ## Repository layout
 
 | Path | Role |
 | --- | --- |
-| `src/contract/` | SmartPy packing reference and later N-of-M contract |
+| `src/contract/` | SmartPy N-of-M contract, packing reference, Michelson compile |
+| `michelson/` | Compiled `tezoracle.tz` (testnet artifact, not production) |
 | `src/validator/` | Class A TypeScript validator |
 | `src/packing/` | Canonical TypeScript PACK / digest |
 | `src/coordinator/` | Non-authoritative round coordinator |
@@ -88,9 +91,12 @@ The current tree includes the public baseline, the frozen payload/register/evide
 | [docs/EVIDENCE_SPEC.md](docs/EVIDENCE_SPEC.md) | Quorum-shared digest vs signer-local evidence; fail-closed mismatch |
 | [docs/OBSERVER_AGREEMENT.md](docs/OBSERVER_AGREEMENT.md) | Windows, median, rounding, rounds, candidate verification |
 | [docs/PARAMETER_SCHEMA.md](docs/PARAMETER_SCHEMA.md) | Register schema, lifecycle, delayed activation |
+| [docs/CONTRACT_SPEC.md](docs/CONTRACT_SPEC.md) | N-of-M storage, submit, pause, delayed governance, views |
+| [docs/ORACLE_INTERFACE.md](docs/ORACLE_INTERFACE.md) | TezFin boundary: price + observation time; aliases/age/bounds stay in TezFin |
+| [docs/TESTNET_DEPLOY.md](docs/TESTNET_DEPLOY.md) | Ghostnet/sandbox origination without production keys |
 | [tests/packing/README.md](tests/packing/README.md) | Frozen PACK vectors and test-only signatures |
 
-Contract, Class A, coordinator, relayer, and oracle-interface specs are added when those workstreams start.
+Class A, coordinator, and relayer specs are added when those workstreams start.
 
 ## License
 
