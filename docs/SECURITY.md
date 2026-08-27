@@ -62,6 +62,7 @@ USDtz and tzBTC publication groups may fail independently of `CORE`. They are no
 ## Key handling
 
 - No production credentials, keys, or endpoints are stored in this repository.
+- CI, smoke tests, and the documented quick start do not require production credentials or secrets.
 - Testnet signer secrets come from runtime configuration (`.env`, never committed).
 - Coordinator and relayer processes hold no signing keys.
 - Test-only keys and signatures used for golden vectors are stored separately from any production secret and are not production material.

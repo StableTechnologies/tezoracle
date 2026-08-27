@@ -42,14 +42,13 @@ This project does not depend on Acurast, Acelon, or Ubinetic.
 
 ## Quick start
 
-Requirements: Node.js 20+, Python 3.11+, npm.
+Requirements: Node.js 22 (see `.nvmrc`) and Python 3.12 (see `.python-version`). Skeleton tests do not need credentials.
 
 ```bash
 git clone https://github.com/StableTechnologies/TezOracle.git
 cd TezOracle
-cp .env.example .env   # placeholders only; never add production secrets
 
-npm install
+npm ci
 npm run typecheck
 npm test
 
@@ -58,6 +57,8 @@ source .venv/bin/activate
 python -m pip install -r requirements-dev.txt
 python -m pytest
 ```
+
+`.env.example` is placeholders only. Copy it to `.env` only for later local/testnet runs. Never add production secrets.
 
 The current tree is a public baseline: layout, docs, and CI skeleton. Payload freeze, packing parity, the N-of-M contract, Class A adapters, coordinator/relayer, and local e2e follow in later PRs. Signing is blocked until packing golden vectors pass.
 
@@ -83,9 +84,6 @@ The current tree is a public baseline: layout, docs, and CI skeleton. Payload fr
 | [docs/SECURITY.md](docs/SECURITY.md) | Threat model, failure modes, keys, replay, testnet limits |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Initial authorized scope vs separately approved production work |
 | [docs/ENGINEERING_RESPONSE.md](docs/ENGINEERING_RESPONSE.md) | Design response to the TezFin oracle security specification |
-| [docs/ENGINEERING_RESPONSE_RU.md](docs/ENGINEERING_RESPONSE_RU.md) | Russian translation of the design response |
-| [docs/TEZFIN_ORACLE_ENGINEERING_RESPONSE_2026_08_14.md](docs/TEZFIN_ORACLE_ENGINEERING_RESPONSE_2026_08_14.md) | Itemized pre-implementation response (Items 1–7) |
-| [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Executable work items for the initial phase |
 
 Payload, evidence, observer-agreement, parameter-schema, contract, Class A, coordinator, relayer, and oracle-interface specs are added when those workstreams start. Until then, treat [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) as the controlling overview.
 
