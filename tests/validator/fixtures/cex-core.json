@@ -1,0 +1,122 @@
+{
+  "https://api.binance.com/api/v3/trades?symbol=USDTUSD&limit=1": {
+    "body": [
+      {
+        "id": 1,
+        "price": "1.000100",
+        "qty": "1",
+        "time": 1786679920000,
+        "isBuyerMaker": false,
+        "isBestMatch": true
+      }
+    ]
+  },
+  "https://www.okx.com/api/v5/market/ticker?instId=USDT-USD": {
+    "body": {
+      "code": "0",
+      "msg": "",
+      "data": [{ "instId": "USDT-USD", "last": "1.000200", "ts": "1786679910000" }]
+    }
+  },
+  "https://api.kraken.com/0/public/Trades?pair=USDTUSD&count=1": {
+    "body": {
+      "error": [],
+      "result": {
+        "USDTUSD": [["1.000000", "1.0", "1786679900.1234", "b", "m", "", "1"]],
+        "last": "1"
+      }
+    }
+  },
+  "https://api.exchange.coinbase.com/products/USDT-USD/ticker": {
+    "body": {
+      "trade_id": 1,
+      "price": "1.000150",
+      "size": "1",
+      "time": "2026-08-14T03:58:50.000Z",
+      "bid": "1",
+      "ask": "1",
+      "volume": "1",
+      "product_id": "USDT-USD"
+    }
+  },
+  "https://api.binance.com/api/v3/trades?symbol=XTZUSDT&limit=1": {
+    "body": [
+      {
+        "id": 2,
+        "price": "0.750000",
+        "qty": "1",
+        "time": 1786679880000,
+        "isBuyerMaker": false,
+        "isBestMatch": true
+      }
+    ]
+  },
+  "https://www.okx.com/api/v5/market/ticker?instId=XTZ-USDT": {
+    "body": {
+      "code": "0",
+      "msg": "",
+      "data": [{ "instId": "XTZ-USDT", "last": "0.751000", "ts": "1786679890000" }]
+    }
+  },
+  "https://api.kraken.com/0/public/Trades?pair=XTZUSD&count=1": {
+    "body": {
+      "error": [],
+      "result": {
+        "XTZUSD": [["0.750500", "1.0", "1786679870.9", "s", "l", "", "2"]],
+        "last": "2"
+      }
+    }
+  },
+  "https://api.exchange.coinbase.com/products/XTZ-USD/ticker": {
+    "body": {
+      "trade_id": 2,
+      "price": "0.750200",
+      "size": "1",
+      "time": "2026-08-14T03:57:40.000Z",
+      "bid": "1",
+      "ask": "1",
+      "volume": "1",
+      "product_id": "XTZ-USD"
+    }
+  },
+  "https://api.binance.com/api/v3/trades?symbol=BTCUSDT&limit=1": {
+    "body": [
+      {
+        "id": 3,
+        "price": "65000.00",
+        "qty": "1",
+        "time": 1786679840000,
+        "isBuyerMaker": false,
+        "isBestMatch": true
+      }
+    ]
+  },
+  "https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT": {
+    "body": {
+      "code": "0",
+      "msg": "",
+      "data": [{ "instId": "BTC-USDT", "last": "65010.00", "ts": "1786679850000" }]
+    }
+  },
+  "https://api.kraken.com/0/public/Trades?pair=XBTUSD&count=1": {
+    "body": {
+      "error": [],
+      "result": {
+        "XXBTZUSD": [["65005.00", "0.1", "1786679835.42", "b", "m", "", "3"]],
+        "last": "3"
+      }
+    }
+  },
+  "https://api.exchange.coinbase.com/products/BTC-USD/ticker": {
+    "body": {
+      "trade_id": 3,
+      "price": "65002.50",
+      "size": "1",
+      "time": "2026-08-14T03:57:10.000Z",
+      "bid": "1",
+      "ask": "1",
+      "volume": "1",
+      "product_id": "BTC-USD"
+    }
+  }
+}

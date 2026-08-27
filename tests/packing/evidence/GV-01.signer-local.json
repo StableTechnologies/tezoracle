@@ -4,7 +4,7 @@
   "signer_id": "test-signer-a1",
   "validator_class": "A",
   "config_version": 1,
-  "policy_hash": "322b226764c4350a3bae046022afcfb8fc9f5f11eeca4c347c41fe0a7a42aa25",
+  "policy_hash": "cee88ce5610e1bc33cbfb1fb0ccd24d0000f62322ff4a0c184d4057e84a9c44d",
   "software_artifact_hash": "1111111111111111111111111111111111111111111111111111111111111111",
   "local_price_by_asset": {
     "BTC_USD": "65000000000",

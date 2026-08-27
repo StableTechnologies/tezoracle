@@ -70,12 +70,12 @@ Publication groups (`CORE`, `USDTZ`, `TZBTC`) isolate asset families so a USDtz 
 
 Class A is a TypeScript validator. It:
 
-- Reads approved CEX adapters (initial phase: two named venues, with remaining adapters as stretch).
+- Reads the four approved CEX adapters (Binance, OKX, Kraken, Coinbase) under the same source policy as mainnet.
 - Derives price, oldest contributing observation time, and evidence from the versioned parameter register.
 - Independently verifies any coordinator candidate under the pinned policy and **does not sign on mismatch**.
 - Signs only the frozen canonical payload, using testnet keys from runtime configuration.
 
-Policy (sources, min observations, deviation, aggregation, rounding, decimals) is never taken from a request, coordinator, or relayer.
+Policy (sources, min observations, deviation, aggregation, rounding, decimals) is never taken from a request, coordinator, or relayer. See [CLASS_A_VALIDATOR.md](CLASS_A_VALIDATOR.md).
 
 ## Off-chain: Class B (not this phase)
 

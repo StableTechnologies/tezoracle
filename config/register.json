@@ -4,8 +4,8 @@
   "lifecycle": "testnet",
   "authoritative": false,
   "domain": "TEZORACLE_V1",
-  "config_version": 1,
-  "notes": "Initial freeze. Testnet and non-authoritative shadow only. Not TezFin production authority. Publication groups and asset IDs are taken from this snapshot; adding a group does not change the packed payload type.",
+  "config_version": 3,
+  "notes": "Class A freeze: four mainnet CEX venues (Binance, OKX, Kraken, Coinbase), min_independent_observations 3. Loss of one approved CEX must not block a healthy CORE update. Testnet and non-authoritative shadow only. Not TezFin production authority.",
   "publication_groups": {
     "CORE": {
       "asset_ids": ["BTC_USD", "USDT_USD", "XTZ_USD"]
