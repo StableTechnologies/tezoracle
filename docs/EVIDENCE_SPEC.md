@@ -31,6 +31,19 @@ The manifest binds, for **each** asset in the publication group:
 
 A change to any of those fields changes the digest and invalidates signatures over the previous payload.
 
+### 1.1 Reconciliation with TezFin INV-021
+
+TezFin INV-021 requires each asset entry to bind canonical asset ID, price, decimals, observation time, and evidence digest. This payload keeps **one** top-level `evidence_digest` (see [PAYLOAD_SPEC.md](PAYLOAD_SPEC.md)). That choice is intentional: the Michelson asset entry stays `(asset_id, (price, (decimals, observation_time)))`.
+
+The INV-021 per-asset binding is satisfied off-chain and cryptographically committed by the single digest:
+
+1. The quorum-shared manifest `assets[]` has exactly one `AssetEvidence` record per payload asset, in the same order.
+2. Each record binds that asset to its contributing sources (identity, endpoint, market), observations (raw and normalized prices, venue timestamps), decimals, derived price, oldest observation time, and the calculation policy actually applied.
+3. `evidence_digest = BLAKE2B-256(canonical_json(manifest))` is signed with the rest of the payload. Mutating any one asset’s sources, timestamps, decimals, or calculation policy changes the digest and invalidates signatures.
+4. The contract does not re-fetch venues. It binds the digest. Validators MUST verify the manifest against independent observations before signing.
+
+Quorum-shared evidence is the only preimage of `evidence_digest`. Signer-specific independently collected evidence is a **signer-local record** (§3). It is keyed by `payload_hash`, MAY differ across signers, and MUST NOT be mixed into the hashed manifest.
+
 The on-chain contract does not re-fetch CEX or DEX data. It binds the digest and the policy hash. Validators MUST verify the manifest before signing.
 
 ## 2. Quorum-shared manifest
@@ -43,7 +56,8 @@ Logical JSON object. Field order in the **hashed preimage** is defined by canoni
 SharedEvidenceManifest = {
   domain: "TEZORACLE_EVIDENCE_V1",          // string, exact
   policy_hash: hex64,                      // BLAKE2B-256 of the parameter register
-  publication_group: "CORE" | "USDTZ" | "TZBTC",
+  publication_group: string,                 // register group name, e.g. "CORE"
+
   round: nat_string,                       // decimal, no leading zeros
   assets: [ AssetEvidence, ... ]           // same lexicographic order as the payload
 }
@@ -192,6 +206,8 @@ Use these strings in `excluded[].code` and signer-local `error_code`. Do not inv
 | --- | --- |
 | `TIMEOUT` | bounded HTTP/RPC timeout |
 | `HTTP_STATUS` | non-success HTTP status |
+| `HTTP_451` | venue returned HTTP 451, or the register marks the source geo-blocked / `known_restriction: http_451` |
+| `UNTESTED` | register `probe_status` is `untested`; the source must not contribute until probed from the signer environment |
 | `MALFORMED` | body, content-type, or schema mismatch |
 | `OVERSIZE` | response larger than `max_response_bytes` |
 | `BAD_NUMBER` | non-finite, scientific notation, negative, zero, overflow |

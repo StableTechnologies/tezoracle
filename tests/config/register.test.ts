@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import test from "node:test";
 
-import { CORE_ASSET_IDS, loadSnapshot, validateConfigDir } from "../../src/config/validate.js";
+import { loadSnapshot, validateConfigDir } from "../../src/config/validate.js";
 
 const configDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "config");
 
@@ -20,9 +22,10 @@ test("CORE assets are testnet/non-authoritative and USDtz/tzBTC are draft stubs"
   assert.equal(snapshot.register.authoritative, false);
   assert.equal(snapshot.register.lifecycle, "testnet");
   assert.equal(snapshot.register.time_policy.activation_delay_levels >= 1, true);
-  assert.deepEqual(snapshot.register.publication_groups.CORE.asset_ids, [...CORE_ASSET_IDS]);
+  assert.equal(snapshot.register.signer_environments.status, "undeclared");
+  assert.deepEqual(snapshot.register.publication_groups.CORE?.asset_ids, ["BTC_USD", "USDT_USD", "XTZ_USD"]);
 
-  for (const id of CORE_ASSET_IDS) {
+  for (const id of snapshot.register.publication_groups.CORE?.asset_ids ?? []) {
     const asset = snapshot.assets[id];
     assert.ok(asset, id);
     assert.equal(asset.group, "CORE");
@@ -37,6 +40,10 @@ test("CORE assets are testnet/non-authoritative and USDtz/tzBTC are draft stubs"
       initial.map((source) => source.source_id).sort(),
       ["binance", "okx"],
     );
+    for (const source of asset.sources) {
+      assert.equal(source.health.eligible_for_production_quorum, false);
+      assert.equal(source.health.probe_status, "untested");
+    }
   }
 
   for (const id of ["USDTZ_USD", "TZBTC_USD"] as const) {
@@ -65,4 +72,6 @@ test("CORE assets are testnet/non-authoritative and USDtz/tzBTC are draft stubs"
   const krakenBtc = btc.sources.find((source) => source.source_id === "kraken");
   assert.equal(krakenBtc?.market_id, "XBTUSD");
   assert.equal(krakenBtc?.base_asset, "BTC");
+  const binance = usdt.sources.find((source) => source.source_id === "binance");
+  assert.equal(binance?.health.known_restriction, "http_451");
 });

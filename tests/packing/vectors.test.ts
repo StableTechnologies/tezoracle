@@ -6,10 +6,9 @@ import { fileURLToPath } from "node:url";
 
 import { verifySignature } from "@taquito/utils";
 
+import { loadCommittedRegister } from "../../src/config/policy.js";
 import { loadSnapshot } from "../../src/config/validate.js";
 import {
-  ASSET_DECIMALS,
-  GROUP_ASSETS,
   PACKING_STATUS,
   PackError,
   packPayload,
@@ -73,11 +72,12 @@ test("test-only ed25519 signatures verify over packed bytes", () => {
   }
 });
 
-test("packing constants match the parameter register", () => {
+test("packing policy is derived from the parameter register", () => {
   const { snapshot, errors } = loadSnapshot(join(root, "config"));
   assert.equal(errors.length, 0);
-  assert.deepEqual(snapshot.register.publication_groups.CORE.asset_ids, [...GROUP_ASSETS.CORE]);
-  for (const [assetId, decimals] of Object.entries(ASSET_DECIMALS)) {
+  const { policy } = loadCommittedRegister();
+  assert.deepEqual(policy.groups.CORE, snapshot.register.publication_groups.CORE?.asset_ids);
+  for (const [assetId, decimals] of Object.entries(policy.decimals)) {
     const asset = snapshot.assets[assetId];
     assert.ok(asset, assetId);
     assert.equal(asset.decimals, decimals, assetId);

@@ -41,7 +41,7 @@
     },
     "group": {
       "type": "string",
-      "enum": ["CORE", "USDTZ", "TZBTC"]
+      "pattern": "^[A-Z][A-Z0-9_]*$"
     },
     "source": {
       "type": "object",
@@ -62,7 +62,8 @@
         "price_path",
         "timestamp_path",
         "timestamp_encoding",
-        "quote_conversion"
+        "quote_conversion",
+        "health"
       ],
       "properties": {
         "source_id": { "type": "string", "minLength": 1 },
@@ -71,7 +72,7 @@
         "adapter_status": { "type": "string", "enum": ["initial_phase", "stretch"] },
         "market_id": { "type": "string", "minLength": 1 },
         "base_asset": { "type": "string", "minLength": 1 },
-        "quote_asset": { "type": "string", "enum": ["USD", "USDT"] },
+        "quote_asset": { "type": "string", "minLength": 1 },
         "endpoint": { "type": "string", "pattern": "^https://[^/]+/.*$" },
         "query": { "type": "string" },
         "method": { "type": "string", "const": "GET" },
@@ -84,7 +85,41 @@
           "enum": ["unix_ms", "unix_s_fractional", "rfc3339"]
         },
         "quote_conversion": { "type": "string", "enum": ["none", "usdt_usd"] },
-        "result_pair_key": { "type": "string", "minLength": 1 }
+        "result_pair_key": { "type": "string", "minLength": 1 },
+        "source_type": { "type": "string", "minLength": 1 },
+        "source_lineage": { "type": "string", "minLength": 1 },
+        "unit": { "type": "string", "minLength": 1 },
+        "timestamp_semantics": { "type": "string", "minLength": 1 },
+        "market_calendar": { "type": "string", "minLength": 1 },
+        "benchmark_methodology": { "type": "string", "minLength": 1 },
+        "instrument": { "$ref": "#/$defs/instrument" },
+        "health": { "$ref": "#/$defs/health" }
+      }
+    },
+    "instrument": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "venue_symbol": { "type": "string", "minLength": 1 },
+        "base": { "type": "string", "minLength": 1 },
+        "quote": { "type": "string", "minLength": 1 },
+        "definition": { "type": "string", "minLength": 1 }
+      }
+    },
+    "health": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["probe_status", "last_http_status", "eligible_for_production_quorum"],
+      "properties": {
+        "probe_status": {
+          "type": "string",
+          "enum": ["untested", "reachable", "geo_blocked", "failed"]
+        },
+        "last_http_status": { "type": ["integer", "null"], "minimum": 100, "maximum": 599 },
+        "known_restriction": { "type": "string", "const": "http_451" },
+        "eligible_for_production_quorum": { "type": "boolean" },
+        "notes": { "type": "string", "minLength": 1 }
       }
     },
     "dex": {
@@ -173,8 +208,11 @@
         "authoritative": { "type": "boolean" },
         "consumable": { "type": "boolean" },
         "decimals": { "type": "integer", "minimum": 0, "maximum": 18 },
-        "unit": { "type": "string", "const": "USD" },
-        "timestamp_semantics": { "type": "string", "const": "venue_observation_time" },
+        "unit": { "type": "string", "minLength": 1 },
+        "timestamp_semantics": { "type": "string", "minLength": 1 },
+        "market_calendar": { "type": "string", "minLength": 1 },
+        "benchmark_methodology": { "type": "string", "minLength": 1 },
+        "instrument_definition": { "type": "string", "minLength": 1 },
         "min_independent_observations": { "$ref": "#/$defs/nat1" },
         "max_observation_age_seconds": { "$ref": "#/$defs/nat1" },
         "max_source_deviation_bps": { "$ref": "#/$defs/bps" },
@@ -211,6 +249,7 @@
         "time_policy",
         "payload",
         "governance",
+        "signer_environments",
         "assets"
       ],
       "properties": {
@@ -223,12 +262,11 @@
         "notes": { "type": "string" },
         "publication_groups": {
           "type": "object",
-          "additionalProperties": false,
-          "required": ["CORE", "USDTZ", "TZBTC"],
-          "properties": {
-            "CORE": { "$ref": "#/$defs/groupSpec" },
-            "USDTZ": { "$ref": "#/$defs/groupSpec" },
-            "TZBTC": { "$ref": "#/$defs/groupSpec" }
+          "minProperties": 1,
+          "additionalProperties": { "$ref": "#/$defs/groupSpec" },
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
           }
         },
         "time_policy": {
@@ -277,6 +315,19 @@
             "pause_immediate": { "type": "boolean", "const": true },
             "unpause_delayed": { "type": "boolean", "const": true },
             "production_requires_separate_approval": { "type": "boolean", "const": true }
+          }
+        },
+        "signer_environments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "regions"],
+          "properties": {
+            "status": { "type": "string", "enum": ["undeclared", "declared"] },
+            "regions": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "notes": { "type": "string", "minLength": 1 }
           }
         },
         "assets": {

@@ -8,7 +8,7 @@ USDtz and tzBTC are draft stubs and are not consumable.
 | Path | Role |
 | --- | --- |
 | [`schema.json`](schema.json) | JSON Schema for the assembled snapshot |
-| [`register.json`](register.json) | System-level domain, groups, time policy, governance |
+| [`register.json`](register.json) | System-level domain, groups, time policy, governance, signer environments |
 | [`assets/USDT_USD.json`](assets/USDT_USD.json) | USDt/USD, testnet |
 | [`assets/XTZ_USD.json`](assets/XTZ_USD.json) | XTZ/USD, testnet |
 | [`assets/BTC_USD.json`](assets/BTC_USD.json) | BTC/USD, testnet |

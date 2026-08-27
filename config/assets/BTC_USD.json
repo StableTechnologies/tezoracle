@@ -36,7 +36,26 @@
       "price_path": "0.price",
       "timestamp_path": "0.time",
       "timestamp_encoding": "unix_ms",
-      "quote_conversion": "usdt_usd"
+      "quote_conversion": "usdt_usd",
+      "source_type": "cex_rest",
+      "source_lineage": "primary_venue",
+      "instrument": {
+        "kind": "spot",
+        "venue_symbol": "BTCUSDT",
+        "base": "BTC",
+        "quote": "USDT"
+      },
+      "unit": "USDT",
+      "timestamp_semantics": "venue_last_trade_time",
+      "market_calendar": "crypto_24x7",
+      "benchmark_methodology": "last_trade",
+      "health": {
+        "probe_status": "untested",
+        "last_http_status": null,
+        "eligible_for_production_quorum": false,
+        "known_restriction": "http_451",
+        "notes": "api.binance.com is known to return HTTP 451 from at least one expected operating region. This endpoint has not been probed from a declared signer environment and MUST NOT count as a healthy production source."
+      }
     },
     {
       "source_id": "okx",
@@ -54,7 +73,25 @@
       "price_path": "data.0.last",
       "timestamp_path": "data.0.ts",
       "timestamp_encoding": "unix_ms",
-      "quote_conversion": "usdt_usd"
+      "quote_conversion": "usdt_usd",
+      "source_type": "cex_rest",
+      "source_lineage": "primary_venue",
+      "instrument": {
+        "kind": "spot",
+        "venue_symbol": "BTC-USDT",
+        "base": "BTC",
+        "quote": "USDT"
+      },
+      "unit": "USDT",
+      "timestamp_semantics": "venue_last_trade_time",
+      "market_calendar": "crypto_24x7",
+      "benchmark_methodology": "last_trade",
+      "health": {
+        "probe_status": "untested",
+        "last_http_status": null,
+        "eligible_for_production_quorum": false,
+        "notes": "Not probed from a declared signer environment. Untested endpoints MUST NOT count as healthy production sources."
+      }
     },
     {
       "source_id": "kraken",
@@ -73,7 +110,25 @@
       "timestamp_path": "result.XXBTZUSD.0.2",
       "timestamp_encoding": "unix_s_fractional",
       "quote_conversion": "none",
-      "result_pair_key": "XXBTZUSD"
+      "result_pair_key": "XXBTZUSD",
+      "source_type": "cex_rest",
+      "source_lineage": "primary_venue",
+      "instrument": {
+        "kind": "spot",
+        "venue_symbol": "XBTUSD",
+        "base": "BTC",
+        "quote": "USD"
+      },
+      "unit": "USD",
+      "timestamp_semantics": "venue_last_trade_time",
+      "market_calendar": "crypto_24x7",
+      "benchmark_methodology": "last_trade",
+      "health": {
+        "probe_status": "untested",
+        "last_http_status": null,
+        "eligible_for_production_quorum": false,
+        "notes": "Not probed from a declared signer environment. Untested endpoints MUST NOT count as healthy production sources."
+      }
     },
     {
       "source_id": "coinbase",
@@ -91,7 +146,28 @@
       "price_path": "price",
       "timestamp_path": "time",
       "timestamp_encoding": "rfc3339",
-      "quote_conversion": "none"
+      "quote_conversion": "none",
+      "source_type": "cex_rest",
+      "source_lineage": "primary_venue",
+      "instrument": {
+        "kind": "spot",
+        "venue_symbol": "BTC-USD",
+        "base": "BTC",
+        "quote": "USD"
+      },
+      "unit": "USD",
+      "timestamp_semantics": "venue_last_trade_time",
+      "market_calendar": "crypto_24x7",
+      "benchmark_methodology": "last_trade",
+      "health": {
+        "probe_status": "untested",
+        "last_http_status": null,
+        "eligible_for_production_quorum": false,
+        "notes": "Not probed from a declared signer environment. Untested endpoints MUST NOT count as healthy production sources."
+      }
     }
-  ]
+  ],
+  "market_calendar": "crypto_24x7",
+  "benchmark_methodology": "last_trade_median",
+  "instrument_definition": "spot_index"
 }

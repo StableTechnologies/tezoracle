@@ -98,7 +98,7 @@ Do not replace `chain_id` with `string` or `bytes`. Do not replace `address` wit
 | 3 | `oracle_address` | `address` | Exact destination KT1. Default entrypoint only. Implicit (`tz1`/`tz2`/`tz3`/`tz4`) addresses are rejected. |
 | 4 | `config_version` | `nat` | ≥ 1. Must equal the active on-chain configuration version. |
 | 5 | `policy_hash` | `bytes` | Exactly 32 bytes. BLAKE2B-256 of the canonical parameter-register snapshot ([PARAMETER_SCHEMA.md](PARAMETER_SCHEMA.md)). |
-| 6 | `publication_group` | `string` | Exactly one of `CORE`, `USDTZ`, `TZBTC`. |
+| 6 | `publication_group` | `string` | Exact group name from the active parameter register (`^[A-Z][A-Z0-9_]*$`). The Michelson type is an unconstrained string; allowed values are not a closed CORE/USDTZ/TZBTC enumeration. |
 | 7 | `round` | `nat` | ≥ 1. Strictly greater than the last accepted round for this `publication_group`. Skips after an outage are allowed; reuse and reordering are not. |
 | 8 | `valid_from` | `timestamp` | Unix seconds. Inclusive start of the submission window. |
 | 9 | `valid_until` | `timestamp` | Unix seconds. Inclusive end. Must satisfy `valid_from < valid_until`. |
@@ -118,6 +118,10 @@ JavaScript `number`, `NaN`, `Infinity`, scientific notation, and floating-point 
 
 ## 3. Canonical asset identifiers and groups
 
+`publication_group` and `asset_id` are taken from the versioned parameter register ([PARAMETER_SCHEMA.md](PARAMETER_SCHEMA.md)). Adding a group or asset is a register change. It does not change this Michelson type.
+
+The committed snapshot for this phase:
+
 | `asset_id` | Group | Initial posture |
 | --- | --- | --- |
 | `BTC_USD` | `CORE` | draft/testnet, non-authoritative |
@@ -126,7 +130,7 @@ JavaScript `number`, `NaN`, `Infinity`, scientific notation, and floating-point 
 | `USDTZ_USD` | `USDTZ` | non-authoritative stub |
 | `TZBTC_USD` | `TZBTC` | non-authoritative stub |
 
-Exact signed asset lists, lexicographic:
+Exact signed asset lists in this snapshot, lexicographic:
 
 | Group | Ordered `asset_id` list |
 | --- | --- |
@@ -134,7 +138,7 @@ Exact signed asset lists, lexicographic:
 | `USDTZ` | `USDTZ_USD` |
 | `TZBTC` | `TZBTC_USD` |
 
-A batch updates exactly one group. Missing, extra, duplicate, reordered, aliased, or unknown IDs are rejected. Compatibility aliases such as `XTZUSDT` are TezFin consumer mappings and MUST NOT appear in this payload.
+A batch updates exactly one group named in the active register. Missing, extra, duplicate, reordered, aliased, or unknown IDs are rejected. Compatibility aliases such as `XTZUSDT` are TezFin consumer mappings and MUST NOT appear in this payload.
 
 Lexicographic order is UTF-8 code-unit order (equivalent to ASCII for these IDs), not a locale collation. Implementations MUST NOT call a locale-aware sort. For the full register ID set this means `USDTZ_USD` precedes `USDT_USD` because `Z` < `_`. The `CORE` list is unaffected.
 
@@ -157,7 +161,7 @@ The contract and every signer MUST reject a payload, without storage change and 
 | `ORACLE` | `oracle_address` ≠ `SELF` / configured destination |
 | `CONFIG` | `config_version` is 0 or not the active version |
 | `POLICY` | `policy_hash` length ≠ 32 or hash is not the active approved hash |
-| `GROUP` | `publication_group` is not an approved group string |
+| `GROUP` | `publication_group` is not an approved group in the active register |
 | `ROUND` | `round` = 0 or `round` ≤ last accepted round for that group |
 | `WINDOW` | `valid_from` ≥ `valid_until`, or chain/`now` is outside `[valid_from, valid_until]` |
 | `EVIDENCE` | `evidence_digest` length ≠ 32 |
@@ -203,7 +207,10 @@ Micheline is an intermediate representation for tests. The signed object is `PAC
 
 ## 8. Golden vectors and later work
 
-Frozen review artifacts live in `tests/packing/vectors/` (logical payload, Micheline, packed hex, BLAKE2B-256) and test-only signatures in `tests/packing/keys/`. TypeScript (`src/packing`) and SmartPy (`src/contract/packing.py`) MUST match those bytes. Signing product code stays out of this workstream; the stored signatures only prove `CHECK_SIGNATURE` over `PACK` bytes.
+Frozen review artifacts live in `tests/packing/vectors/` (logical payload, Micheline, packed hex, BLAKE2B-256) and test-only signatures in `tests/packing/keys/`. Quorum-shared evidence manifests live in `tests/packing/evidence/`. `policy_hash` is recomputed from `config/`; `evidence_digest` is recomputed from those manifests. `scripts/recompute-vector-hashes.ts` and the packing tests fail if the committed vectors diverge. TypeScript (`src/packing`) and SmartPy (`src/contract/packing.py`) MUST match those bytes. Signing product code stays out of this workstream; the stored signatures only prove `CHECK_SIGNATURE` over `PACK` bytes.
+
+The N-of-M submit path is later work. Until it exists, the applicable on-chain check for a tampered payload is `CHECK_SIGNATURE` over the packed bytes: a mutated signed field changes `PACK` output and the original signature MUST NOT verify.
+
 
 Contract storage, signer-set encoding, and the `submit` envelope belong to `CONTRACT_SPEC`.
 

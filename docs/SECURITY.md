@@ -47,6 +47,8 @@ The coordinator and relayer are **untrusted for price and policy**. They may tra
 | Replay on another chain or contract | Payload binds `domain`, `chain_id`, and `oracle_address`. |
 | Replay of an old round | Per-group round is strictly monotonic. |
 | Stale or future market time | Observation timestamps are checked; inclusion time is not used as freshness. |
+| Geo-blocked or untested CEX endpoint | HTTP 451, timeouts, and untested URLs are excluded by Class A derivation in every mode. They never count as healthy. Remaining independent observations below the minimum is fail-closed. |
+
 | Duplicate or unknown signer | Contract rejects unknown, inactive, and duplicate signer indices. |
 | Insufficient quorum | Configurable `N` of `M`; 1-of-1 is testnet/shadow only. |
 | Governance foot-gun | Pause is immediate. Unpause, signer-set changes, N/M, class minima, policy hash, and asset changes are delayed. |
@@ -55,7 +57,7 @@ The coordinator and relayer are **untrusted for price and policy**. They may tra
 
 ## Failure modes
 
-The system **fails closed**. If observations are missing, sources disagree beyond policy, evidence mismatches, packing is wrong, the candidate does not match local derivation, quorum is incomplete, or the contract is paused, the update is refused. There is no coordinator override, no degraded “publish anyway” path, and no one-pool USDtz degraded mode in this phase.
+The system **fails closed**. If observations are missing, a registered endpoint is untested or returns HTTP 451/timeout from the signer environment, sources disagree beyond policy, evidence mismatches, packing is wrong, the candidate does not match local derivation, quorum is incomplete, or the contract is paused, the update is refused. There is no coordinator override, no degraded “publish anyway” path, and no one-pool USDtz degraded mode in this phase.
 
 USDtz and tzBTC publication groups may fail independently of `CORE`. They are not consumed as authoritative feeds in this phase.
 

@@ -1,17 +1,16 @@
 {
   "id": "GV-02",
   "description": "USDTZ single-asset batch",
+  "evidence_id": "GV-02",
   "payload": {
     "domain": "TEZORACLE_V1",
     "chain_id": "NetXnHfVqm9iesp",
     "oracle_address": "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy",
     "config_version": "1",
-    "policy_hash": "5201392d4c452aabb1e891bd7fc0abab9ee8d2f5d49565854792c8b7ea9aac09",
     "publication_group": "USDTZ",
     "round": "1",
     "valid_from": "1786680000",
     "valid_until": "1786680180",
-    "evidence_digest": "8a31c6a2dbe1bc8e8a32e2d4175b1269d959a1d49ad6d8beff5d73c3a60e0653",
     "assets": [
       {
         "asset_id": "USDTZ_USD",
@@ -19,7 +18,9 @@
         "decimals": "6",
         "observation_time": "1786679900"
       }
-    ]
+    ],
+    "policy_hash": "322b226764c4350a3bae046022afcfb8fc9f5f11eeca4c347c41fe0a7a42aa25",
+    "evidence_digest": "e9d9c08864c09dfde0dd76663e5acc553461394b388362618d9625fc4498ba76"
   },
   "micheline": {
     "prim": "Pair",
@@ -49,7 +50,7 @@
                     "prim": "Pair",
                     "args": [
                       {
-                        "bytes": "5201392d4c452aabb1e891bd7fc0abab9ee8d2f5d49565854792c8b7ea9aac09"
+                        "bytes": "322b226764c4350a3bae046022afcfb8fc9f5f11eeca4c347c41fe0a7a42aa25"
                       },
                       {
                         "prim": "Pair",
@@ -79,7 +80,7 @@
                                         "prim": "Pair",
                                         "args": [
                                           {
-                                            "bytes": "8a31c6a2dbe1bc8e8a32e2d4175b1269d959a1d49ad6d8beff5d73c3a60e0653"
+                                            "bytes": "e9d9c08864c09dfde0dd76663e5acc553461394b388362618d9625fc4498ba76"
                                           },
                                           [
                                             {
@@ -130,6 +131,6 @@
       }
     ]
   },
-  "packed_hex": "050707010000000c54455a4f5241434c455f563107070a00000004af1864d907070a00000016019142eb01374f37f03023eefc82f2ede96e8ae515000707000107070a000000205201392d4c452aabb1e891bd7fc0abab9ee8d2f5d49565854792c8b7ea9aac0907070100000005555344545a0707000107070080cbf4a70d070700b4cdf4a70d07070a000000208a31c6a2dbe1bc8e8a32e2d4175b1269d959a1d49ad6d8beff5d73c3a60e0653020000002007070100000009555344545a5f55534407070080897a07070006009cc9f4a70d",
-  "blake2b_hex": "25b5e8636a9c69e6ddccf626970372b1e198cf54fe8c56edd078edf4c81f043e"
+  "packed_hex": "050707010000000c54455a4f5241434c455f563107070a00000004af1864d907070a00000016019142eb01374f37f03023eefc82f2ede96e8ae515000707000107070a00000020322b226764c4350a3bae046022afcfb8fc9f5f11eeca4c347c41fe0a7a42aa2507070100000005555344545a0707000107070080cbf4a70d070700b4cdf4a70d07070a00000020e9d9c08864c09dfde0dd76663e5acc553461394b388362618d9625fc4498ba76020000002007070100000009555344545a5f55534407070080897a07070006009cc9f4a70d",
+  "blake2b_hex": "a8e8404ccf10376d5e00d3a1214de8a8ee03da3711a15b081dd1617b997a6ca2"
 }

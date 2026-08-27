@@ -1,17 +1,16 @@
 {
   "id": "GV-06",
-  "description": "Skipped round after an outage (round 9) with config_version 2",
+  "description": "Skipped round after an outage (round 9); config_version 2 packing fixture with the committed register policy_hash",
+  "evidence_id": "GV-06",
   "payload": {
     "domain": "TEZORACLE_V1",
     "chain_id": "NetXnHfVqm9iesp",
     "oracle_address": "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy",
     "config_version": "2",
-    "policy_hash": "ce4f516e9fad5cf5a0bb06f293b515a0bd45423164a5481beab253f93675a49e",
     "publication_group": "CORE",
     "round": "9",
     "valid_from": "1786681000",
     "valid_until": "1786681180",
-    "evidence_digest": "93872a8fdb3ae572f2b4b9b237d3819181688f134115d392d77b1c469f0dfc04",
     "assets": [
       {
         "asset_id": "BTC_USD",
@@ -31,7 +30,9 @@
         "decimals": "6",
         "observation_time": "1786680890"
       }
-    ]
+    ],
+    "policy_hash": "322b226764c4350a3bae046022afcfb8fc9f5f11eeca4c347c41fe0a7a42aa25",
+    "evidence_digest": "3cf926aa43b8ef4c067f47760d774615b748eca2484c9b0ae481690dda3a9d01"
   },
   "micheline": {
     "prim": "Pair",
@@ -61,7 +62,7 @@
                     "prim": "Pair",
                     "args": [
                       {
-                        "bytes": "ce4f516e9fad5cf5a0bb06f293b515a0bd45423164a5481beab253f93675a49e"
+                        "bytes": "322b226764c4350a3bae046022afcfb8fc9f5f11eeca4c347c41fe0a7a42aa25"
                       },
                       {
                         "prim": "Pair",
@@ -91,7 +92,7 @@
                                         "prim": "Pair",
                                         "args": [
                                           {
-                                            "bytes": "93872a8fdb3ae572f2b4b9b237d3819181688f134115d392d77b1c469f0dfc04"
+                                            "bytes": "3cf926aa43b8ef4c067f47760d774615b748eca2484c9b0ae481690dda3a9d01"
                                           },
                                           [
                                             {
@@ -196,6 +197,6 @@
       }
     ]
   },
-  "packed_hex": "050707010000000c54455a4f5241434c455f563107070a00000004af1864d907070a00000016019142eb01374f37f03023eefc82f2ede96e8ae515000707000207070a00000020ce4f516e9fad5cf5a0bb06f293b515a0bd45423164a5481beab253f93675a49e07070100000004434f524507070009070700a8daf4a70d0707009cddf4a70d07070a0000002093872a8fdb3ae572f2b4b9b237d3819181688f134115d392d77b1c469f0dfc04020000005e070701000000074254435f55534407070080a4bbc5e303070700060084d9f4a70d07070100000008555344545f5553440707009c877a07070006008ed9f4a70d0707010000000758545a5f555344070700a0aa5a0707000600bad8f4a70d",
-  "blake2b_hex": "a55af4459077e857da721a05253b4bf786c06bf978831677989bc522bbde1c40"
+  "packed_hex": "050707010000000c54455a4f5241434c455f563107070a00000004af1864d907070a00000016019142eb01374f37f03023eefc82f2ede96e8ae515000707000207070a00000020322b226764c4350a3bae046022afcfb8fc9f5f11eeca4c347c41fe0a7a42aa2507070100000004434f524507070009070700a8daf4a70d0707009cddf4a70d07070a000000203cf926aa43b8ef4c067f47760d774615b748eca2484c9b0ae481690dda3a9d01020000005e070701000000074254435f55534407070080a4bbc5e303070700060084d9f4a70d07070100000008555344545f5553440707009c877a07070006008ed9f4a70d0707010000000758545a5f555344070700a0aa5a0707000600bad8f4a70d",
+  "blake2b_hex": "ab9d64b8beca0c473d8c53f860a33f7cd09b782a99e3ed0b904cdd52335de64c"
 }

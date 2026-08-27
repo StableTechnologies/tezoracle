@@ -1,0 +1,181 @@
+{
+  "domain": "TEZORACLE_EVIDENCE_V1",
+  "policy_hash": "322b226764c4350a3bae046022afcfb8fc9f5f11eeca4c347c41fe0a7a42aa25",
+  "publication_group": "CORE",
+  "round": "9",
+  "assets": [
+    {
+      "asset_id": "BTC_USD",
+      "price": "64900000000",
+      "decimals": 6,
+      "observation_time": 1786680900,
+      "calculation": {
+        "aggregation": "median_lower",
+        "rounding_mode": "half_away_from_zero",
+        "min_independent_observations": 2,
+        "contributing_source_ids": [
+          "binance",
+          "okx"
+        ],
+        "oldest_observation_time": 1786680900
+      },
+      "sources": [
+        {
+          "source_id": "binance",
+          "venue": "Binance",
+          "independence_group": "binance",
+          "market_id": "BTCUSDT",
+          "endpoint": "https://api.binance.com/api/v3/trades",
+          "query": "symbol=BTCUSDT&limit=1",
+          "base_asset": "BTC",
+          "quote_asset": "USDT",
+          "unit": "USDT",
+          "venue_observation_time": 1786680900,
+          "raw_price": "64900000000",
+          "raw_decimals": 6,
+          "normalized_price": "64900000000",
+          "conversion": {
+            "via_asset_id": "USDT_USD",
+            "factor": "999900",
+            "factor_decimals": 6,
+            "factor_observation_time": 1786680910
+          }
+        },
+        {
+          "source_id": "okx",
+          "venue": "OKX",
+          "independence_group": "okx",
+          "market_id": "BTC-USDT",
+          "endpoint": "https://www.okx.com/api/v5/market/ticker",
+          "query": "instId=BTC-USDT",
+          "base_asset": "BTC",
+          "quote_asset": "USDT",
+          "unit": "USDT",
+          "venue_observation_time": 1786680900,
+          "raw_price": "64900000000",
+          "raw_decimals": 6,
+          "normalized_price": "64900000000",
+          "conversion": {
+            "via_asset_id": "USDT_USD",
+            "factor": "999900",
+            "factor_decimals": 6,
+            "factor_observation_time": 1786680910
+          }
+        }
+      ],
+      "excluded": []
+    },
+    {
+      "asset_id": "USDT_USD",
+      "price": "999900",
+      "decimals": 6,
+      "observation_time": 1786680910,
+      "calculation": {
+        "aggregation": "median_lower",
+        "rounding_mode": "half_away_from_zero",
+        "min_independent_observations": 2,
+        "contributing_source_ids": [
+          "binance",
+          "okx"
+        ],
+        "oldest_observation_time": 1786680910
+      },
+      "sources": [
+        {
+          "source_id": "binance",
+          "venue": "Binance",
+          "independence_group": "binance",
+          "market_id": "USDTUSD",
+          "endpoint": "https://api.binance.com/api/v3/trades",
+          "query": "symbol=USDTUSD&limit=1",
+          "base_asset": "USDT",
+          "quote_asset": "USD",
+          "unit": "USD",
+          "venue_observation_time": 1786680910,
+          "raw_price": "999900",
+          "raw_decimals": 6,
+          "normalized_price": "999900",
+          "conversion": null
+        },
+        {
+          "source_id": "okx",
+          "venue": "OKX",
+          "independence_group": "okx",
+          "market_id": "USDT-USD",
+          "endpoint": "https://www.okx.com/api/v5/market/ticker",
+          "query": "instId=USDT-USD",
+          "base_asset": "USDT",
+          "quote_asset": "USD",
+          "unit": "USD",
+          "venue_observation_time": 1786680910,
+          "raw_price": "999900",
+          "raw_decimals": 6,
+          "normalized_price": "999900",
+          "conversion": null
+        }
+      ],
+      "excluded": []
+    },
+    {
+      "asset_id": "XTZ_USD",
+      "price": "740000",
+      "decimals": 6,
+      "observation_time": 1786680890,
+      "calculation": {
+        "aggregation": "median_lower",
+        "rounding_mode": "half_away_from_zero",
+        "min_independent_observations": 2,
+        "contributing_source_ids": [
+          "binance",
+          "okx"
+        ],
+        "oldest_observation_time": 1786680890
+      },
+      "sources": [
+        {
+          "source_id": "binance",
+          "venue": "Binance",
+          "independence_group": "binance",
+          "market_id": "XTZUSDT",
+          "endpoint": "https://api.binance.com/api/v3/trades",
+          "query": "symbol=XTZUSDT&limit=1",
+          "base_asset": "XTZ",
+          "quote_asset": "USDT",
+          "unit": "USDT",
+          "venue_observation_time": 1786680890,
+          "raw_price": "740000",
+          "raw_decimals": 6,
+          "normalized_price": "740000",
+          "conversion": {
+            "via_asset_id": "USDT_USD",
+            "factor": "999900",
+            "factor_decimals": 6,
+            "factor_observation_time": 1786680910
+          }
+        },
+        {
+          "source_id": "okx",
+          "venue": "OKX",
+          "independence_group": "okx",
+          "market_id": "XTZ-USDT",
+          "endpoint": "https://www.okx.com/api/v5/market/ticker",
+          "query": "instId=XTZ-USDT",
+          "base_asset": "XTZ",
+          "quote_asset": "USDT",
+          "unit": "USDT",
+          "venue_observation_time": 1786680890,
+          "raw_price": "740000",
+          "raw_decimals": 6,
+          "normalized_price": "740000",
+          "conversion": {
+            "via_asset_id": "USDT_USD",
+            "factor": "999900",
+            "factor_decimals": 6,
+            "factor_observation_time": 1786680910
+          }
+        }
+      ],
+      "excluded": []
+    }
+  ]
+}

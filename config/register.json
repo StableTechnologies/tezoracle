@@ -5,7 +5,7 @@
   "authoritative": false,
   "domain": "TEZORACLE_V1",
   "config_version": 1,
-  "notes": "Initial freeze. Testnet and non-authoritative shadow only. Not TezFin production authority.",
+  "notes": "Initial freeze. Testnet and non-authoritative shadow only. Not TezFin production authority. Publication groups and asset IDs are taken from this snapshot; adding a group does not change the packed payload type.",
   "publication_groups": {
     "CORE": {
       "asset_ids": ["BTC_USD", "USDT_USD", "XTZ_USD"]
@@ -34,6 +34,11 @@
     "pause_immediate": true,
     "unpause_delayed": true,
     "production_requires_separate_approval": true
+  },
+  "signer_environments": {
+    "status": "undeclared",
+    "regions": [],
+    "notes": "Intended Class A signer regions are not yet declared. Every registered HTTPS endpoint MUST be probed from each declared region before eligible_for_production_quorum may be true. HTTP 451, timeouts, TLS failures, and untested endpoints are not healthy production sources. Fail closed when remaining healthy independent observations fall below the asset minimum. api.binance.com is known to return HTTP 451 from at least one expected operating region."
   },
   "assets": ["BTC_USD", "TZBTC_USD", "USDTZ_USD", "USDT_USD", "XTZ_USD"]
 }

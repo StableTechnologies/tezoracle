@@ -67,9 +67,13 @@ def main():
             sp.cast(payload, t_payload)
             self.data.packed = sp.pack(payload)
 
+        @sp.entrypoint
+        def check_sig(self, packed, public_key, signature):
+            assert sp.check_signature(public_key, signature, packed)
 
-def payload_to_sp(payload: Mapping[str, Any]) -> Any:
-    canonical = parse_logical_payload(payload)
+
+def payload_to_sp(payload: Mapping[str, Any], *, canonical: bool = True) -> Any:
+    logical = parse_logical_payload(payload) if canonical else dict(payload)
     assets = [
         sp.record(
             asset_id=asset["asset_id"],
@@ -77,19 +81,19 @@ def payload_to_sp(payload: Mapping[str, Any]) -> Any:
             decimals=sp.nat(int(asset["decimals"])),
             observation_time=sp.timestamp(int(asset["observation_time"])),
         )
-        for asset in canonical["assets"]
+        for asset in logical["assets"]
     ]
     return sp.record(
-        domain=canonical["domain"],
-        chain_id=sp.chain_id_cst("0x" + chain_id_hex(canonical["chain_id"])),
-        oracle_address=sp.address(canonical["oracle_address"]),
-        config_version=sp.nat(int(canonical["config_version"])),
-        policy_hash=sp.bytes("0x" + canonical["policy_hash"]),
-        publication_group=canonical["publication_group"],
-        round=sp.nat(int(canonical["round"])),
-        valid_from=sp.timestamp(int(canonical["valid_from"])),
-        valid_until=sp.timestamp(int(canonical["valid_until"])),
-        evidence_digest=sp.bytes("0x" + canonical["evidence_digest"]),
+        domain=logical["domain"],
+        chain_id=sp.chain_id_cst("0x" + chain_id_hex(logical["chain_id"])),
+        oracle_address=sp.address(logical["oracle_address"]),
+        config_version=sp.nat(int(logical["config_version"])),
+        policy_hash=sp.bytes("0x" + logical["policy_hash"]),
+        publication_group=logical["publication_group"],
+        round=sp.nat(int(logical["round"])),
+        valid_from=sp.timestamp(int(logical["valid_from"])),
+        valid_until=sp.timestamp(int(logical["valid_until"])),
+        evidence_digest=sp.bytes("0x" + logical["evidence_digest"]),
         assets=assets,
     )
 
@@ -100,3 +104,14 @@ def assert_pack_equals(payload: Mapping[str, Any], packed_hex: str) -> None:
     scenario += contract
     contract.pack_payload(payload_to_sp(payload))
     scenario.verify(contract.data.packed == sp.bytes("0x" + packed_hex))
+
+
+def assert_signature_verifies(packed_hex: str, public_key: str, signature: str) -> None:
+    scenario = sp.test_scenario(None, main)
+    contract = main.Packer()
+    scenario += contract
+    contract.check_sig(
+        packed=sp.bytes("0x" + packed_hex),
+        public_key=sp.key(public_key),
+        signature=sp.signature(signature),
+    )

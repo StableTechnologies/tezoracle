@@ -41,6 +41,9 @@ Republishing the same economic value in a new round MUST use newly obtained obse
 
 - Only register-allowlisted `source_id` + `market_id` + `endpoint` tuples may contribute.
 - Timeouts, retries, and failover MUST NOT substitute an unapproved source.
+- An untested endpoint is not a healthy source in **any** mode (testnet, shadow, production). Class A `fetchSource` / `derivePublicationGroup` apply the register health gate before a venue observation may contribute. A live HTTP 200 does not override `probe_status: untested`; the snapshot must be updated after a probe from the intended signer environment.
+- HTTP 451 (including the known `api.binance.com` geo-restriction), other non-2xx statuses, timeouts, and TLS failures exclude that source. If remaining independent healthy observations fall below `min_independent_observations`, fail closed (`INSUFFICIENT` / `HTTP_451` / `UNTESTED`). There is no “skip the blocked venue and publish anyway” path.
+- `eligible_for_production_quorum` is an additional gate when register `lifecycle` is `production`. It MUST stay false until the endpoint has been probed from every declared signer region. Testnet derivation still requires `probe_status: reachable` and a live 2xx; it does not require the production flag.
 - Two endpoints that share `independence_group` (same venue or same upstream) count as **one** independent observation. Prefer the register’s `route_preference` (direct USD, then USDT-adjusted) and keep a single selected route in shared evidence.
 - A USDT-adjusted route is one venue observation even though it multiplies by USDT/USD.
 - Core-group derivation order:

@@ -10,12 +10,20 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test tests/validator/smoke.test.ts tests/packing/vectors.test.ts tests/config/register.test.ts",
-    "test:packing": "node --import tsx --test tests/packing/vectors.test.ts",
+    "test": "node --import tsx --test tests/validator/smoke.test.ts tests/packing/vectors.test.ts tests/packing/hashes.test.ts tests/packing/tamper.test.ts tests/config/register.test.ts tests/config/extensibility.test.ts tests/evidence/manifest.test.ts tests/sources/health.test.ts",
+    "test:packing": "node --import tsx --test tests/packing/vectors.test.ts tests/packing/hashes.test.ts tests/packing/tamper.test.ts",
     "packing:freeze-vectors": "tsx scripts/freeze-packing-vectors.ts",
+    "packing:check-hashes": "tsx scripts/recompute-vector-hashes.ts",
+    "sources:probe": "tsx scripts/probe-source-endpoints.ts",
     "build": "tsc --noEmit"
   },
+  "dependencies": {
+    "@noble/hashes": "^2.3.0",
+    "@taquito/michel-codec": "^25.0.0",
+    "@taquito/utils": "^25.0.0"
+  },
   "devDependencies": {
+    "@taquito/signer": "^25.0.0",
     "@types/node": "22.20.1",
     "tsx": "4.23.12",
     "typescript": "5.9.3"

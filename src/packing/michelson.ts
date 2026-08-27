@@ -1,4 +1,4 @@
-import { type AssetEntry, type LogicalPayload, type Micheline } from "./types.js";
+import { type AssetEntry, type Micheline, type PackablePayload } from "./types.js";
 
 const annot = (name: string): string[] => [`%${name}`];
 
@@ -102,7 +102,7 @@ function assetMicheline(asset: AssetEntry): Micheline {
   );
 }
 
-export function payloadMicheline(payload: LogicalPayload): Micheline {
+export function payloadMicheline(payload: PackablePayload): Micheline {
   const assets: Micheline = payload.assets.map(assetMicheline);
   return pair(
     { string: payload.domain },

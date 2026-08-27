@@ -31,5 +31,8 @@
     "cross_pool_deviation_bps": null,
     "cold_start_policy": "fail_closed",
     "degraded_one_pool_mode": false
-  }
+  },
+  "market_calendar": "crypto_24x7",
+  "benchmark_methodology": "pending_review",
+  "instrument_definition": "pending_review"
 }

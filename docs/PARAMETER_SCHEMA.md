@@ -60,6 +60,7 @@ Every asset also has `authoritative: boolean`. It MUST be `false` for this phase
 | `time_policy` | object | Submission window, skew, activation delay |
 | `payload` | object | Integer caps shared with [PAYLOAD_SPEC.md](PAYLOAD_SPEC.md) |
 | `governance` | object | Delayed activation rules |
+| `signer_environments` | object | Declared regions from which every registered endpoint MUST be probed |
 | `assets` | string[] | UTF-8 code-unit lexicographic list of asset IDs present in this snapshot |
 
 ### Time policy
@@ -82,13 +83,17 @@ Every asset also has `authoritative: boolean`. It MUST be `false` for this phase
 
 ### Publication groups
 
-Frozen exact lists (lexicographic IDs):
+Group names and ordered `asset_ids` lists are whatever the committed register contains. Names match `^[A-Z][A-Z0-9_]*$`. The payload Michelson type stays `string`; TypeScript, Python, and JSON Schema MUST NOT hard-code only `CORE`, `USDTZ`, and `TZBTC`.
+
+This snapshot:
 
 - `CORE`: `BTC_USD`, `USDT_USD`, `XTZ_USD`
 - `USDTZ`: `USDTZ_USD`
 - `TZBTC`: `TZBTC_USD`
 
 `register.assets` is the UTF-8 code-unit lexicographic list of every ID in the snapshot: `BTC_USD`, `TZBTC_USD`, `USDTZ_USD`, `USDT_USD`, `XTZ_USD`. Do not use a locale-aware sort.
+
+Adding a future group is a register edit plus delayed activation. It does not redesign PACK.
 
 ## 4. Asset fields
 
@@ -97,13 +102,16 @@ Required for every asset:
 | Field | Role |
 | --- | --- |
 | `asset_id` | Canonical ID |
-| `group` | `CORE` \| `USDTZ` \| `TZBTC` |
+| `group` | Publication group name from the register (`^[A-Z][A-Z0-9_]*$`) |
 | `lifecycle` | See §2 |
 | `authoritative` | Must be false this phase |
 | `consumable` | Whether any TezFin-style consumer may rely on it; false this phase |
 | `decimals` | Canonical display/storage scale; `6` for USD prices |
-| `unit` | `USD` |
-| `timestamp_semantics` | `venue_observation_time` |
+| `unit` | Quote/unit string. Current USD prices use `USD`. Future instruments MAY use other units without changing PACK. |
+| `timestamp_semantics` | How `observation_time` is defined. Current CEX rows use `venue_observation_time`. |
+| `market_calendar` | Optional. Current crypto rows use `crypto_24x7`. Reserved for future calendars. |
+| `benchmark_methodology` | Optional. Current CEX rows use `last_trade_median`. Reserved for future benchmarks. |
+| `instrument_definition` | Optional free-form instrument class (`spot_index`, pending RWA definitions). Not an implemented RWA feed. |
 | `min_independent_observations` | Minimum distinct `independence_group` values |
 | `max_observation_age_seconds` | Per-source and derived-price age cap |
 | `max_source_deviation_bps` | Outlier threshold vs median |
@@ -146,6 +154,33 @@ Each source entry binds a single approved route:
 Two listed markets in the same `independence_group` still count as one observation. This freeze lists **one** selected market per venue per asset.
 
 HTTP TLS verification stays enabled. Redirects that change host are treated as `MALFORMED`.
+
+Optional source metadata (allowed now, unused as new feed types): `source_type`, `source_lineage`, `instrument`, `unit`, `timestamp_semantics`, `market_calendar`, `benchmark_methodology`. These document venue/instrument identity. They do not implement RWA feeds.
+
+### Source health and deployment regions
+
+Listing an HTTPS URL is an allowlist identity, not a health attestation.
+
+Each source has `health`:
+
+| Field | Role |
+| --- | --- |
+| `probe_status` | `untested` \| `reachable` \| `geo_blocked` \| `failed` |
+| `last_http_status` | Last probe status, or `null` |
+| `known_restriction` | Optional. `http_451` for venues known to geo-block some regions |
+| `eligible_for_production_quorum` | MUST be `false` unless a 2xx probe from a declared signer region succeeded |
+| `notes` | Non-secret operator text |
+
+`register.signer_environments` records the intended Class A operating regions. This freeze uses `status: "undeclared"` and an empty `regions` list. Until regions are declared and every registered endpoint is probed from each of them:
+
+- every current source remains `probe_status: "untested"`
+- `eligible_for_production_quorum` is `false`
+- an untested endpoint MUST NOT be counted as a healthy source in any mode
+- Class A derivation fail-closes rather than treating fixture or live 200 responses as health attestations
+
+`api.binance.com` is known to return HTTP 451 from at least one expected operating region. Binance rows carry `known_restriction: "http_451"`. A signer that observes 451, timeout, TLS failure, or any non-2xx MUST exclude that source (`HTTP_451` / `HTTP_STATUS` / `TIMEOUT`) and fail closed if remaining healthy independent observations fall below `min_independent_observations`. Stretch adapters never count toward the minimum.
+
+Operator probe tool: `npx tsx scripts/probe-source-endpoints.ts`. It is not a CI gate; geo-blocking is environment-specific. CI tests the 451 classification with fixtures.
 
 ## 6. DEX fields (USDtz / tzBTC)
 

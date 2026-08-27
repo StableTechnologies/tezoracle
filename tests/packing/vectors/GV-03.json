@@ -1,17 +1,16 @@
 {
   "id": "GV-03",
   "description": "TZBTC single-asset batch",
+  "evidence_id": "GV-03",
   "payload": {
     "domain": "TEZORACLE_V1",
     "chain_id": "NetXnHfVqm9iesp",
     "oracle_address": "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy",
     "config_version": "1",
-    "policy_hash": "5201392d4c452aabb1e891bd7fc0abab9ee8d2f5d49565854792c8b7ea9aac09",
     "publication_group": "TZBTC",
     "round": "1",
     "valid_from": "1786680000",
     "valid_until": "1786680180",
-    "evidence_digest": "c8f0bf026976601ff889946419024a502413b5e4ea50223d5ba09334af265fe1",
     "assets": [
       {
         "asset_id": "TZBTC_USD",
@@ -19,7 +18,9 @@
         "decimals": "6",
         "observation_time": "1786679900"
       }
-    ]
+    ],
+    "policy_hash": "322b226764c4350a3bae046022afcfb8fc9f5f11eeca4c347c41fe0a7a42aa25",
+    "evidence_digest": "abc20c096fee857b161c2d8c0ade5ca5bfae0ef3413e1f833d9b29321cf88478"
   },
   "micheline": {
     "prim": "Pair",
@@ -49,7 +50,7 @@
                     "prim": "Pair",
                     "args": [
                       {
-                        "bytes": "5201392d4c452aabb1e891bd7fc0abab9ee8d2f5d49565854792c8b7ea9aac09"
+                        "bytes": "322b226764c4350a3bae046022afcfb8fc9f5f11eeca4c347c41fe0a7a42aa25"
                       },
                       {
                         "prim": "Pair",
@@ -79,7 +80,7 @@
                                         "prim": "Pair",
                                         "args": [
                                           {
-                                            "bytes": "c8f0bf026976601ff889946419024a502413b5e4ea50223d5ba09334af265fe1"
+                                            "bytes": "abc20c096fee857b161c2d8c0ade5ca5bfae0ef3413e1f833d9b29321cf88478"
                                           },
                                           [
                                             {
@@ -130,6 +131,6 @@
       }
     ]
   },
-  "packed_hex": "050707010000000c54455a4f5241434c455f563107070a00000004af1864d907070a00000016019142eb01374f37f03023eefc82f2ede96e8ae515000707000107070a000000205201392d4c452aabb1e891bd7fc0abab9ee8d2f5d49565854792c8b7ea9aac0907070100000005545a4254430707000107070080cbf4a70d070700b4cdf4a70d07070a00000020c8f0bf026976601ff889946419024a502413b5e4ea50223d5ba09334af265fe1020000002307070100000009545a4254435f55534407070080a8eaa4e40307070006009cc9f4a70d",
-  "blake2b_hex": "0161589c0cc67644e4cb0b333cdae0022224d07ccf0d294c9869141a1852aaab"
+  "packed_hex": "050707010000000c54455a4f5241434c455f563107070a00000004af1864d907070a00000016019142eb01374f37f03023eefc82f2ede96e8ae515000707000107070a00000020322b226764c4350a3bae046022afcfb8fc9f5f11eeca4c347c41fe0a7a42aa2507070100000005545a4254430707000107070080cbf4a70d070700b4cdf4a70d07070a00000020abc20c096fee857b161c2d8c0ade5ca5bfae0ef3413e1f833d9b29321cf88478020000002307070100000009545a4254435f55534407070080a8eaa4e40307070006009cc9f4a70d",
+  "blake2b_hex": "66ca716a905cc541dcfe37ad3c7491dc29fa870c0c58726854e61d8c9e7a0f87"
 }

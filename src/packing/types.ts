@@ -1,26 +1,16 @@
 /**
  * Canonical TezOracle payload types. Field order matches docs/PAYLOAD_SPEC.md.
+ *
+ * publication_group and asset_id are strings taken from the versioned
+ * parameter register. The Michelson type stays string; the allowed values
+ * are not a closed CORE/USDTZ/TZBTC enumeration in this packer.
  */
 
 export const DOMAIN = "TEZORACLE_V1" as const;
 
 export const PACKING_STATUS = "frozen" as const;
 
-export type PublicationGroup = "CORE" | "USDTZ" | "TZBTC";
-
-export const GROUP_ASSETS: Record<PublicationGroup, readonly string[]> = {
-  CORE: ["BTC_USD", "USDT_USD", "XTZ_USD"],
-  USDTZ: ["USDTZ_USD"],
-  TZBTC: ["TZBTC_USD"],
-};
-
-export const ASSET_DECIMALS: Record<string, number> = {
-  BTC_USD: 6,
-  USDT_USD: 6,
-  XTZ_USD: 6,
-  USDTZ_USD: 6,
-  TZBTC_USD: 6,
-};
+export type PublicationGroup = string;
 
 export const PRICE_NAT_MAX = (1n << 96n) - 1n;
 
@@ -53,7 +43,22 @@ export type LogicalPayload = {
   oracle_address: string;
   config_version: string;
   policy_hash: string;
-  publication_group: PublicationGroup;
+  publication_group: string;
+  round: string;
+  valid_from: string;
+  valid_until: string;
+  evidence_digest: string;
+  assets: AssetEntry[];
+};
+
+/** Payload fields required to PACK, including values the canonical parser would reject. */
+export type PackablePayload = {
+  domain: string;
+  chain_id: string;
+  oracle_address: string;
+  config_version: string;
+  policy_hash: string;
+  publication_group: string;
   round: string;
   valid_from: string;
   valid_until: string;

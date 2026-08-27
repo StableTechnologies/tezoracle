@@ -60,7 +60,7 @@ python -m pytest
 
 `.env.example` is placeholders only. Copy it to `.env` only for later local/testnet runs. Never add production secrets.
 
-The current tree is a public baseline: layout, docs, and CI skeleton. Payload freeze, packing parity, the N-of-M contract, Class A adapters, coordinator/relayer, and local e2e follow in later PRs. Signing is blocked until packing golden vectors pass.
+The current tree includes the public baseline, the frozen payload/register/evidence specs, and TypeScript/SmartPy packing golden vectors. `policy_hash` and `evidence_digest` in those vectors are recomputed from `config/` and `tests/packing/evidence/`. The N-of-M contract, Class A adapters, coordinator/relayer, and local e2e follow in later PRs. Signing product code is blocked until packing golden vectors pass.
 
 ## Repository layout
 
