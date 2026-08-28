@@ -13,9 +13,9 @@ This contract does **not** implement TezFin aliases, `configureMaxPriceAge`, `co
 
 | Role | May | Must not |
 | --- | --- | --- |
-| Anyone (relayer) | `submit` a fully signed payload; activate a matured timelock | Hold signer keys; change signed bytes |
-| Admin | Immediate pause; propose delayed unpause and delayed config | Instantly unpause, lower `N`, replace signers, or change policy |
-| Guardian | Immediate global or per-asset pause | Unpause, propose config, or change thresholds |
+| Anyone (relayer) | `submit` a fully signed payload; `promote` a mature pending quote; activate a matured timelock | Hold signer keys; change signed bytes |
+| Admin | Immediate pause; `discard_pending`; propose delayed unpause and delayed config | Instantly unpause, lower `N`, replace signers, or change policy |
+| Guardian | Immediate global or per-asset pause; `discard_pending` | Unpause, propose config, or change thresholds |
 | Signers | Off-chain: sign `PACK(payload)` | On-chain authority beyond `CHECK_SIGNATURE` |
 
 Admin and guardian may be the same address in 1-of-1 testnet.
@@ -25,8 +25,9 @@ Admin and guardian may be the same address in 1-of-1 testnet.
 | Field | Meaning |
 | --- | --- |
 | `admin` / `guardian` | Governance and emergency pause |
-| `paused` | Global pause; blocks `submit` and price views |
+| `paused` | Global pause; blocks `submit`, `promote`, and price views |
 | `pending_unpause_level` | If `Some(L)`, global unpause may activate at level `L` |
+| `last_global_pause_level` | Level of the last global pause; pending accepted at or before this level is quarantined |
 | `config_version` | Active configuration version; payloads must match |
 | `policy_hash` | 32-byte BLAKE2B of the pinned parameter register |
 | `threshold_n` / `threshold_m` | Quorum `N` of active set size `M` |
@@ -46,7 +47,7 @@ Admin and guardian may be the same address in 1-of-1 testnet.
 
 - Indices are unique `nat` keys. They need not be contiguous.
 - `threshold_m` equals the number of **active** signers.
-- `1 ≤ N ≤ M ≤ 16`. Sixteen is the reviewed maximum for this phase (`5-of-7` fits).
+- `1 ≤ N ≤ M ≤ 16`. Sixteen is the reviewed maximum signer-map / active-set size for this phase (`5-of-7` fits).
 - Duplicate public keys are rejected.
 - `class_id` is a non-empty string (`A` / `B` in production intent; any label is allowed).
 - Each `class_minima[c]` MUST be ≤ the number of active signers in class `c`.
@@ -67,6 +68,8 @@ A quote stores `price`, `observation_time`, `round`, `config_version`, and `acce
 
 Register absolute bounds are oracle-level fail-closed checks. They are not TezFin `configurePriceBounds`.
 
+Origination and `propose_config` also enforce explicit size caps: at most 16 assets, 8 publication groups, 8 asset ids per group, and 8 class-minima entries. Emergency pause does not iterate these maps.
+
 ## 3. Payload and `submit`
 
 `submit` is permissionless. The parameter is:
@@ -80,12 +83,14 @@ pair (payload %payload) (list %signatures (pair (nat %index) (signature %signatu
 The contract:
 
 1. Rejects global pause.
-2. Promotes any matured pending prices (see §5).
-3. Checks payload fields against storage and `now` / `SELF` / `CHAIN_ID` (table below).
+2. Checks payload fields against storage and `now` / `SELF` / `CHAIN_ID` (table below).
+3. For **each asset in this batch only** (not every configured asset): drops quarantined or wrong-version pending quotes; promotes a mature pending quote that respects `max_movement_bps`; rejects `PENDING_OPEN` if an immature pending quote still exists; rejects `MOVEMENT` if a mature pending quote exceeds the movement limit (call `promote` to persist the pause).
 4. `PACK`s the payload with the frozen layout and verifies every submitted signature with `CHECK_SIGNATURE` over those bytes.
 5. Enforces unique indices, known active signers, `N`, and class minima.
 6. Writes a **pending** quote per asset. It does not make the batch consumable in the accept level.
 7. Updates `last_round[group]` and each asset’s `last_observation_time`.
+
+A new submission **cannot** replace an immature pending quote. If publication is more frequent than `activation_delay_levels`, later `submit`s fail `PENDING_OPEN` until the pending quote matures (or is discarded / quarantined). This preserves the activation delay.
 
 A failed `submit` changes no price, round, or activation state.
 
@@ -127,7 +132,9 @@ Payload codes match [PAYLOAD_SPEC.md](PAYLOAD_SPEC.md) §5. Contract-only codes 
 | `NO_PENDING` | activate/cancel with nothing pending |
 | `NOT_PAUSED` | unpause proposed while not paused |
 | `DELAY` | timelock has not reached `activate_at_level` |
-| `NO_PRICE` | view: no mature, unpaused quote |
+| `PENDING_OPEN` | an asset in the batch still has an immature pending quote |
+| `MOVEMENT` | an asset in the batch has a mature pending quote that exceeds `max_movement_bps`; call `promote` to persist the automatic pause |
+| `NO_PRICE` | view: no mature, unpaused quote whose `config_version` matches the active configuration |
 
 Unknown, duplicate, and inactive signers never count toward `N` or class minima. A bad signature fails the operation; it is not skipped.
 
@@ -143,11 +150,13 @@ Skipping rounds after an outage is allowed. Reusing or reordering an accepted ro
 Both views:
 
 - Fail `PAUSED` / `ASSET_PAUSED` / `ASSET_ID` / `NO_PRICE` rather than returning zero.
-- Return only a **mature** quote: `now_level ≥ pending.activation_level`, or the stored `active` quote if no mature pending exists.
+- Return only a quote whose `config_version` equals the active configuration.
+- Ignore pending quotes accepted at or before `last_global_pause_level` (quarantined by emergency pause).
+- Return only a **mature** quote: `now_level ≥ pending.activation_level`, or the stored `active` quote if no current mature pending exists.
 - Use payload `observation_time`, never the inclusion timestamp.
-- If a mature pending quote exceeds `max_movement_bps` versus the current active price, they do **not** return the pending value. They return the previous active quote (original observation time). The next mutating entrypoint pauses the asset and drops that pending quote.
+- If a mature pending quote exceeds `max_movement_bps` versus the current active price, they do **not** return the pending value. They return the previous active quote (original observation time). Permissionless `promote(asset_id)` persists the automatic pause and emits `tezoracle_movement_pause`.
 
-Views are read-only: they do not write promotion. Entrypoints persist promotion first.
+Views are read-only: they do not write promotion. `submit` promotes only assets in the submitted group. `promote` persists one asset. Emergency pause does not promote.
 
 This contract does not expose `configureMaxPriceAge` or `configurePriceBounds`.
 
@@ -157,20 +166,27 @@ This contract does not expose `configureMaxPriceAge` or `configurePriceBounds`.
 
 On accept at level `L`, each asset in the batch gets a pending quote with `activation_level = L + activation_delay_levels`. The public view must not consume that quote at level `L`.
 
-On any mutating entrypoint, for each asset with a mature pending quote:
+Promotion is **not** a global all-assets loop. It runs for one asset (`promote`) or for the submitted publication group (`submit`):
 
-- If there is no active quote, pending becomes active.
+- If the pending quote’s `config_version` does not match, or `accepted_level ≤ last_global_pause_level`, it is dropped and not activated.
+- If there is no current active quote, a mature pending quote becomes active.
 - If `|new − old| * 10000 ≤ max_movement_bps * old`, pending becomes active.
-- Otherwise the asset is paused, pending is dropped, and the previous active quote is kept with its original observation time.
+- Otherwise `submit` fails `MOVEMENT` without changing pause state. `promote` pauses the asset, drops pending, keeps the previous active quote with its original observation time, and emits `tezoracle_movement_pause`.
+
+`pause`, `pause_asset`, unpause, and config entrypoints never promote.
 
 ## 6. Pause and delayed resume
 
-- `pause` and `pause_asset` take effect immediately (admin or guardian). Global pause clears a pending global unpause.
+Emergency pause is bounded: it does not iterate configured assets and does not call promotion.
+
+- `pause` (admin or guardian) sets the global flag, records `last_global_pause_level = now_level`, and clears a pending global unpause. Pending quotes stay in storage but are quarantined and never become active from this operation.
+- `pause_asset` pauses that asset, clears its pending unpause, and **discards** its pending quote. It does not promote.
+- `discard_pending(asset_id)` (admin or guardian) drops a pending quote without activating it. Use this to quarantine a suspicious quote before restoration.
 - `propose_unpause` / `propose_asset_unpause` are admin-only and set `pending_unpause_level = now_level + activation_delay_levels`.
-- `activate_unpause` / `activate_asset_unpause` are permissionless after that level.
+- `activate_unpause` / `activate_asset_unpause` are permissionless after that level. They do not promote and do not resurrect quarantined pending quotes.
 - Admin may `cancel_pending_unpause` or `cancel_asset_unpause`.
 
-Paused assets reject `submit` for any batch that includes them. Views fail closed.
+Paused assets reject `submit` for any batch that includes them. Views fail closed. After a global pause, restoration requires a fresh, mature publication (quarantined pending is not visible).
 
 ## 7. Delayed governance
 
@@ -180,12 +196,16 @@ admin, guardian, `config_version` (must be current `+ 1`), `policy_hash`, `N`, `
 
 Activation uses the **current** delay so a proposal that shortens delay cannot apply itself sooner. `activate_config` is permissionless after `activate_at_level`. `cancel_pending_config` is admin-only.
 
-On activation:
+On activation the contract **does not promote**. It then:
 
-- Price/round state is kept for asset ids that remain.
-- New assets start with no quote.
-- Removed assets disappear (views fail `ASSET_ID`).
-- Signatures from the previous signer set / `config_version` become invalid.
+- Clears **all** pending quotes.
+- Clears global and per-asset pending unpause authorizations. The new administrator must repropose any restoration.
+- Resets `last_round`.
+- Drops an active quote unless **all** of these hold: signer set, `N`, `M`, class minima, `policy_hash`, and `price_nat_max` are unchanged; the asset id is retained; `decimals`, absolute min/max, and `max_movement_bps` are unchanged. A preserved active quote is re-tagged with the new `config_version`.
+- Never preserves an active quote when decimals or those price semantics change.
+- Starts new assets with no quote. Removed assets disappear (views fail `ASSET_ID`).
+
+Views and promotion require `quote.config_version` to equal the active configuration. Signatures from the previous signer set / `config_version` are invalid.
 
 Not in this contract: TezFin `set_oracle`, aliases, source-adapter lists (those live in the register and are bound only as `policy_hash`).
 
@@ -209,14 +229,33 @@ python -m pytest tests/contract
 python -m contract.compile
 ```
 
-`python scripts/compile_oracle.py` (or `PYTHONPATH=src python -m contract.compile`) writes `michelson/tezoracle.tz` from the SmartPy compiler after stripping stack-annotation comments (semantics unchanged). Initial compile in this phase: **no compiler errors**, about **86 KiB** of Michelson, one `CHECK_SIGNATURE`. Full 5-of-7 operation gas/size benches against a live RPC remain stretch; the harness originates 1-of-1, 3-of-4, 4-of-5, and 5-of-7 as unit configs.
+`python scripts/compile_oracle.py` (or `PYTHONPATH=src python -m contract.compile`) writes `michelson/tezoracle.tz` from the SmartPy compiler after stripping stack-annotation comments (semantics unchanged). Initial compile in this phase: **no compiler errors**, one `CHECK_SIGNATURE`. The harness originates 1-of-1, 3-of-4, 4-of-5, and 5-of-7 as unit configs.
 
-Testnet origination: [TESTNET_DEPLOY.md](TESTNET_DEPLOY.md). Use only testnet keys from runtime config. Do not originate with production keys.
+Encoded origination size, gas, storage burn, and fees are **not** the Michelson text size. Measure them with an `octez-client` Ushuaia mockup and dummy keys:
+
+```bash
+PYTHONPATH=src python scripts/measure_octez_ops.py --write
+```
+
+Results: [OPERATION_MEASUREMENTS.md](OPERATION_MEASUREMENTS.md). Testnet origination: [TESTNET_DEPLOY.md](TESTNET_DEPLOY.md). Use only testnet keys from runtime config. Do not originate with production keys.
 
 ## 10. Events
 
 | Tag | When |
 | --- | --- |
 | `tezoracle_submit` | Accepted batch (`group`, `round`, `config_version`) |
-| `tezoracle_pause` | Global or per-asset pause |
-| `tezoracle_config` | Config proposal, cancel, or activation |
+| `tezoracle_pause` | Global emergency pause |
+| `tezoracle_unpause_propose` | Global unpause proposed (`activate_at` level) |
+| `tezoracle_unpause_activate` | Global unpause activated |
+| `tezoracle_unpause_cancel` | Global unpause cancelled |
+| `tezoracle_asset_pause` | Per-asset emergency pause |
+| `tezoracle_asset_unpause_prop` | Per-asset unpause proposed (on-chain tag is `_prop`, not `_propose`) |
+| `tezoracle_asset_unpause_act` | Per-asset unpause activated (on-chain tag is `_act`, not `_activate`) |
+| `tezoracle_asset_unpause_cancel` | Per-asset unpause cancelled |
+| `tezoracle_movement_pause` | Automatic pause because a promoted quote exceeded `max_movement_bps` |
+| `tezoracle_pending_discard` | Admin/guardian discarded a pending quote |
+| `tezoracle_config_propose` | Configuration proposed (`config_version`, `activate_at`) |
+| `tezoracle_config_cancel` | Configuration proposal cancelled |
+| `tezoracle_config_activate` | Configuration activated |
+
+Event tags are Michelson `EMIT` annotations and MUST be ≤ 31 characters (Ushuaia / protocol hard limit). `tezoracle_asset_unpause_propose` (32) and `tezoracle_asset_unpause_activate` (34) exceed that limit and are **not** emitted. Subscribe to `_prop` / `_act`.

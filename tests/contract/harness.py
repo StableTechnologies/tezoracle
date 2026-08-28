@@ -130,6 +130,7 @@ def originate(
     class_minima: Mapping[str, int] | None = None,
     delay: int = DELAY,
     seed_prefix: str = "signer",
+    extra: Mapping[str, Any] | None = None,
 ):
     scenario = sp.test_scenario(None, main)
     admin = sp.test_account("admin")
@@ -144,6 +145,7 @@ def originate(
             class_ids=class_ids,
             class_minima=class_minima,
             delay=delay,
+            extra=extra,
         )
     )
     scenario += contract
@@ -274,3 +276,17 @@ def ctx(level: int, now: int = NOW, sender=None):
     if sender is not None:
         kwargs["_sender"] = sender
     return kwargs
+
+
+def last_events(scenario) -> list[dict[str, Any]]:
+    """Events from the most recent entrypoint call in this scenario."""
+    payload = scenario.entrypoint_calls[-1][1]
+    events: list[dict[str, Any]] = []
+    for item in payload.get("sub_results") or []:
+        if isinstance(item, list) and item and item[0] == "Event":
+            events.append(item[1])
+    return events
+
+
+def last_event_tags(scenario) -> list[str]:
+    return [event["tag"] for event in last_events(scenario)]

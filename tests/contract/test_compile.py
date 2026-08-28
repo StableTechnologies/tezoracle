@@ -12,6 +12,24 @@ ROOT = Path(__file__).resolve().parents[2]
 MICHELSON = ROOT / "michelson" / "tezoracle.tz"
 
 
+EVENT_TAGS = (
+    "tezoracle_submit",
+    "tezoracle_pause",
+    "tezoracle_unpause_propose",
+    "tezoracle_unpause_activate",
+    "tezoracle_unpause_cancel",
+    "tezoracle_asset_pause",
+    "tezoracle_asset_unpause_prop",
+    "tezoracle_asset_unpause_act",
+    "tezoracle_asset_unpause_cancel",
+    "tezoracle_movement_pause",
+    "tezoracle_config_propose",
+    "tezoracle_config_cancel",
+    "tezoracle_config_activate",
+    "tezoracle_pending_discard",
+)
+
+
 def test_originates_1_of_1_and_matches_committed_michelson():
     scenario, contract, _packer, _admin, _guardian, _accounts = originate_1of1()
     result = contract.origination_result
@@ -30,6 +48,10 @@ def test_originates_1_of_1_and_matches_committed_michelson():
     assert "CHECK_SIGNATURE" in committed
     assert "view" in committed
     assert 1_000 < len(committed) < 500_000
+    for tag in EVENT_TAGS:
+        assert tag in generated
+        assert tag in committed
+        assert len(tag) <= 31, tag
 
 
 def test_payload_type_matches_frozen_gv01():
