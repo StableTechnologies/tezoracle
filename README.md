@@ -2,6 +2,15 @@
 
 Configurable N-of-M Tezos Layer 1 price oracle. Generic oracle contracts, validators, coordinator, relayer, tests, and oracle docs live in this repository. TezFin consumer logic (aliases, normalization, max age, bounds, `getValidatedPrice`) stays in `StableTechnologies/TezFin`.
 
+## Project links
+
+- [Website](https://tezoracle.com)
+- [Development status](https://tezoracle.com/status/)
+- [Architecture](https://tezoracle.com/architecture/)
+- [Security](https://tezoracle.com/security/)
+- [Roadmap](https://tezoracle.com/roadmap/)
+- [TezFin consumer integration](https://github.com/StableTechnologies/TezFin)
+
 ## Status: not production
 
 **This repository is not a production price feed.** The authorized initial phase is **testnet and non-authoritative shadow only**. It does not authorize:
