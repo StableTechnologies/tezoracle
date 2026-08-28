@@ -1,0 +1,28 @@
+{
+  "domain": "TEZORACLE_SIGNER_EVIDENCE_V1",
+  "payload_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "signer_id": "test-signer-a1",
+  "validator_class": "A",
+  "config_version": 1,
+  "policy_hash": "322b226764c4350a3bae046022afcfb8fc9f5f11eeca4c347c41fe0a7a42aa25",
+  "software_artifact_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+  "local_price_by_asset": {
+    "BTC_USD": "65000000000",
+    "USDT_USD": "1000100",
+    "XTZ_USD": "750000"
+  },
+  "local_observation_time_by_asset": {
+    "BTC_USD": 1786679900,
+    "USDT_USD": 1786679920,
+    "XTZ_USD": 1786679850
+  },
+  "candidate_deviation_bps_by_asset": {
+    "BTC_USD": 0,
+    "USDT_USD": 0,
+    "XTZ_USD": 0
+  },
+  "local_sources": [],
+  "decision": "sign",
+  "error_code": null,
+  "decided_at": 1786680000
+}

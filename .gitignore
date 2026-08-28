@@ -49,6 +49,7 @@ htmlcov/
 smartpy_output/
 .sp_build/
 **/__pycache__/
+pack_probe/
 
 # OS and editor
 .DS_Store

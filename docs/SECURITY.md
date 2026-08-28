@@ -47,15 +47,17 @@ The coordinator and relayer are **untrusted for price and policy**. They may tra
 | Replay on another chain or contract | Payload binds `domain`, `chain_id`, and `oracle_address`. |
 | Replay of an old round | Per-group round is strictly monotonic. |
 | Stale or future market time | Observation timestamps are checked; inclusion time is not used as freshness. |
+| Geo-blocked or untested CEX endpoint | HTTP 451, timeouts, and untested URLs are excluded by Class A derivation in every mode. They never count as healthy. Remaining independent observations below the minimum is fail-closed. |
+
 | Duplicate or unknown signer | Contract rejects unknown, inactive, and duplicate signer indices. |
 | Insufficient quorum | Configurable `N` of `M`; 1-of-1 is testnet/shadow only. |
 | Governance foot-gun | Pause is immediate. Unpause, signer-set changes, N/M, class minima, policy hash, and asset changes are delayed. |
 | Secrets in git or CI | `.gitignore` excludes key material; `.env.example` is placeholders; CI has no secrets. |
-| Silent packing drift | Signing is blocked until SmartPy and TypeScript golden vectors match byte-for-byte. |
+| Silent packing drift | TypeScript and SmartPy packing tests must match frozen golden vectors byte-for-byte. |
 
 ## Failure modes
 
-The system **fails closed**. If observations are missing, sources disagree beyond policy, evidence mismatches, packing is wrong, the candidate does not match local derivation, quorum is incomplete, or the contract is paused, the update is refused. There is no coordinator override, no degraded “publish anyway” path, and no one-pool USDtz degraded mode in this phase.
+The system **fails closed**. If observations are missing, a registered endpoint is untested or returns HTTP 451/timeout from the signer environment, sources disagree beyond policy, evidence mismatches, packing is wrong, the candidate does not match local derivation, quorum is incomplete, or the contract is paused, the update is refused. There is no coordinator override, no degraded “publish anyway” path, and no one-pool USDtz degraded mode in this phase.
 
 USDtz and tzBTC publication groups may fail independently of `CORE`. They are not consumed as authoritative feeds in this phase.
 
@@ -66,13 +68,14 @@ USDtz and tzBTC publication groups may fail independently of `CORE`. They are no
 - Testnet signer secrets come from runtime configuration (`.env`, never committed).
 - Coordinator and relayer processes hold no signing keys.
 - Test-only keys and signatures used for golden vectors are stored separately from any production secret and are not production material.
+- The ed25519 secret in `tests/packing/keys/ed25519.test.json` (`tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC`) is a synthetic CHECK_SIGNATURE fixture. It has never been funded and must not be used on any network with value.
 - Compromising a 1-of-1 testnet key is a full compromise of that deployment. That is an accepted testnet limitation, not a production design.
 
 ## Replay and domain separation
 
 Every signed payload includes:
 
-- a domain tag (proposed `TEZORACLE_V1`)
+- a domain tag (`TEZORACLE_V1`)
 - `chain_id`
 - `oracle_address`
 - `config_version` and `policy_hash`

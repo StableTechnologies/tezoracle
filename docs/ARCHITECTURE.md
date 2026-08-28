@@ -115,13 +115,15 @@ A backup relayer must be able to submit the same signed batch if the primary pat
 
 This repository must not add TezFin-specific wrapper or Comptroller code.
 
-## Payload (frozen in a later PR)
+## Payload (frozen)
 
 Logical fields, in specification order:
 
 `domain`, `chain_id`, `oracle_address`, `config_version`, `policy_hash`, `publication_group`, `round`, `valid_from`, `valid_until`, `evidence_digest`, ordered asset list (`asset_id`, `price`, `decimals`, `observation_time`).
 
-Proposed domain: `TEZORACLE_V1`. Signatures cover `PACK(payload)` exactly. Packing implementations must not silently reorder or normalize fields. Signing is blocked until SmartPy and TypeScript golden vectors match byte-for-byte.
+Domain: `TEZORACLE_V1`. Exact Michelson type, rejection rules, and PACK rules: [PAYLOAD_SPEC.md](PAYLOAD_SPEC.md). Evidence digest: [EVIDENCE_SPEC.md](EVIDENCE_SPEC.md). Derivation and candidate checks: [OBSERVER_AGREEMENT.md](OBSERVER_AGREEMENT.md). Asset policy: [PARAMETER_SCHEMA.md](PARAMETER_SCHEMA.md) and `config/`.
+
+Signatures cover `PACK(payload)` exactly. Packing implementations must not silently reorder or normalize fields. Frozen hex, Micheline, and BLAKE2B live in `tests/packing/vectors/`; TypeScript and SmartPy must match them byte-for-byte. Rust Class B is later work against the same vectors.
 
 ## Repository map
 

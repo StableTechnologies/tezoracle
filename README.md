@@ -54,21 +54,21 @@ npm test
 
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements-dev.txt
+python -m pip install --require-hashes -r requirements-dev.txt
 python -m pytest
 ```
 
 `.env.example` is placeholders only. Copy it to `.env` only for later local/testnet runs. Never add production secrets.
 
-The current tree is a public baseline: layout, docs, and CI skeleton. Payload freeze, packing parity, the N-of-M contract, Class A adapters, coordinator/relayer, and local e2e follow in later PRs. Signing is blocked until packing golden vectors pass.
+The current tree includes the public baseline, the frozen payload/register/evidence specs, and TypeScript/SmartPy packing golden vectors. `policy_hash` and `evidence_digest` in those vectors are recomputed from `config/` and `tests/packing/evidence/`. The N-of-M contract, Class A adapters, coordinator/relayer, and local e2e follow in later PRs. Signing product code is blocked until packing golden vectors pass.
 
 ## Repository layout
 
 | Path | Role |
 | --- | --- |
-| `src/contract/` | SmartPy N-of-M contract |
+| `src/contract/` | SmartPy packing reference and later N-of-M contract |
 | `src/validator/` | Class A TypeScript validator |
-| `src/packing/` | Canonical payload packing |
+| `src/packing/` | Canonical TypeScript PACK / digest |
 | `src/coordinator/` | Non-authoritative round coordinator |
 | `src/relayer/` | Permissionless submission |
 | `tests/` | Contract, validator, packing, and later e2e tests |
@@ -84,8 +84,13 @@ The current tree is a public baseline: layout, docs, and CI skeleton. Payload fr
 | [docs/SECURITY.md](docs/SECURITY.md) | Threat model, failure modes, keys, replay, testnet limits |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Initial authorized scope vs separately approved production work |
 | [docs/ENGINEERING_RESPONSE.md](docs/ENGINEERING_RESPONSE.md) | Design response to the TezFin oracle security specification |
+| [docs/PAYLOAD_SPEC.md](docs/PAYLOAD_SPEC.md) | Frozen Michelson payload type, field order, PACK, domain `TEZORACLE_V1` |
+| [docs/EVIDENCE_SPEC.md](docs/EVIDENCE_SPEC.md) | Quorum-shared digest vs signer-local evidence; fail-closed mismatch |
+| [docs/OBSERVER_AGREEMENT.md](docs/OBSERVER_AGREEMENT.md) | Windows, median, rounding, rounds, candidate verification |
+| [docs/PARAMETER_SCHEMA.md](docs/PARAMETER_SCHEMA.md) | Register schema, lifecycle, delayed activation |
+| [tests/packing/README.md](tests/packing/README.md) | Frozen PACK vectors and test-only signatures |
 
-Payload, evidence, observer-agreement, parameter-schema, contract, Class A, coordinator, relayer, and oracle-interface specs are added when those workstreams start. Until then, treat [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) as the controlling overview.
+Contract, Class A, coordinator, relayer, and oracle-interface specs are added when those workstreams start.
 
 ## License
 
