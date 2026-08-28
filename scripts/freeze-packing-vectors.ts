@@ -5,11 +5,13 @@
  * evidence_digest is BLAKE2B-256 of the committed quorum-shared manifest.
  * Packed Michelson bytes are derived from those hashes. Do not hand-edit hex.
  * Evidence JSON is a committed independently collected fixture; this script
- * does not synthesize observations from the candidate payload.
+ * does not synthesize observations from the candidate payload. It does restamp
+ * each GV-*.json policy_hash to the committed register so the hashed manifest
+ * cannot drift from the snapshot.
  *
  * Usage: npx tsx scripts/freeze-packing-vectors.ts
  */
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -206,6 +208,12 @@ async function main(): Promise<void> {
   mkdirSync(keysDir, { recursive: true });
 
   const { policyHash } = loadCommittedRegister();
+  for (const name of readdirSync(evidenceDir).filter((file) => /^GV-\d+\.json$/.test(file))) {
+    const path = join(evidenceDir, name);
+    const raw = JSON.parse(readFileSync(path, "utf8")) as { policy_hash: string };
+    raw.policy_hash = policyHash;
+    writeFileSync(path, `${JSON.stringify(raw, null, 2)}\n`);
+  }
   writeFileSync(join(vectorsDir, "michelson_type.json"), `${JSON.stringify(PAYLOAD_MICHELSON_TYPE, null, 2)}\n`);
 
   const signer = await InMemorySigner.fromSecretKey(TEST_SECRET);

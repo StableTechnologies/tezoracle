@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import { loadSnapshot, validateConfigDir } from "../../src/config/validate.js";
+import { policyHashHex } from "../../src/validator/policy.js";
 
 const configDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "config");
 
@@ -35,10 +36,11 @@ test("CORE assets are testnet/non-authoritative and USDtz/tzBTC are draft stubs"
     assert.equal(asset.decimals, 6);
     assert.equal(asset.derivation, "cex_median");
     assert.equal(asset.aggregation, "median_lower");
+    assert.equal(asset.min_independent_observations, 3);
     const initial = asset.sources.filter((source) => source.adapter_status === "initial_phase");
     assert.deepEqual(
       initial.map((source) => source.source_id).sort(),
-      ["binance", "okx"],
+      ["binance", "coinbase", "kraken", "okx"],
     );
     for (const source of asset.sources) {
       assert.equal(source.health.eligible_for_production_quorum, false);
@@ -65,8 +67,14 @@ test("CORE assets are testnet/non-authoritative and USDtz/tzBTC are draft stubs"
   assert.equal(usdt.sources.every((source) => source.quote_conversion === "none"), true);
   assert.equal(
     xtz.sources
-      .filter((source) => source.adapter_status === "initial_phase")
-      .every((source) => source.quote_conversion === "usdt_usd"),
+      .filter((source) => source.quote_conversion === "usdt_usd")
+      .every((source) => source.source_id === "binance" || source.source_id === "okx"),
+    true,
+  );
+  assert.equal(
+    xtz.sources
+      .filter((source) => source.source_id === "kraken" || source.source_id === "coinbase")
+      .every((source) => source.quote_conversion === "none"),
     true,
   );
   const krakenBtc = btc.sources.find((source) => source.source_id === "kraken");
@@ -74,4 +82,6 @@ test("CORE assets are testnet/non-authoritative and USDtz/tzBTC are draft stubs"
   assert.equal(krakenBtc?.base_asset, "BTC");
   const binance = usdt.sources.find((source) => source.source_id === "binance");
   assert.equal(binance?.health.known_restriction, "http_451");
+
+  assert.match(policyHashHex(snapshot), /^[0-9a-f]{64}$/);
 });

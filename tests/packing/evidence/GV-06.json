@@ -1,6 +1,6 @@
 {
   "domain": "TEZORACLE_EVIDENCE_V1",
-  "policy_hash": "322b226764c4350a3bae046022afcfb8fc9f5f11eeca4c347c41fe0a7a42aa25",
+  "policy_hash": "cee88ce5610e1bc33cbfb1fb0ccd24d0000f62322ff4a0c184d4057e84a9c44d",
   "publication_group": "CORE",
   "round": "9",
   "assets": [
@@ -12,9 +12,10 @@
       "calculation": {
         "aggregation": "median_lower",
         "rounding_mode": "half_away_from_zero",
-        "min_independent_observations": 2,
+        "min_independent_observations": 3,
         "contributing_source_ids": [
           "binance",
+          "kraken",
           "okx"
         ],
         "oldest_observation_time": 1786680900
@@ -40,6 +41,22 @@
             "factor_decimals": 6,
             "factor_observation_time": 1786680910
           }
+        },
+        {
+          "source_id": "kraken",
+          "venue": "Kraken",
+          "independence_group": "kraken",
+          "market_id": "XBTUSD",
+          "endpoint": "https://api.kraken.com/0/public/Trades",
+          "query": "pair=XBTUSD&count=1",
+          "base_asset": "BTC",
+          "quote_asset": "USD",
+          "unit": "USD",
+          "venue_observation_time": 1786680900,
+          "raw_price": "64900000000",
+          "raw_decimals": 6,
+          "normalized_price": "64900000000",
+          "conversion": null
         },
         {
           "source_id": "okx",
@@ -73,9 +90,10 @@
       "calculation": {
         "aggregation": "median_lower",
         "rounding_mode": "half_away_from_zero",
-        "min_independent_observations": 2,
+        "min_independent_observations": 3,
         "contributing_source_ids": [
           "binance",
+          "kraken",
           "okx"
         ],
         "oldest_observation_time": 1786680910
@@ -88,6 +106,22 @@
           "market_id": "USDTUSD",
           "endpoint": "https://api.binance.com/api/v3/trades",
           "query": "symbol=USDTUSD&limit=1",
+          "base_asset": "USDT",
+          "quote_asset": "USD",
+          "unit": "USD",
+          "venue_observation_time": 1786680910,
+          "raw_price": "999900",
+          "raw_decimals": 6,
+          "normalized_price": "999900",
+          "conversion": null
+        },
+        {
+          "source_id": "kraken",
+          "venue": "Kraken",
+          "independence_group": "kraken",
+          "market_id": "USDTUSD",
+          "endpoint": "https://api.kraken.com/0/public/Trades",
+          "query": "pair=USDTUSD&count=1",
           "base_asset": "USDT",
           "quote_asset": "USD",
           "unit": "USD",
@@ -124,9 +158,10 @@
       "calculation": {
         "aggregation": "median_lower",
         "rounding_mode": "half_away_from_zero",
-        "min_independent_observations": 2,
+        "min_independent_observations": 3,
         "contributing_source_ids": [
           "binance",
+          "kraken",
           "okx"
         ],
         "oldest_observation_time": 1786680890
@@ -152,6 +187,22 @@
             "factor_decimals": 6,
             "factor_observation_time": 1786680910
           }
+        },
+        {
+          "source_id": "kraken",
+          "venue": "Kraken",
+          "independence_group": "kraken",
+          "market_id": "XTZUSD",
+          "endpoint": "https://api.kraken.com/0/public/Trades",
+          "query": "pair=XTZUSD&count=1",
+          "base_asset": "XTZ",
+          "quote_asset": "USD",
+          "unit": "USD",
+          "venue_observation_time": 1786680890,
+          "raw_price": "740000",
+          "raw_decimals": 6,
+          "normalized_price": "740000",
+          "conversion": null
         },
         {
           "source_id": "okx",

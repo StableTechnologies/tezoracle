@@ -13,12 +13,12 @@ Anything not listed under initial scope requires **separate approval**. Passing 
 | Packing and golden vectors | SmartPy and TypeScript byte-for-byte; frozen in `tests/packing/vectors/` |
 | N-of-M contract | Configurable `N`, `M`, class minima; pending/active; delayed unpause/governance; view `(nat, timestamp)` |
 | TezFin boundary docs | Upstream price + observation time; aliases/age/bounds remain in TezFin |
-| Class A | Adapter interface, two CEX adapters, derivation, candidate verify, testnet signing |
+| Class A | Adapter interface, four CEX adapters (Binance, OKX, Kraken, Coinbase), derivation, candidate verify, testnet signing |
 | Coordinator and relayer | Non-authoritative coordinator; permissionless relayer with no keys |
 | Local e2e | 1-of-1 observe → derive → sign → simulate/submit → read view, plus negative cases |
 | Scope gate | Clean CI, no secrets, stop |
 
-**Stretch inside remaining hours (not a silent expansion):** live testnet origination, remaining CEX adapters, DEX TWAP, 5-of-7 gas/size benches.
+**Stretch inside remaining hours (not a silent expansion):** live testnet origination, DEX TWAP, 5-of-7 gas/size benches. CEX adapters are not stretch.
 
 **Must not happen in this phase:** production activation, Rust Class B, four signer environments, production 3-of-4, TezFin `set_oracle`.
 
@@ -44,7 +44,7 @@ These items are recorded so they are not silently pulled into the initial phase:
 - Proof that Class A and Class B artifacts and operations are independent
 - Four separated signer environments: A1, A2, B1, B2
 - Production 3-of-4 with class minima (at least one signature from each class)
-- Remaining CEX adapters and DEX TWAP if not finished as stretch
+- DEX TWAP if not finished as stretch
 - 30 consecutive days of shadow evidence on the frozen production configuration
 - Independent external security audit with no unresolved critical/high findings
 - TezFin governance approval of oracle address, asset policies, and market activation

@@ -149,7 +149,7 @@ Each source entry binds a single approved route:
 | `timestamp_encoding` | `unix_ms` \| `unix_s_fractional` \| `rfc3339` |
 | `quote_conversion` | `none` or `usdt_usd` |
 
-`adapter_status: stretch` means the route is approved in policy but the Class A adapter is not required in the 56-hour phase. Stretch sources do not count toward `min_independent_observations` until an adapter exists and `adapter_status` is `initial_phase` (or later, production). Testnet minima are therefore set against the initial-phase adapters only.
+`adapter_status: stretch` means the route is approved in policy but no Class A adapter is required to count it yet. Stretch sources do not satisfy `min_independent_observations`. This freeze marks Binance, OKX, Kraken, and Coinbase as `initial_phase`. DEX routes remain stretch/stub until separately reviewed.
 
 Two listed markets in the same `independence_group` still count as one observation. This freeze lists **one** selected market per venue per asset.
 
@@ -227,14 +227,14 @@ Record of changes is git history of `config/`. Do not edit numbers in running se
 
 ## 9. Current freeze summary
 
-| Asset | Lifecycle | Derivation | Min obs (initial adapters) | Decimals |
+| Asset | Lifecycle | Derivation | Min obs | Decimals |
 | --- | --- | --- | --- | --- |
-| `USDT_USD` | testnet | CEX median, direct USD | 2 | 6 |
-| `XTZ_USD` | testnet | CEX median, USD and USDT-adjusted | 2 | 6 |
-| `BTC_USD` | testnet | CEX median, USD and USDT-adjusted | 2 | 6 |
+| `USDT_USD` | testnet | CEX median, direct USD | 3 | 6 |
+| `XTZ_USD` | testnet | CEX median, USD and USDT-adjusted | 3 | 6 |
+| `BTC_USD` | testnet | CEX median, USD and USDT-adjusted | 3 | 6 |
 | `USDTZ_USD` | draft | DEX TWAP × USDT/USD (stub) | n/a until pools exist | 6 |
 | `TZBTC_USD` | draft | peg factor × BTC/USD (stub) | n/a until routes exist | 6 |
 
-Initial-phase adapters: Binance and OKX. Kraken and Coinbase are stretch allowlist entries and do not satisfy the testnet minimum until implemented.
+Initial-phase adapters: Binance, OKX, Kraken, and Coinbase — the same four CEX venues as the mainnet allowlist. `min_independent_observations` is **3**, matching the security baseline (≥3 healthy independent venues). Four listed adapters mean one missing or excluded CEX still leaves a valid CORE quorum; two remaining observations fail closed (`INSUFFICIENT`). Outlier exclusion is allowed only when the remaining set still meets that minimum.
 
-Production intent remains at least three independent venues; that increase is a delayed register change, not a request flag.
+This is a register value, not a request flag. Lowering it further is a delayed, risk-increasing change.

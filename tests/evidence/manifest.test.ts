@@ -33,7 +33,7 @@ test("top-level evidence_digest binds every CORE asset to sources, times, decima
   verifySharedManifest(manifest, payload, snapshot, policyHash);
   assert.equal(manifest.assets.length, payload.assets.length);
   for (const asset of manifest.assets) {
-    assert.ok(asset.sources.length >= 2, asset.asset_id);
+    assert.ok(asset.sources.length >= 3, asset.asset_id);
     assert.equal(asset.calculation.oldest_observation_time, asset.observation_time);
     assert.equal(asset.decimals, snapshot.assets[asset.asset_id]?.decimals);
     assert.equal(asset.calculation.aggregation, "median_lower");
