@@ -25,6 +25,8 @@ PYTHONPATH=src python -m contract.compile
 
 Confirm `michelson/tezoracle.tz` contains `CHECK_SIGNATURE` and that the compiler printed no errors. The dummy storage printed by the compile command uses SmartPy `test_account` keys and **must not** be originated as-is on a network with value.
 
+Encoded origination size, gas, storage burn, and fees for dummy 3-of-4 / 5-of-7 configs are measured with a local Ushuaia mockup (`PYTHONPATH=src python scripts/measure_octez_ops.py --write`). See [OPERATION_MEASUREMENTS.md](OPERATION_MEASUREMENTS.md). That path uses well-known mockup bootstrap keys, not production keys.
+
 ## Build initial storage
 
 Originate with the same parameters the harness uses for 1-of-1:

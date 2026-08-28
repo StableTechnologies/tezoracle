@@ -323,7 +323,18 @@ def test_delayed_unpause_before_and_after_activation():
     )
     c.activate_unpause(**ctx(SUBMIT_LEVEL + 1 + DELAY))
     sc.verify(c.data.paused == False)
-    quote = read_price(sc, c, "XTZ_USD", SUBMIT_LEVEL + 1 + DELAY)
+    # Pause quarantines pending quotes; restoration needs a fresh publication.
+    _fail_view(sc, c, "XTZ_USD", SUBMIT_LEVEL + 1 + DELAY, "NO_PRICE")
+    submit(
+        c,
+        packer,
+        accounts,
+        make_payload(c.address, round_n=2),
+        indices=[0],
+        level=SUBMIT_LEVEL + 1 + DELAY,
+        now=NOW + 1,
+    )
+    quote = read_price(sc, c, "XTZ_USD", SUBMIT_LEVEL + 1 + DELAY + DELAY)
     sc.verify(quote.price == CORE_PRICES["XTZ_USD"])
 
 

@@ -1,0 +1,84 @@
+{
+  "protocol": "PsUshuai9QapM5TGj1JpuVGkdxz5GykdnEvS6Rh8SUVrARvZLCY",
+  "protocol_name": "Ushuaia",
+  "octez_client": "187a915b (2026-06-16 13:58:56 +0200) (Octez 25.0 (build: 0))",
+  "chain_id": "NetXynUjJNZm7wi",
+  "michelson_text_bytes": 116341,
+  "encoded_script_bytes": 19897,
+  "hard_gas_limit_per_operation": 1040000,
+  "max_operation_data_length": 32768,
+  "maximum_tested_publication_group_size": 8,
+  "operations": [
+    {
+      "name": "originate:tezoracle_3of4",
+      "encoded_operation_bytes": 21052,
+      "consumed_gas": 11367,
+      "paid_storage_diff_bytes": 20570,
+      "storage_size_bytes": 20570,
+      "fee_tez": "0.022363",
+      "burn_tez": "5.20675",
+      "succeeded": true,
+      "notes": ""
+    },
+    {
+      "name": "submit:tezoracle_3of4",
+      "encoded_operation_bytes": 703,
+      "consumed_gas": 8336,
+      "paid_storage_diff_bytes": 73,
+      "storage_size_bytes": 20643,
+      "fee_tez": "0.001721",
+      "burn_tez": "0.01825",
+      "succeeded": true,
+      "notes": ""
+    },
+    {
+      "name": "originate:tezoracle_5of7",
+      "encoded_operation_bytes": 21257,
+      "consumed_gas": 11625,
+      "paid_storage_diff_bytes": 20712,
+      "storage_size_bytes": 20712,
+      "fee_tez": "0.022594",
+      "burn_tez": "5.24225",
+      "succeeded": true,
+      "notes": ""
+    },
+    {
+      "name": "submit:tezoracle_5of7",
+      "encoded_operation_bytes": 919,
+      "consumed_gas": 8734,
+      "paid_storage_diff_bytes": 73,
+      "storage_size_bytes": 20785,
+      "fee_tez": "0.001977",
+      "burn_tez": "0.01825",
+      "succeeded": true,
+      "notes": ""
+    },
+    {
+      "name": "originate:tezoracle_5of7_maxgroup",
+      "encoded_operation_bytes": 21538,
+      "consumed_gas": 11664,
+      "paid_storage_diff_bytes": 20885,
+      "storage_size_bytes": 20885,
+      "fee_tez": "0.022879",
+      "burn_tez": "5.2855",
+      "succeeded": true,
+      "notes": ""
+    },
+    {
+      "name": "submit:tezoracle_5of7_maxgroup",
+      "encoded_operation_bytes": 1037,
+      "consumed_gas": 8833,
+      "paid_storage_diff_bytes": 164,
+      "storage_size_bytes": 21049,
+      "fee_tez": "0.002105",
+      "burn_tez": "0.041",
+      "succeeded": true,
+      "notes": ""
+    }
+  ],
+  "contracts": {
+    "3-of-4": "KT1KjqR1DcrpqzPZk2gYP8nPpVQa5K3Qd5X3",
+    "5-of-7": "KT1M1kJVr7C2pov5ZyHAPf4VSSHWzxeMCff4",
+    "5-of-7-max-group": "KT19jwQ5py8FJZE3vWyveyxWQrt3n2aw25ik"
+  }
+}

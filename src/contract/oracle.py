@@ -12,6 +12,10 @@ import smartpy as sp
 def main():
     DOMAIN = "TEZORACLE_V1"
     MAX_SIGNERS = 16
+    MAX_ASSETS = 16
+    MAX_GROUPS = 8
+    MAX_GROUP_SIZE = 8
+    MAX_CLASS_MINIMA = 8
     DIGEST_BYTES = 32
     DECIMALS_MAX = 18
 
@@ -193,6 +197,8 @@ def main():
         assert threshold_m >= 1, "BAD_CONFIG"
         assert threshold_n <= threshold_m, "BAD_CONFIG"
         assert threshold_m <= MAX_SIGNERS, "BAD_CONFIG"
+        assert sp.len(signers) <= MAX_SIGNERS, "BAD_CONFIG"
+        assert sp.len(class_minima) <= MAX_CLASS_MINIMA, "BAD_CONFIG"
         active_count = 0
         class_totals = {}
         for item in signers.items():
@@ -218,10 +224,15 @@ def main():
         assets = p.assets
         seen = {}
         group_count = 0
+        assert sp.len(assets) >= 1, "BAD_CONFIG"
+        assert sp.len(assets) <= MAX_ASSETS, "BAD_CONFIG"
+        assert sp.len(groups) >= 1, "BAD_CONFIG"
+        assert sp.len(groups) <= MAX_GROUPS, "BAD_CONFIG"
         for g in groups.items():
             group_count += 1
             assert sp.len(g.key) >= 1, "BAD_CONFIG"
             assert sp.len(g.value) >= 1, "BAD_CONFIG"
+            assert sp.len(g.value) <= MAX_GROUP_SIZE, "BAD_CONFIG"
             for aid in g.value:
                 assert aid in assets, "BAD_CONFIG"
                 assert not (aid in seen), "BAD_CONFIG"
@@ -287,6 +298,45 @@ def main():
             exceeded = delta * 10000 > max_bps * old_price
         return exceeded
 
+    def committee_equivalent(p):
+        same = (
+            (p.old_n == p.new_n)
+            and (p.old_m == p.new_m)
+            and (p.old_policy == p.new_policy)
+            and (p.old_max == p.new_max)
+            and (sp.len(p.old_signers) == sp.len(p.new_signers))
+            and (sp.len(p.old_minima) == sp.len(p.new_minima))
+        )
+        if same:
+            for item in p.new_signers.items():
+                if same:
+                    if item.key in p.old_signers:
+                        old_s = p.old_signers[item.key]
+                        if (
+                            (old_s.public_key != item.value.public_key)
+                            or (old_s.class_id != item.value.class_id)
+                            or (old_s.active != item.value.active)
+                        ):
+                            same = False
+                    else:
+                        same = False
+            for item in p.new_minima.items():
+                if same:
+                    if item.key in p.old_minima:
+                        if p.old_minima[item.key] != item.value:
+                            same = False
+                    else:
+                        same = False
+        return same
+
+    def price_semantics_equivalent(p):
+        return (
+            (p.old_decimals == p.new_decimals)
+            and (p.old_min == p.new_min)
+            and (p.old_max == p.new_max)
+            and (p.old_movement == p.new_movement)
+        )
+
     class Packer(sp.Contract):
         def __init__(self):
             self.data.packed = sp.bytes("0x")
@@ -303,6 +353,7 @@ def main():
             self.data.guardian = init.guardian
             self.data.paused = False
             self.data.pending_unpause_level = None
+            self.data.last_global_pause_level = 0
             self.data.config_version = init.config_version
             self.data.policy_hash = init.policy_hash
             self.data.threshold_n = init.threshold_n
@@ -320,45 +371,110 @@ def main():
             self.data.pending_config = None
 
         @sp.private(with_storage="read-write")
-        def promote_prices(self):
-            for item in self.data.assets.items():
-                st = item.value
-                if st.pending.is_some():
-                    pending = st.pending.unwrap_some()
-                    if sp.level >= pending.activation_level:
-                        accept = True
-                        if st.active.is_some():
-                            active = st.active.unwrap_some()
-                            accept = not movement_exceeded(
-                                sp.record(
-                                    old_price=active.price,
-                                    new_price=pending.price,
-                                    max_bps=st.max_movement_bps,
-                                )
-                            )
-                        if accept:
-                            st.active = sp.Some(
-                                sp.record(
-                                    price=pending.price,
-                                    observation_time=pending.observation_time,
-                                    round=pending.round,
-                                    config_version=pending.config_version,
-                                    accepted_level=pending.accepted_level,
-                                )
-                            )
+        def consider_pending(self, p):
+            asset_id = p.asset_id
+            allow_movement_pause = p.allow_movement_pause
+            if not self.data.paused:
+                st = self.data.assets[asset_id]
+                if not st.paused:
+                    if st.pending.is_some():
+                        pending = st.pending.unwrap_some()
+                        obsolete = (
+                            pending.config_version != self.data.config_version
+                        ) or (
+                            pending.accepted_level
+                            <= self.data.last_global_pause_level
+                        )
+                        if obsolete:
                             st.pending = None
+                            self.data.assets[asset_id] = st
                         else:
-                            st.paused = True
-                            st.pending = None
-                        self.data.assets[item.key] = st
+                            if sp.level >= pending.activation_level:
+                                accept = True
+                                if st.active.is_some():
+                                    active = st.active.unwrap_some()
+                                    if (
+                                        active.config_version
+                                        == self.data.config_version
+                                    ):
+                                        accept = not movement_exceeded(
+                                            sp.record(
+                                                old_price=active.price,
+                                                new_price=pending.price,
+                                                max_bps=st.max_movement_bps,
+                                            )
+                                        )
+                                if accept:
+                                    st.active = sp.Some(
+                                        sp.record(
+                                            price=pending.price,
+                                            observation_time=pending.observation_time,
+                                            round=pending.round,
+                                            config_version=pending.config_version,
+                                            accepted_level=pending.accepted_level,
+                                        )
+                                    )
+                                    st.pending = None
+                                    self.data.assets[asset_id] = st
+                                else:
+                                    if allow_movement_pause:
+                                        st.paused = True
+                                        st.pending = None
+                                        st.pending_unpause_level = None
+                                        self.data.assets[asset_id] = st
 
         @sp.private(with_storage="read-write")
         def apply_init(self, init):
             sp.cast(init, t_init)
+            keep_committee = committee_equivalent(
+                sp.record(
+                    old_n=self.data.threshold_n,
+                    new_n=init.threshold_n,
+                    old_m=self.data.threshold_m,
+                    new_m=init.threshold_m,
+                    old_policy=self.data.policy_hash,
+                    new_policy=init.policy_hash,
+                    old_max=self.data.price_nat_max,
+                    new_max=init.price_nat_max,
+                    old_signers=self.data.signers,
+                    new_signers=init.signers,
+                    old_minima=self.data.class_minima,
+                    new_minima=init.class_minima,
+                )
+            )
             merged = {}
             for item in init.assets.items():
                 if item.key in self.data.assets:
                     old = self.data.assets[item.key]
+                    keep_active = False
+                    if keep_committee:
+                        if old.active.is_some():
+                            keep_active = price_semantics_equivalent(
+                                sp.record(
+                                    old_decimals=old.decimals,
+                                    new_decimals=item.value.decimals,
+                                    old_min=old.absolute_min_price,
+                                    new_min=item.value.absolute_min_price,
+                                    old_max=old.absolute_max_price,
+                                    new_max=item.value.absolute_max_price,
+                                    old_movement=old.max_movement_bps,
+                                    new_movement=item.value.max_movement_bps,
+                                )
+                            )
+                    active = sp.cast(None, sp.option[t_quote])
+                    last_obs = sp.timestamp(0)
+                    if keep_active:
+                        q = old.active.unwrap_some()
+                        active = sp.Some(
+                            sp.record(
+                                price=q.price,
+                                observation_time=q.observation_time,
+                                round=q.round,
+                                config_version=init.config_version,
+                                accepted_level=q.accepted_level,
+                            )
+                        )
+                        last_obs = old.last_observation_time
                     merged[item.key] = sp.record(
                         decimals=item.value.decimals,
                         max_observation_age_seconds=item.value.max_observation_age_seconds,
@@ -366,10 +482,10 @@ def main():
                         absolute_max_price=item.value.absolute_max_price,
                         max_movement_bps=item.value.max_movement_bps,
                         paused=old.paused,
-                        pending_unpause_level=old.pending_unpause_level,
-                        last_observation_time=old.last_observation_time,
-                        active=old.active,
-                        pending=old.pending,
+                        pending_unpause_level=None,
+                        last_observation_time=last_obs,
+                        active=active,
+                        pending=None,
                     )
                 else:
                     merged[item.key] = sp.record(
@@ -399,6 +515,8 @@ def main():
             self.data.class_minima = init.class_minima
             self.data.groups = init.groups
             self.data.assets = merged
+            self.data.pending_unpause_level = None
+            self.data.last_round = {}
 
         @sp.private(with_storage="read-only")
         def visible_quote(self, asset_id):
@@ -409,17 +527,25 @@ def main():
             used_pending = False
             if st.pending.is_some():
                 pending = st.pending.unwrap_some()
-                if sp.level >= pending.activation_level:
+                pending_current = (
+                    (pending.config_version == self.data.config_version)
+                    and (
+                        pending.accepted_level > self.data.last_global_pause_level
+                    )
+                    and (sp.level >= pending.activation_level)
+                )
+                if pending_current:
                     accept = True
                     if st.active.is_some():
                         active = st.active.unwrap_some()
-                        accept = not movement_exceeded(
-                            sp.record(
-                                old_price=active.price,
-                                new_price=pending.price,
-                                max_bps=st.max_movement_bps,
+                        if active.config_version == self.data.config_version:
+                            accept = not movement_exceeded(
+                                sp.record(
+                                    old_price=active.price,
+                                    new_price=pending.price,
+                                    max_bps=st.max_movement_bps,
+                                )
                             )
-                        )
                     if accept:
                         result = sp.Some(
                             sp.record(
@@ -431,12 +557,13 @@ def main():
             if not used_pending:
                 if st.active.is_some():
                     active = st.active.unwrap_some()
-                    result = sp.Some(
-                        sp.record(
-                            price=active.price,
-                            observation_time=active.observation_time,
+                    if active.config_version == self.data.config_version:
+                        result = sp.Some(
+                            sp.record(
+                                price=active.price,
+                                observation_time=active.observation_time,
+                            )
                         )
-                    )
             return result.unwrap_some(error="NO_PRICE")
 
         @sp.onchain_view
@@ -452,7 +579,6 @@ def main():
             sp.cast(payload, t_payload)
             sp.cast(signatures, sp.list[t_signature_entry])
             assert not self.data.paused, "PAUSED"
-            self.promote_prices()
             assert payload.domain == DOMAIN, "DOMAIN"
             assert payload.chain_id == sp.chain_id, "CHAIN"
             assert payload.oracle_address == sp.self_address, "ORACLE"
@@ -473,8 +599,15 @@ def main():
             ids = [a.asset_id for a in payload.assets]
             assert sp.pack(ids) == sp.pack(expected), "ASSETS_SET"
             for asset in payload.assets:
+                self.consider_pending(
+                    sp.record(asset_id=asset.asset_id, allow_movement_pause=False)
+                )
                 st = self.data.assets.get(asset.asset_id, error="ASSET_ID")
                 assert not st.paused, "ASSET_PAUSED"
+                if st.pending.is_some():
+                    pending = st.pending.unwrap_some()
+                    assert sp.level >= pending.activation_level, "PENDING_OPEN"
+                    assert 0 == 1, "MOVEMENT"
                 assert asset.decimals == st.decimals, "DECIMALS"
                 assert asset.price >= 1, "PRICE"
                 assert asset.price <= self.data.price_nat_max, "PRICE"
@@ -539,13 +672,40 @@ def main():
             )
 
         @sp.entrypoint
+        def promote(self, asset_id):
+            assert not self.data.paused, "PAUSED"
+            st = self.data.assets.get(asset_id, error="ASSET_ID")
+            assert not st.paused, "ASSET_PAUSED"
+            assert st.pending.is_some(), "NO_PENDING"
+            self.consider_pending(
+                sp.record(asset_id=asset_id, allow_movement_pause=True)
+            )
+            st = self.data.assets[asset_id]
+            if st.paused:
+                sp.emit(asset_id, tag="tezoracle_movement_pause")
+            if st.pending.is_some():
+                pending = st.pending.unwrap_some()
+                assert sp.level >= pending.activation_level, "DELAY"
+
+        @sp.entrypoint
+        def discard_pending(self, asset_id):
+            assert (sp.sender == self.data.admin) or (
+                sp.sender == self.data.guardian
+            ), "NOT_AUTHORIZED"
+            st = self.data.assets.get(asset_id, error="ASSET_ID")
+            assert st.pending.is_some(), "NO_PENDING"
+            st.pending = None
+            self.data.assets[asset_id] = st
+            sp.emit(asset_id, tag="tezoracle_pending_discard")
+
+        @sp.entrypoint
         def pause(self):
             assert (sp.sender == self.data.admin) or (
                 sp.sender == self.data.guardian
             ), "NOT_AUTHORIZED"
-            self.promote_prices()
             self.data.paused = True
             self.data.pending_unpause_level = None
+            self.data.last_global_pause_level = sp.level
             sp.emit(True, tag="tezoracle_pause")
 
         @sp.entrypoint
@@ -553,94 +713,96 @@ def main():
             assert (sp.sender == self.data.admin) or (
                 sp.sender == self.data.guardian
             ), "NOT_AUTHORIZED"
-            self.promote_prices()
             st = self.data.assets.get(asset_id, error="ASSET_ID")
             st.paused = True
             st.pending_unpause_level = None
+            st.pending = None
             self.data.assets[asset_id] = st
-            sp.emit(asset_id, tag="tezoracle_pause")
+            sp.emit(asset_id, tag="tezoracle_asset_pause")
 
         @sp.entrypoint
         def propose_unpause(self):
             assert sp.sender == self.data.admin, "NOT_ADMIN"
-            self.promote_prices()
             assert self.data.paused, "NOT_PAUSED"
-            self.data.pending_unpause_level = sp.Some(
-                sp.level + self.data.activation_delay_levels
-            )
+            activate_at = sp.level + self.data.activation_delay_levels
+            self.data.pending_unpause_level = sp.Some(activate_at)
+            sp.emit(activate_at, tag="tezoracle_unpause_propose")
 
         @sp.entrypoint
         def activate_unpause(self):
-            self.promote_prices()
             level = self.data.pending_unpause_level.unwrap_some(error="NO_PENDING")
             assert sp.level >= level, "DELAY"
             self.data.paused = False
             self.data.pending_unpause_level = None
+            sp.emit(True, tag="tezoracle_unpause_activate")
 
         @sp.entrypoint
         def cancel_pending_unpause(self):
             assert sp.sender == self.data.admin, "NOT_ADMIN"
-            self.promote_prices()
             assert self.data.pending_unpause_level.is_some(), "NO_PENDING"
             self.data.pending_unpause_level = None
+            sp.emit(True, tag="tezoracle_unpause_cancel")
 
         @sp.entrypoint
         def propose_asset_unpause(self, asset_id):
             assert sp.sender == self.data.admin, "NOT_ADMIN"
-            self.promote_prices()
             st = self.data.assets.get(asset_id, error="ASSET_ID")
             assert st.paused, "NOT_PAUSED"
-            st.pending_unpause_level = sp.Some(
-                sp.level + self.data.activation_delay_levels
-            )
+            activate_at = sp.level + self.data.activation_delay_levels
+            st.pending_unpause_level = sp.Some(activate_at)
             self.data.assets[asset_id] = st
+            sp.emit(
+                sp.record(asset_id=asset_id, activate_at=activate_at),
+                tag="tezoracle_asset_unpause_prop",
+            )
 
         @sp.entrypoint
         def activate_asset_unpause(self, asset_id):
-            self.promote_prices()
             st = self.data.assets.get(asset_id, error="ASSET_ID")
             level = st.pending_unpause_level.unwrap_some(error="NO_PENDING")
             assert sp.level >= level, "DELAY"
             st.paused = False
             st.pending_unpause_level = None
             self.data.assets[asset_id] = st
+            sp.emit(asset_id, tag="tezoracle_asset_unpause_act")
 
         @sp.entrypoint
         def cancel_asset_unpause(self, asset_id):
             assert sp.sender == self.data.admin, "NOT_ADMIN"
-            self.promote_prices()
             st = self.data.assets.get(asset_id, error="ASSET_ID")
             assert st.pending_unpause_level.is_some(), "NO_PENDING"
             st.pending_unpause_level = None
             self.data.assets[asset_id] = st
+            sp.emit(asset_id, tag="tezoracle_asset_unpause_cancel")
 
         @sp.entrypoint
         def propose_config(self, init):
             assert sp.sender == self.data.admin, "NOT_ADMIN"
-            self.promote_prices()
             assert assert_init_params(init)
             assert init.config_version == self.data.config_version + 1, "CONFIG"
+            activate_at = sp.level + self.data.activation_delay_levels
             self.data.pending_config = sp.Some(
                 sp.record(
-                    activate_at_level=sp.level + self.data.activation_delay_levels,
+                    activate_at_level=activate_at,
                     init=init,
                 )
             )
-            sp.emit(init.config_version, tag="tezoracle_config")
+            sp.emit(
+                sp.record(config_version=init.config_version, activate_at=activate_at),
+                tag="tezoracle_config_propose",
+            )
 
         @sp.entrypoint
         def activate_config(self):
-            self.promote_prices()
             pending = self.data.pending_config.unwrap_some(error="NO_PENDING")
             assert sp.level >= pending.activate_at_level, "DELAY"
             self.apply_init(pending.init)
             self.data.pending_config = None
-            sp.emit(self.data.config_version, tag="tezoracle_config")
+            sp.emit(self.data.config_version, tag="tezoracle_config_activate")
 
         @sp.entrypoint
         def cancel_pending_config(self):
             assert sp.sender == self.data.admin, "NOT_ADMIN"
-            self.promote_prices()
             assert self.data.pending_config.is_some(), "NO_PENDING"
             self.data.pending_config = None
-            sp.emit(self.data.config_version, tag="tezoracle_config")
+            sp.emit(self.data.config_version, tag="tezoracle_config_cancel")
