@@ -4,17 +4,21 @@ import copy
 import json
 from pathlib import Path
 
-from contract.evidence import hash_shared_manifest
+import pytest
+
+from contract.evidence import EvidenceError, hash_shared_manifest, verify_shared_manifest
 from contract.register import load_committed_register
 
 ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = json.loads((ROOT / "tests/packing/evidence/GV-01.json").read_text())
 LOCAL = json.loads((ROOT / "tests/packing/evidence/GV-01.signer-local.json").read_text())
 GV01 = json.loads((ROOT / "tests/packing/vectors/GV-01.json").read_text())
+GV02 = json.loads((ROOT / "tests/packing/vectors/GV-02.json").read_text())
+GV02_EVIDENCE = json.loads((ROOT / "tests/packing/evidence/GV-02.json").read_text())
 
 
 def test_manifest_binds_each_asset_and_matches_payload() -> None:
-    _snapshot, _policy, policy_hash = load_committed_register()
+    snapshot, _policy, policy_hash = load_committed_register()
     assert MANIFEST["policy_hash"] == policy_hash
     payload_assets = GV01["payload"]["assets"]
     assert [asset["asset_id"] for asset in MANIFEST["assets"]] == [asset["asset_id"] for asset in payload_assets]
@@ -24,6 +28,7 @@ def test_manifest_binds_each_asset_and_matches_payload() -> None:
         assert str(evidence["observation_time"]) == payload["observation_time"]
         assert evidence["calculation"]["aggregation"] == "median_lower"
         assert evidence["sources"], evidence["asset_id"]
+    verify_shared_manifest(MANIFEST, GV01["payload"], snapshot, policy_hash)
 
 
 def test_single_asset_mutations_change_digest() -> None:
@@ -47,3 +52,24 @@ def test_signer_local_record_is_outside_the_digest() -> None:
     assert hash_shared_manifest(MANIFEST) == GV01["payload"]["evidence_digest"]
     mixed = {"quorum": MANIFEST, "signer_local": LOCAL}
     assert hash_shared_manifest(mixed) != hash_shared_manifest(MANIFEST)
+
+
+def test_verification_fail_closes_on_digest_min_and_policy() -> None:
+    snapshot, _policy, policy_hash = load_committed_register()
+    payload = copy.deepcopy(GV01["payload"])
+    payload["evidence_digest"] = "11" * 32
+    with pytest.raises(EvidenceError, match="EVIDENCE_DIGEST"):
+        verify_shared_manifest(MANIFEST, payload, snapshot, policy_hash)
+
+    reduced = copy.deepcopy(MANIFEST)
+    reduced["assets"][0]["sources"] = reduced["assets"][0]["sources"][:1]
+    reduced["assets"][0]["calculation"]["contributing_source_ids"] = [
+        source["source_id"] for source in reduced["assets"][0]["sources"]
+    ]
+    reduced_payload = copy.deepcopy(GV01["payload"])
+    reduced_payload["evidence_digest"] = hash_shared_manifest(reduced)
+    with pytest.raises(EvidenceError, match="EVIDENCE_MIN"):
+        verify_shared_manifest(reduced, reduced_payload, snapshot, policy_hash)
+
+    with pytest.raises(EvidenceError, match="EVIDENCE_MIN"):
+        verify_shared_manifest(GV02_EVIDENCE, GV02["payload"], snapshot, policy_hash)

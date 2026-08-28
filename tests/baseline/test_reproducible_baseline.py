@@ -15,6 +15,15 @@ def test_ci_does_not_upgrade_pip() -> None:
     assert "pip install --upgrade pip" not in ci
 
 
+def test_ci_installs_python_deps_with_require_hashes() -> None:
+    ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert "pip install --require-hashes -r requirements-dev.txt" in ci
+    lock = (ROOT / "requirements-dev.txt").read_text(encoding="utf-8")
+    assert "--hash=" in lock
+    assert "pytest==" in lock
+    assert "smartpy-tezos==" in lock
+
+
 def test_env_example_secret_fields_are_empty() -> None:
     text = (ROOT / ".env.example").read_text(encoding="utf-8")
     for raw in text.splitlines():

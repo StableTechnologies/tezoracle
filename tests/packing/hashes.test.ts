@@ -5,7 +5,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { loadCommittedRegister } from "../../src/config/policy.js";
-import { bindManifestToPayload, hashSharedManifest, parseSharedManifest } from "../../src/evidence/index.js";
+import { hashSharedManifest, parseSharedManifest, verifySharedManifest, EvidenceError } from "../../src/evidence/index.js";
 import { packPayload, parseLogicalPayload } from "../../src/packing/index.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -37,7 +37,15 @@ test("committed vectors derive policy_hash and evidence_digest from source docum
       JSON.parse(readFileSync(join(evidenceDir, `${evidenceId}.json`), "utf8")),
     );
     assert.equal(hashSharedManifest(manifest), payload.evidence_digest, vector.id);
-    bindManifestToPayload(manifest, payload, snapshot, policyHash);
+    if (payload.publication_group === "CORE") {
+      verifySharedManifest(manifest, payload, snapshot, policyHash);
+    } else {
+      assert.throws(
+        () => verifySharedManifest(manifest, payload, snapshot, policyHash),
+        (error: unknown) => error instanceof EvidenceError && error.code === "EVIDENCE_MIN",
+        vector.id,
+      );
+    }
     const packed = packPayload(payload);
     assert.equal(packed.packedHex, vector.packed_hex, vector.id);
     assert.equal(packed.blake2bHex, vector.blake2b_hex, vector.id);

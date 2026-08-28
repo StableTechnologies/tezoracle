@@ -57,6 +57,15 @@ export type SharedEvidenceManifest = {
   assets: AssetEvidence[];
 };
 
+export type IndependentAssetObservations = {
+  asset_id: string;
+  price: string;
+  decimals: number;
+  observation_time: number;
+  sources: SourceObservation[];
+  excluded: ExcludedSource[];
+};
+
 export type SignerLocalRecord = {
   domain: typeof SIGNER_LOCAL_DOMAIN;
   payload_hash: string;

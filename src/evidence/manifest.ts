@@ -222,12 +222,43 @@ export function oldestContributingTime(asset: AssetEvidence): number {
   return Math.min(...times);
 }
 
-export function bindManifestToPayload(
+const SECRET_FIELD = /secret|password|authorization|api[_-]?key|private[_-]?key|mnemonic|credential/i;
+
+function walkSecrets(value: unknown, path: string): void {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => walkSecrets(item, `${path}[${index}]`));
+    return;
+  }
+  if (!isObject(value)) return;
+  for (const [key, child] of Object.entries(value)) {
+    const childPath = path.length > 0 ? `${path}.${key}` : key;
+    if (SECRET_FIELD.test(key)) {
+      throw new EvidenceError("EVIDENCE_SECRET", `credential-shaped field ${childPath}`);
+    }
+    walkSecrets(child, childPath);
+  }
+}
+
+function independentObservationCount(sources: readonly SourceObservation[]): number {
+  return new Set(sources.map((source) => source.independence_group)).size;
+}
+
+/**
+ * Fail-closed verification of a quorum-shared manifest against a payload and
+ * the pinned register. Checks digest, min independent observations, and every
+ * required source/policy field. Does not treat the candidate as a source of
+ * observations.
+ */
+export function verifySharedManifest(
   manifest: SharedEvidenceManifest,
   payload: LogicalPayload,
   snapshot: RegisterSnapshot,
   policyHash: string,
 ): void {
+  walkSecrets(manifest, "");
+  if (hashSharedManifest(manifest) !== payload.evidence_digest) {
+    throw new EvidenceError("EVIDENCE_DIGEST", "recomputed manifest digest does not match payload evidence_digest");
+  }
   if (manifest.policy_hash !== policyHash || manifest.policy_hash !== payload.policy_hash) {
     throw new EvidenceError("EVIDENCE_POLICY", "manifest policy_hash does not match the pinned register");
   }
@@ -237,14 +268,18 @@ export function bindManifestToPayload(
   if (manifest.round !== payload.round) {
     throw new EvidenceError("EVIDENCE_GROUP", "manifest round does not match payload");
   }
-  if (manifest.assets.length !== payload.assets.length) {
+  const expectedIds = snapshot.register.publication_groups[payload.publication_group]?.asset_ids;
+  if (!expectedIds) {
+    throw new EvidenceError("EVIDENCE_GROUP", `publication_group ${payload.publication_group} is not in the register`);
+  }
+  if (manifest.assets.length !== payload.assets.length || manifest.assets.length !== expectedIds.length) {
     throw new EvidenceError("EVIDENCE_GROUP", "manifest asset set does not match payload");
   }
   for (let i = 0; i < payload.assets.length; i++) {
     const expected = payload.assets[i];
     const actual = manifest.assets[i];
     if (!expected || !actual) throw new EvidenceError("EVIDENCE_GROUP", "missing asset evidence");
-    if (actual.asset_id !== expected.asset_id) {
+    if (actual.asset_id !== expected.asset_id || actual.asset_id !== expectedIds[i]) {
       throw new EvidenceError("EVIDENCE_GROUP", `asset order mismatch at ${expected.asset_id}`);
     }
     if (actual.price !== expected.price || String(actual.decimals) !== expected.decimals) {
@@ -256,7 +291,7 @@ export function bindManifestToPayload(
     if (actual.calculation.oldest_observation_time !== actual.observation_time) {
       throw new EvidenceError("EVIDENCE_TIME", `${actual.asset_id} oldest_observation_time must equal observation_time`);
     }
-    if (oldestContributingTime(actual) !== actual.observation_time && actual.sources.length > 0) {
+    if (actual.sources.length > 0 && oldestContributingTime(actual) !== actual.observation_time) {
       throw new EvidenceError("EVIDENCE_TIME", `${actual.asset_id} observation_time is not the min contributing time`);
     }
     const contributing = actual.sources.map((source) => source.source_id);
@@ -280,6 +315,16 @@ export function bindManifestToPayload(
     if (actual.calculation.rounding_mode !== asset.rounding_mode) {
       throw new EvidenceError("EVIDENCE_POLICY", `${actual.asset_id} rounding_mode is not the register policy`);
     }
+    if (actual.calculation.min_independent_observations !== asset.min_independent_observations) {
+      throw new EvidenceError("EVIDENCE_POLICY", `${actual.asset_id} min_independent_observations is not the register policy`);
+    }
+    const independent = independentObservationCount(actual.sources);
+    if (independent < asset.min_independent_observations) {
+      throw new EvidenceError(
+        "EVIDENCE_MIN",
+        `${actual.asset_id} has ${independent} independent observations; minimum is ${asset.min_independent_observations}`,
+      );
+    }
     const allow = new Map(asset.sources.map((source) => [source.source_id, source]));
     for (const observation of actual.sources) {
       const registered = allow.get(observation.source_id);
@@ -287,11 +332,27 @@ export function bindManifestToPayload(
         throw new EvidenceError("EVIDENCE_SOURCE", `${observation.source_id} is not in the pinned allowlist`);
       }
       if (
+        observation.venue !== registered.venue ||
+        observation.independence_group !== registered.independence_group ||
+        observation.base_asset !== registered.base_asset ||
+        observation.quote_asset !== registered.quote_asset ||
+        observation.unit !== (registered.unit ?? registered.quote_asset)
+      ) {
+        throw new EvidenceError("EVIDENCE_SOURCE", `${observation.source_id} source identity fields do not match the register`);
+      }
+      if (
         observation.endpoint !== registered.endpoint ||
         observation.query !== registered.query ||
         observation.market_id !== registered.market_id
       ) {
         throw new EvidenceError("EVIDENCE_ENDPOINT", `${observation.source_id} endpoint/query/market_id mismatch`);
+      }
+      if (registered.quote_conversion === "usdt_usd") {
+        if (!observation.conversion || observation.conversion.via_asset_id !== "USDT_USD") {
+          throw new EvidenceError("EVIDENCE_SOURCE", `${observation.source_id} is missing the required USDT/USD conversion leg`);
+        }
+      } else if (observation.conversion !== null) {
+        throw new EvidenceError("EVIDENCE_SOURCE", `${observation.source_id} must not include a conversion leg`);
       }
     }
   }

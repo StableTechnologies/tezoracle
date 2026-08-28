@@ -128,6 +128,8 @@ ExcludedSource = {
 
 The coordinator MAY assemble a candidate manifest. Validators MUST independently retrieve or validate the underlying observations and MUST NOT treat coordinator-supplied prices, timestamps, source status, or this manifest as authoritative.
 
+Production `buildSharedManifest` consumes independently collected observations. It MUST NOT copy prices, times, or source identity from the candidate payload. A candidate-derived synthesizer is forbidden in `src/`.
+
 A validator signs the payload that contains `evidence_digest` only after the checks in [OBSERVER_AGREEMENT.md](OBSERVER_AGREEMENT.md) pass against **local** observations and the **pinned** register. Signing that digest means “this disclosed manifest is consistent with my independent verification,” not “I fetched byte-identical HTTP bodies.”
 
 Validators MUST NOT replace the digest with a privately computed alternative and still present the coordinator’s other payload fields. Either the complete payload is signed, or nothing is signed.
@@ -178,6 +180,12 @@ evidence_digest = BLAKE2B-256(utf8(canonical_json(manifest)))
 This hash is **not** Michelson `PACK`. `PACK` is reserved for the signed payload in [PAYLOAD_SPEC.md](PAYLOAD_SPEC.md).
 
 ## 5. Verification (fail-closed)
+
+`verifySharedManifest` MUST internally:
+
+1. recompute `BLAKE2B-256(canonical_json(manifest))` and require it equal the payload `evidence_digest`;
+2. require each asset’s distinct `independence_group` count to meet the register `min_independent_observations`;
+3. validate every required source identity and policy field against the pinned register (venue, independence group, market, endpoint, query, base/quote/unit, conversion policy, aggregation, rounding, decimals).
 
 A signer MUST refuse when any of the following hold:
 

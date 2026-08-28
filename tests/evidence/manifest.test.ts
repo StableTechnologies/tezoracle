@@ -6,9 +6,10 @@ import { fileURLToPath } from "node:url";
 
 import { loadCommittedRegister } from "../../src/config/policy.js";
 import {
-  bindManifestToPayload,
+  EvidenceError,
   hashSharedManifest,
   parseSharedManifest,
+  verifySharedManifest,
   type SharedEvidenceManifest,
 } from "../../src/evidence/index.js";
 import { parseLogicalPayload } from "../../src/packing/index.js";
@@ -29,7 +30,7 @@ function clone<T>(value: T): T {
 test("top-level evidence_digest binds every CORE asset to sources, times, decimals, and policy", () => {
   const { snapshot, policyHash } = loadCommittedRegister();
   const payload = parseLogicalPayload(gv01.payload);
-  bindManifestToPayload(manifest, payload, snapshot, policyHash);
+  verifySharedManifest(manifest, payload, snapshot, policyHash);
   assert.equal(manifest.assets.length, payload.assets.length);
   for (const asset of manifest.assets) {
     assert.ok(asset.sources.length >= 2, asset.asset_id);
@@ -78,4 +79,38 @@ test("signer-local independently collected evidence is not hashed into evidence_
   const mixed = { quorum: manifest, signer_local: signerLocal } as unknown as SharedEvidenceManifest;
   assert.notEqual(hashSharedManifest(mixed), hashSharedManifest(manifest));
   assert.equal(hashSharedManifest(manifest), parseLogicalPayload(gv01.payload).evidence_digest);
+});
+
+function isCode(code: string) {
+  return (error: unknown) => error instanceof EvidenceError && error.code === code;
+}
+
+test("verification fail-closes on digest, min observations, and source/policy fields", () => {
+  const { snapshot, policyHash } = loadCommittedRegister();
+  const payload = parseLogicalPayload(gv01.payload);
+
+  const digestMismatch = { ...payload, evidence_digest: "11".repeat(32) };
+  assert.throws(() => verifySharedManifest(manifest, digestMismatch, snapshot, policyHash), isCode("EVIDENCE_DIGEST"));
+
+  const reduced = clone(manifest);
+  const first = reduced.assets[0];
+  assert.ok(first?.sources[0]);
+  first.sources = first.sources.slice(0, 1);
+  first.calculation.contributing_source_ids = first.sources.map((source) => source.source_id);
+  const reducedPayload = { ...payload, evidence_digest: hashSharedManifest(reduced) };
+  assert.throws(() => verifySharedManifest(reduced, reducedPayload, snapshot, policyHash), isCode("EVIDENCE_MIN"));
+
+  const identity = clone(manifest);
+  const source = identity.assets[0]?.sources[0];
+  assert.ok(source);
+  source.venue = "NotBinance";
+  const identityPayload = { ...payload, evidence_digest: hashSharedManifest(identity) };
+  assert.throws(() => verifySharedManifest(identity, identityPayload, snapshot, policyHash), isCode("EVIDENCE_SOURCE"));
+
+  const policy = clone(manifest);
+  const calc = policy.assets[0];
+  assert.ok(calc);
+  calc.calculation.min_independent_observations = 1;
+  const policyPayload = { ...payload, evidence_digest: hashSharedManifest(policy) };
+  assert.throws(() => verifySharedManifest(policy, policyPayload, snapshot, policyHash), isCode("EVIDENCE_POLICY"));
 });

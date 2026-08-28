@@ -1,0 +1,8 @@
+# Direct Python test/compile dependencies.
+# Lock with hashes (from a Python 3.12 environment when possible):
+#   python -m pip install pip-tools
+#   pip-compile --generate-hashes --allow-unsafe --output-file=requirements-dev.txt requirements-dev.in
+# Install:
+#   python -m pip install --require-hashes -r requirements-dev.txt
+pytest==8.4.2
+smartpy-tezos==0.24.2

@@ -1,7 +1,7 @@
 {
   "label": "tezoracle-packing-test-ed25519-v1",
   "curve": "ed25519",
-  "note": "TEST ONLY. Not a production key. Used solely to freeze CHECK_SIGNATURE vectors. Do not reuse on any network with value.",
+  "note": "SYNTHETIC TEST-ONLY KEY. Generated for CHECK_SIGNATURE packing fixtures. Never funded. Never used on Ghostnet, mainnet, or any network with value. Not a production, testnet-operator, or faucet key.",
   "secret_key": "edskSAoiNS22migarRXPB9Uhs7A1Q3fP23hxQGK5Ji8X5gHTXzpA4wyuyR1unDoSbSeYc839zaVwF68kdxgL2CHZLoTvZTu4tJ",
   "public_key": "edpktnrDwsBBd5M2N9TGquSrUZP28q44GnvahhD3QQNMNQmbGTDGhb",
   "public_key_hash": "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
