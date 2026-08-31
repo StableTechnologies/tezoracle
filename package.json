@@ -10,9 +10,11 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test tests/validator/smoke.test.ts tests/validator/adapters.test.ts tests/validator/decimal.test.ts tests/validator/derive.test.ts tests/validator/candidate.test.ts tests/validator/signing.test.ts tests/validator/cli.test.ts tests/packing/vectors.test.ts tests/packing/hashes.test.ts tests/packing/tamper.test.ts tests/packing/keys.test.ts tests/config/register.test.ts tests/config/extensibility.test.ts tests/evidence/manifest.test.ts tests/evidence/build.test.ts tests/sources/health.test.ts",
+    "test": "node --import tsx --test tests/validator/smoke.test.ts tests/validator/adapters.test.ts tests/validator/decimal.test.ts tests/validator/derive.test.ts tests/validator/candidate.test.ts tests/validator/signing.test.ts tests/validator/cli.test.ts tests/packing/vectors.test.ts tests/packing/hashes.test.ts tests/packing/tamper.test.ts tests/packing/keys.test.ts tests/config/register.test.ts tests/config/extensibility.test.ts tests/evidence/manifest.test.ts tests/evidence/build.test.ts tests/sources/health.test.ts tests/coordinator/collect.test.ts tests/relayer/relay.test.ts tests/transport/cli.test.ts tests/transport/keys.test.ts",
     "test:packing": "node --import tsx --test tests/packing/vectors.test.ts tests/packing/hashes.test.ts tests/packing/tamper.test.ts tests/packing/keys.test.ts",
     "validator": "tsx src/validator/cli.ts",
+    "coordinator": "tsx src/coordinator/cli.ts",
+    "relayer": "tsx src/relayer/cli.ts",
     "packing:freeze-vectors": "tsx scripts/freeze-packing-vectors.ts",
     "packing:check-hashes": "tsx scripts/recompute-vector-hashes.ts",
     "sources:probe": "tsx scripts/probe-source-endpoints.ts",

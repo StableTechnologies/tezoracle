@@ -52,6 +52,8 @@ npm ci
 npm run typecheck
 npm test
 npm run validator -- derive --group CORE --fixtures tests/validator/fixtures/cex-core.json --now 1786679950
+npm run coordinator -- --help
+npm run relayer -- --help
 
 python3 -m venv .venv
 source .venv/bin/activate
@@ -62,7 +64,7 @@ python scripts/compile_oracle.py   # writes michelson/tezoracle.tz
 
 `.env.example` is placeholders only. Copy it to `.env` only for later local/testnet runs. Never add production secrets.
 
-The current tree includes the public baseline, the frozen payload/register/evidence specs, and TypeScript/SmartPy packing golden vectors. `policy_hash` and `evidence_digest` in those vectors are recomputed from `config/` and `tests/packing/evidence/`. The N-of-M contract, Class A adapters, coordinator/relayer, and local e2e follow in later PRs. Signing product code is blocked until packing golden vectors pass.
+The current tree includes the public baseline, frozen payload/register/evidence specs, TypeScript/SmartPy packing golden vectors, the N-of-M contract, Class A adapters, and a non-authoritative coordinator plus permissionless relayer. Local e2e (live origination is stretch) follows. `policy_hash` and `evidence_digest` in packing vectors are recomputed from `config/` and `tests/packing/evidence/`.
 
 ## Repository layout
 
@@ -95,9 +97,9 @@ The current tree includes the public baseline, the frozen payload/register/evide
 | [docs/ORACLE_INTERFACE.md](docs/ORACLE_INTERFACE.md) | TezFin boundary: price + observation time; aliases/age/bounds stay in TezFin |
 | [docs/TESTNET_DEPLOY.md](docs/TESTNET_DEPLOY.md) | Ghostnet/sandbox origination without production keys |
 | [docs/CLASS_A_VALIDATOR.md](docs/CLASS_A_VALIDATOR.md) | Class A adapters, derivation, candidate verify, testnet signing |
+| [docs/COORDINATOR.md](docs/COORDINATOR.md) | Non-authoritative round trigger, candidate, signature collection |
+| [docs/RELAYER.md](docs/RELAYER.md) | Permissionless verify / simulate / broadcast; backup path |
 | [tests/packing/README.md](tests/packing/README.md) | Frozen PACK vectors and test-only signatures |
-
-Coordinator and relayer specs are added when those workstreams start.
 
 ## License
 

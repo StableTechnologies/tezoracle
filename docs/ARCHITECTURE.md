@@ -89,7 +89,7 @@ The coordinator may trigger a round and may assemble a candidate payload for val
 - Does **not** choose the authoritative price.
 - Does **not** supply or override policy (sources, tolerance, decimals, aggregation, freshness).
 
-Validators independently derive or verify under the pinned, version-controlled policy.
+Validators independently derive or verify under the pinned, version-controlled policy. Specification: [COORDINATOR.md](COORDINATOR.md).
 
 ## Relayer
 
@@ -101,7 +101,7 @@ The relayer is permissionless:
 - Must not modify signed payload bytes.
 - Holds no signing keys.
 
-A backup relayer must be able to submit the same signed batch if the primary path is down.
+A backup relayer must be able to submit the same signed batch if the primary path is down. Specification: [RELAYER.md](RELAYER.md).
 
 ## TezFin boundary
 

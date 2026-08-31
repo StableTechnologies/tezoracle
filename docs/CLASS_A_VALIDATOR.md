@@ -7,7 +7,7 @@
 
 Class A independently retrieves approved CEX observations, derives prices under the pinned parameter register, verifies any candidate, and signs only frozen `PACK(payload)` bytes. It never accepts request-supplied policy. It never signs on mismatch.
 
-Coordinator and relayer documentation is separate. Class B (Rust) is out of scope.
+Coordinator: [COORDINATOR.md](COORDINATOR.md). Relayer: [RELAYER.md](RELAYER.md). Class B (Rust) is out of scope.
 
 ## 1. Boundaries
 
@@ -176,4 +176,3 @@ Exclusion and refusal codes are the stable strings in [EVIDENCE_SPEC.md](EVIDENC
 - Production keys, endpoints, or TezFin `set_oracle`
 - Rust Class B and A1/A2/B1/B2 isolation
 - DEX TWAP for USDtz / tzBTC
-- Coordinator and relayer processes
