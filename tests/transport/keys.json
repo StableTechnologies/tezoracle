@@ -1,0 +1,36 @@
+{
+  "label": "tezoracle-transport-test-ed25519-v1",
+  "curve": "ed25519",
+  "note": "SYNTHETIC TEST-ONLY KEYS. Derived from the well-known BIP39 test mnemonic for CHECK_SIGNATURE / quorum fixtures. Never funded. Never used on Ghostnet, mainnet, or any network with value. Not a production, testnet-operator, or faucet key.",
+  "mnemonic_note": "abandon ×11 + about; paths 44'/1729'/{0..3}'/0'",
+  "signers": [
+    {
+      "index": "0",
+      "secret_key": "edskS3wZrW6P38vvgnrHqjuLLz76vy5dv9QduxAQ2yG7WL5WjEubiJQUcwS49tFfwym1MBioLATPzQFckaYgGhWBUS7nmikuME",
+      "public_key": "edpku4US3ZykcZifjzSGFCmFr3zRgCKndE82estE4irj4d5oqDNDvf",
+      "public_key_hash": "tz1VQA4RP4fLjEEMW2FR4pE9kAg5abb5h5GL",
+      "class_id": "A"
+    },
+    {
+      "index": "1",
+      "secret_key": "edskS6pNYUKhc78sLdoLaoSzHrUAU2PQaZfX4C12KpBgnwqGUvW6XffATPw2z8sJqRpDoFVVz9h4KZG8TcGDwseKvjc1vaMLfb",
+      "public_key": "edpku4J2bq38SAaNrP6kLV34ZzTBWu9FwLmmeFaXV3XzozUckyEvb6",
+      "public_key_hash": "tz1gvekQVEwFFdxT2KrcY6kZgFK1qMN3mmWF",
+      "class_id": "A"
+    },
+    {
+      "index": "2",
+      "secret_key": "edskSBMvdNk3743zvCdPhJPBLkQuEN6vjfXs8pY5GaDBkz7or4jaQ8oSYAwz9zjkLfearsoRB8ShgpiyEMXBVMEK8p7yfbKPXH",
+      "public_key": "edpku882vSAHsYVVQpfHRsAr6BETm8XJWj6XPCG3RqqLJyDxFHfXBu",
+      "public_key_hash": "tz1gud9W8wmESYFsjbyqUcD8ZPC3GHQy3zhD",
+      "class_id": "A"
+    },
+    {
+      "index": "3",
+      "secret_key": "edskRumqSkE1Ukwf8fJFj6wusxYqHUXFLP4CJ4YSPwUKTqGEX861inGiFnd9ZRyUShhWLY3pi9uTXPDPNdFhkTHYrxR36PWjsP",
+      "public_key": "edpkvakjxVTy7i8YXoEPw5FZfMx5nwi94gMfgxvTRSsndfAPAx1Mhk",
+      "public_key_hash": "tz1N7kmvVnJMqSsNey6dvCCRqGzYtNg3kD2L",
+      "class_id": "B"
+    }
+  ]
+}
