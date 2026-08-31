@@ -87,7 +87,9 @@ npm run relayer -- submit --batch file --signers file
 
 `submit` requires an injected `RelayRpc` (tests and local e2e). `encode` prints the immutable `submit` parameter for an external injector such as `octez-client`.
 
-The relayer never reads `TEZORACLE_SIGNER_SECRET_KEY`.
+The relayer never reads `TEZORACLE_SIGNER_SECRET_KEY`. A later fee-payer secret is not an oracle signer.
+
+AWS testnet/shadow transport (`relayerBackup` is a second function on the same sealed batch): [AWS_DEPLOY.md](AWS_DEPLOY.md).
 
 ## 7. Failure codes
 

@@ -81,6 +81,8 @@ npm run coordinator -- assemble  --state file [--now unix] [--close]
 
 The coordinator never reads `TEZORACLE_SIGNER_SECRET_KEY`.
 
+AWS testnet/shadow transport (coordinator Lambdas cannot `GetSecretValue` on the Class A signer secret): [AWS_DEPLOY.md](AWS_DEPLOY.md).
+
 `--fixtures` is the supported CI path.
 
 ## 6. Failure codes

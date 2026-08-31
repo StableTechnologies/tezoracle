@@ -16,6 +16,13 @@ wallets/
 *.wallet
 faucet.json
 
+# Serverless / AWS package artifacts — never commit deploy output
+.serverless/
+.esbuild/
+.serverless-offline/
+.tmp/
+*.zip
+
 # Node.js
 node_modules/
 dist/

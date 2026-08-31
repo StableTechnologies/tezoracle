@@ -1,0 +1,225 @@
+# TezOracle testnet/shadow Serverless stack.
+# One stack. Not four signer accounts. Not production.
+# Lives at the repository root so Framework v3 serviceDir resolves
+# src/deploy/* handlers and config/**. Do not nest this file under deploy/.
+# Do not commit secrets, account IDs, or a live cadence. CI never runs sls deploy.
+#
+# EventBridge rate(5 minutes) is declared here and left disabled.
+# Enabling the publication tick is later work.
+
+service: tezoracle-testnet-shadow
+
+frameworkVersion: "3"
+
+plugins:
+  - serverless-esbuild
+
+custom:
+  signerSecretName: tezoracle/testnet/class-a-signer
+  feePayerSecretName: tezoracle/testnet/relayer-fee-payer
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: false
+    target: node22
+    platform: node
+    format: esm
+    outputFileExtension: .mjs
+    packager: npm
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  stage: ${opt:stage, "testnet"}
+  region: ${opt:region, "us-east-1"}
+  memorySize: 512
+  timeout: 60
+  architecture: arm64
+  deploymentBucket:
+    blockPublicAccess: true
+  stackTags:
+    Project: tezoracle
+    Authority: testnet-shadow
+    Production: "false"
+  environment:
+    TEZOS_NETWORK: ghostnet
+    TEZOS_RPC_URL: ${env:TEZOS_RPC_URL, ""}
+    TEZOS_CHAIN_ID: ${env:TEZOS_CHAIN_ID, ""}
+    ORACLE_ADDRESS: ${env:ORACLE_ADDRESS, ""}
+    TEZORACLE_CONFIG_DIR: config
+
+package:
+  individually: true
+  patterns:
+    - config/**
+    - "!tests/**"
+    - "!docs/**"
+    - "!.serverless/**"
+    - "!**/*.md"
+
+functions:
+  coordinatorTrigger:
+    handler: src/deploy/coordinator.trigger
+    role: CoordinatorLambdaRole
+    events:
+      - schedule:
+          rate: rate(5 minutes)
+          enabled: false
+          name: tezoracle-testnet-tick
+          description: Declared disabled. Later work enables the 5-minute testnet tick.
+
+  coordinatorCandidate:
+    handler: src/deploy/coordinator.candidate
+    role: CoordinatorLambdaRole
+
+  coordinatorCollect:
+    handler: src/deploy/coordinator.collect
+    role: CoordinatorLambdaRole
+
+  coordinatorAssemble:
+    handler: src/deploy/coordinator.assemble
+    role: CoordinatorLambdaRole
+
+  relayerVerify:
+    handler: src/deploy/relayer.verify
+    role: RelayerLambdaRole
+    environment:
+      TEZORACLE_FEE_PAYER_SECRET_NAME: ${self:custom.feePayerSecretName}
+
+  relayerSubmit:
+    handler: src/deploy/relayer.submit
+    role: RelayerLambdaRole
+    environment:
+      TEZORACLE_FEE_PAYER_SECRET_NAME: ${self:custom.feePayerSecretName}
+
+  relayerBackup:
+    handler: src/deploy/relayer.submit
+    role: RelayerLambdaRole
+    environment:
+      TEZORACLE_FEE_PAYER_SECRET_NAME: ${self:custom.feePayerSecretName}
+
+  signerClassA:
+    handler: src/deploy/signer.sign
+    role: SignerLambdaRole
+    environment:
+      TEZORACLE_SIGNER_SECRET_NAME: ${self:custom.signerSecretName}
+      TEZORACLE_SIGNER_ID: ${env:TEZORACLE_SIGNER_ID, "class-a"}
+
+resources:
+  Resources:
+    CoordinatorLambdaRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${self:provider.stage}-coordinator
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: coordinator-transport
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Sid: Logs
+                  Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:service}-${self:provider.stage}-*:*"
+                - Sid: InvokeClassASigner
+                  Effect: Allow
+                  Action:
+                    - lambda:InvokeFunction
+                  Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:service}-${self:provider.stage}-signerClassA"
+                - Sid: DenyOracleSignerSecret
+                  Effect: Deny
+                  Action:
+                    - secretsmanager:GetSecretValue
+                    - ssm:GetParameter
+                    - ssm:GetParameters
+                  Resource:
+                    - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${self:custom.signerSecretName}*"
+                    - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.signerSecretName}"
+
+    RelayerLambdaRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${self:provider.stage}-relayer
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: relayer-transport
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Sid: Logs
+                  Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:service}-${self:provider.stage}-*:*"
+                - Sid: AllowFeePayerSecret
+                  Effect: Allow
+                  Action:
+                    - secretsmanager:GetSecretValue
+                  Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${self:custom.feePayerSecretName}*"
+                - Sid: DenyOracleSignerSecret
+                  Effect: Deny
+                  Action:
+                    - secretsmanager:GetSecretValue
+                    - ssm:GetParameter
+                    - ssm:GetParameters
+                  Resource:
+                    - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${self:custom.signerSecretName}*"
+                    - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.signerSecretName}"
+
+    SignerLambdaRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${self:provider.stage}-signer
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: signer-class-a
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Sid: Logs
+                  Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:service}-${self:provider.stage}-*:*"
+                - Sid: AllowOracleSignerSecret
+                  Effect: Allow
+                  Action:
+                    - secretsmanager:GetSecretValue
+                  Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${self:custom.signerSecretName}*"
+
+    SignerSecretPlaceholder:
+      Type: AWS::SecretsManager::Secret
+      Properties:
+        Name: ${self:custom.signerSecretName}
+        Description: Testnet Class A oracle signer. Set the edsk in the AWS console. Never commit it.
+
+    FeePayerSecretPlaceholder:
+      Type: AWS::SecretsManager::Secret
+      Properties:
+        Name: ${self:custom.feePayerSecretName}
+        Description: Testnet relayer fee-payer. Not an oracle signer. Set the value out of band.

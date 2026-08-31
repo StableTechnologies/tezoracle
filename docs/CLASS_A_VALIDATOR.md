@@ -19,7 +19,7 @@ Coordinator: [COORDINATOR.md](COORDINATOR.md). Relayer: [RELAYER.md](RELAYER.md)
 | Sign `PACK(payload)` with a testnet key from runtime config | Hold a production key; sign a digest other than the frozen packed bytes |
 | Track `last_signed_round` per publication group | Reuse or reorder a locally signed round |
 
-The validator holds the testnet signing key. The coordinator and relayer hold none.
+The validator holds the testnet signing key. The coordinator and relayer hold none. On the AWS testnet/shadow template, only `signerClassA` may read that secret ([AWS_DEPLOY.md](AWS_DEPLOY.md)).
 
 USDtz and tzBTC groups are draft stubs. Class A refuses those groups (`POLICY_PIN`) until a separately reviewed DEX policy exists.
 

@@ -67,6 +67,7 @@ USDtz and tzBTC publication groups may fail independently of `CORE`. They are no
 - CI, smoke tests, and the documented quick start do not require production credentials or secrets.
 - Testnet signer secrets come from runtime configuration (`.env`, never committed).
 - Coordinator and relayer processes hold no signing keys.
+- On the testnet/shadow AWS template, only the Class A signer role may `GetSecretValue` on the oracle signer secret. Coordinator and relayer roles are denied that secret. The raw key is never placed in those functions' environment. See [AWS_DEPLOY.md](AWS_DEPLOY.md).
 - Test-only keys and signatures used for golden vectors are stored separately from any production secret and are not production material.
 - The ed25519 secret in `tests/packing/keys/ed25519.test.json` (`tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC`) is a synthetic CHECK_SIGNATURE fixture. It has never been funded and must not be used on any network with value.
 - Compromising a 1-of-1 testnet key is a full compromise of that deployment. That is an accepted testnet limitation, not a production design.

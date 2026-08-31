@@ -64,7 +64,7 @@ python scripts/compile_oracle.py   # writes michelson/tezoracle.tz
 
 `.env.example` is placeholders only. Copy it to `.env` only for later local/testnet runs. Never add production secrets.
 
-The current tree includes the public baseline, frozen payload/register/evidence specs, TypeScript/SmartPy packing golden vectors, the N-of-M contract, Class A adapters, and a non-authoritative coordinator plus permissionless relayer. Local e2e (live origination is stretch) follows. `policy_hash` and `evidence_digest` in packing vectors are recomputed from `config/` and `tests/packing/evidence/`.
+The current tree includes the public baseline, frozen payload/register/evidence specs, TypeScript/SmartPy packing golden vectors, the N-of-M contract, Class A adapters, a non-authoritative coordinator plus permissionless relayer, and the testnet/shadow Serverless deploy template (EventBridge disabled). Local e2e plus the 5-minute tick, then the scope gate, follow. `policy_hash` and `evidence_digest` in packing vectors are recomputed from `config/` and `tests/packing/evidence/`.
 
 ## Repository layout
 
@@ -76,7 +76,10 @@ The current tree includes the public baseline, frozen payload/register/evidence 
 | `src/packing/` | Canonical TypeScript PACK / digest |
 | `src/coordinator/` | Non-authoritative round coordinator |
 | `src/relayer/` | Permissionless submission |
-| `tests/` | Contract, validator, packing, and later e2e tests |
+| `src/deploy/` | Thin Lambda handlers over coordinator, relayer, and Class A |
+| `serverless.yml` | Testnet/shadow Serverless stack at repo root (schedule disabled) |
+| `deploy/` | Operator checklist for a non-production `sls deploy` |
+| `tests/` | Contract, validator, packing, deploy-config, and later e2e tests |
 | `config/` | Versioned asset parameter register |
 | `docs/` | Architecture, security, specs, engineering response |
 | `.github/workflows/` | TypeScript and Python CI (no secrets) |
@@ -99,6 +102,7 @@ The current tree includes the public baseline, frozen payload/register/evidence 
 | [docs/CLASS_A_VALIDATOR.md](docs/CLASS_A_VALIDATOR.md) | Class A adapters, derivation, candidate verify, testnet signing |
 | [docs/COORDINATOR.md](docs/COORDINATOR.md) | Non-authoritative round trigger, candidate, signature collection |
 | [docs/RELAYER.md](docs/RELAYER.md) | Permissionless verify / simulate / broadcast; backup path |
+| [docs/AWS_DEPLOY.md](docs/AWS_DEPLOY.md) | Non-production Lambda/EventBridge template; IAM split; no live cadence |
 | [tests/packing/README.md](tests/packing/README.md) | Frozen PACK vectors and test-only signatures |
 
 ## License

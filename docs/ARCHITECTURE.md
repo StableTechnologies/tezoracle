@@ -125,6 +125,8 @@ Domain: `TEZORACLE_V1`. Exact Michelson type, rejection rules, and PACK rules: [
 
 Signatures cover `PACK(payload)` exactly. Packing implementations must not silently reorder or normalize fields. Frozen hex, Micheline, and BLAKE2B live in `tests/packing/vectors/`; TypeScript and SmartPy must match them byte-for-byte. Rust Class B is later work against the same vectors.
 
+Testnet/shadow AWS transport (one stack, IAM split, EventBridge disabled): [AWS_DEPLOY.md](AWS_DEPLOY.md).
+
 ## Repository map
 
 ```text
@@ -134,7 +136,10 @@ src/validator/     Class A TypeScript
 src/packing/       Canonical PACK / digest
 src/coordinator/   Non-authoritative coordinator
 src/relayer/       Permissionless relayer
-tests/             Unit, contract, packing, e2e
+src/deploy/        Thin Lambda handlers (testnet/shadow transport)
+serverless.yml     Testnet/shadow Serverless stack at repo root (schedule disabled)
+deploy/            Operator checklist for a non-production deploy
+tests/             Unit, contract, packing, deploy-config, e2e
 config/            Versioned parameter register
 docs/              Specs and design record
 ```
