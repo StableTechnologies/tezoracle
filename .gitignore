@@ -44,7 +44,9 @@ ENV/
 htmlcov/
 .tox/
 
-# SmartPy / local compile dumps
+# Local octez mockup dirs
+.octez-mockup/
+octez-mockup/
 .smartpy/
 smartpy_output/
 .sp_build/
