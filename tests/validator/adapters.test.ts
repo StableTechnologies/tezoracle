@@ -45,9 +45,16 @@ test("Binance, OKX, Kraken, and Coinbase parse register-shaped bodies", () => {
 
   const kraken = krakenAdapter.parse(source("BTC_USD", "kraken"), {
     error: [],
-    result: { XXBTZUSD: [["65005.00", "0.1", "1786679835.42", "b", "m", "", "1"]] },
+    result: { XXBTZUSD: [["65005.00", "0.1", 1786679835.42, "b", "m", "", "1"]] },
   });
   assert.equal(kraken.ok, true);
+  if (kraken.ok) assert.equal(kraken.quote.timestampRaw, 1786679835.42);
+
+  const krakenUsdt = krakenAdapter.parse(source("USDT_USD", "kraken"), {
+    error: [],
+    result: { USDTZUSD: [["0.99964000", "1.0", 1786679900.1234, "b", "m", "", "1"]] },
+  });
+  assert.equal(krakenUsdt.ok, true);
 
   const coinbase = coinbaseAdapter.parse(source("XTZ_USD", "coinbase"), {
     price: "0.750200",
@@ -74,6 +81,13 @@ test("venue schema mismatches are fail-closed", () => {
   assert.equal(wrongKraken.ok, false);
   if (!wrongKraken.ok) assert.equal(wrongKraken.code, "WRONG_MARKET");
 
+  const wrongKrakenUsdt = krakenAdapter.parse(source("USDT_USD", "kraken"), {
+    error: [],
+    result: { USDTUSD: [["0.99964000", "1.0", 1786679900.1234, "b", "m", "", "1"]] },
+  });
+  assert.equal(wrongKrakenUsdt.ok, false);
+  if (!wrongKrakenUsdt.ok) assert.equal(wrongKrakenUsdt.code, "WRONG_MARKET");
+
   const scientific = binanceAdapter.parse(source("USDT_USD", "binance"), [{ price: "1e-2", time: 1786679920000 }]);
   assert.equal(scientific.ok, false);
   if (!scientific.ok) assert.equal(scientific.code, "BAD_NUMBER");
@@ -83,8 +97,12 @@ test("timestamp encodings follow the observer agreement", () => {
   assert.equal(parseUnixMs(1786679920000), 1786679920);
   assert.equal(parseUnixMs("1786679920000"), 1786679920);
   assert.equal(parseUnixSFractional("1786679900.1234"), 1786679900);
+  assert.equal(parseUnixSFractional(1786679900.1234), 1786679900);
+  assert.equal(parseUnixSFractional(1786679900), 1786679900);
   assert.equal(parseRfc3339Utc("2026-08-14T03:58:50.000Z"), 1786679930);
   assert.throws(() => parseUnixMs(1.5));
+  assert.throws(() => parseUnixSFractional(Number.NaN));
+  assert.throws(() => parseUnixSFractional(Number.POSITIVE_INFINITY));
   assert.throws(() => parseRfc3339Utc("2026-08-14T03:58:50+03:00"));
 });
 

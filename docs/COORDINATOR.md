@@ -60,7 +60,21 @@ The coordinator:
 
 A sealed batch is a `TEZORACLE_SIGNED_BATCH_V1` document: payload, `packed_hex`, and `(index, public_key, signature)` entries. Evidence is not submitted on-chain. The batch is portable: any relayer can verify and submit it without talking to this process.
 
-## 5. CLI
+## 5. Publication tick
+
+`src/runtime/tick.ts` is the shared tick. It composes this coordinator, an injected Class A `sign`, and the permissionless relayer. It does not invent policy.
+
+```text
+observe/derive → candidate → 1-of-1 sign → collect/assemble → verify → simulate/submit → read view
+```
+
+Cadence is **300 seconds**. `validity_window_seconds` stays **180** (the submit window). The tick must finish or fail closed inside that window. If a previous pending quote is still immature (`PENDING_OPEN`), the tick skips and does not weaken the activation delay.
+
+Local driver: `runTickLoop` / `startTickInterval` with an injected clock. AWS driver: EventBridge `rate(5 minutes)` on `coordinatorTick`. The tick process is a coordinator and holds no oracle keys.
+
+Local 1-of-1 e2e lives in `tests/e2e/local.test.ts` (mock CEX fixtures + in-memory contract harness). Live Ghostnet origination remains stretch.
+
+## 6. CLI
 
 ```bash
 npm run coordinator -- trigger   --group CORE [--round n] [--now unix] [--config dir]
@@ -85,7 +99,7 @@ AWS testnet/shadow transport (coordinator Lambdas cannot `GetSecretValue` on the
 
 `--fixtures` is the supported CI path.
 
-## 6. Failure codes
+## 7. Failure codes
 
 | Code | Meaning |
 | --- | --- |
@@ -101,9 +115,10 @@ AWS testnet/shadow transport (coordinator Lambdas cannot `GetSecretValue` on the
 | `HOLD_KEYS` | Secret-shaped material appeared in coordinator state |
 | `INTERNAL` | Malformed input or unknown command |
 
-## 7. Out of scope
+## 8. Out of scope
 
 - Production keys, endpoints, or TezFin `set_oracle`
 - Rust Class B and A1/A2/B1/B2 isolation
 - Choosing a production 3-of-4 as the only supported configuration
-- Live Ghostnet origination (stretch / later e2e)
+- Treating the testnet 5-minute tick as production authorization
+- Live Ghostnet origination (stretch)

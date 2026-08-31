@@ -147,6 +147,7 @@ Each source entry binds a single approved route:
 | `price_path` | JSON path to the decimal price string |
 | `timestamp_path` | JSON path to the venue time |
 | `timestamp_encoding` | `unix_ms` \| `unix_s_fractional` \| `rfc3339` |
+| `result_pair_key` | Kraken only: pinned `result.<key>` (`XXBTZUSD`, `USDTZUSD`, `XTZUSD`). May differ from the query `pair=` |
 | `quote_conversion` | `none` or `usdt_usd` |
 
 `adapter_status: stretch` means the route is approved in policy but no Class A adapter is required to count it yet. Stretch sources do not satisfy `min_independent_observations`. This freeze marks Binance, OKX, Kraken, and Coinbase as `initial_phase`. DEX routes remain stretch/stub until separately reviewed.

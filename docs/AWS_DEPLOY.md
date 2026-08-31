@@ -1,6 +1,6 @@
 # AWS / Serverless deploy (testnet and shadow only)
 
-**Status:** deploy template. Not a live publication loop.  
+**Status:** deploy template plus a testnet/shadow 5-minute tick. Not production authorization.  
 **Authority:** one non-production account. 1-of-1 Class A only.  
 **Keys:** the oracle signer secret is never in git, CI, or coordinator/relayer IAM or environment.
 
@@ -22,6 +22,7 @@ The stack file is at the repo root so Framework v3 `serviceDir` resolves `src/de
 
 | Function | Handler | Role | May read oracle signer secret |
 | --- | --- | --- | --- |
+| `coordinatorTick` | `src/deploy/tick.tick` | Shared publication tick (`rate(5 minutes)`) | No |
 | `coordinatorTrigger` | `src/deploy/coordinator.trigger` | Round request from the pinned register | No |
 | `coordinatorCandidate` | `src/deploy/coordinator.candidate` | Derive a candidate under the same register | No |
 | `coordinatorCollect` | `src/deploy/coordinator.collect` | Collect a signature over frozen `PACK(payload)` | No |
@@ -31,9 +32,9 @@ The stack file is at the repo root so Framework v3 `serviceDir` resolves `src/de
 | `relayerBackup` | same submit handler | Second function on the **same** sealed batch | No |
 | `signerClassA` | `src/deploy/signer.sign` | Verify locally, then sign. Internal invoke only | Yes |
 
-There is no public signer HTTP API. 1-of-1 testnet may call Class A in-process (same tick, later work) or `lambda:InvokeFunction` from the coordinator role. Coordinator and relayer processes still hold no keys.
+There is no public signer HTTP API. 1-of-1 testnet may call Class A in-process (same tick, injected `sign`) or `lambda:InvokeFunction` from the coordinator role. Coordinator and relayer processes still hold no keys. The tick Lambda is a coordinator: it must not read `TEZORACLE_SIGNER_SECRET_KEY`.
 
-`relayerSubmit` is not a live Ghostnet injector in this repository. Live RPC adapters stay with local e2e. A fee-paying Tezos account, if added later, is a **fee-payer** secret and must not appear in the oracle signer set.
+`relayerSubmit` is not a live Ghostnet injector in this repository. Local e2e injects a contract harness as `RelayRpc`. A fee-paying Tezos account, if added later, is a **fee-payer** secret and must not appear in the oracle signer set.
 
 ## 3. Environment placeholders
 
@@ -65,14 +66,14 @@ CloudFormation uses `${AWS::AccountId}`. This repository must not contain a conc
 
 ## 5. EventBridge cadence
 
-`coordinatorTrigger` declares:
+`coordinatorTick` declares:
 
 ```text
 rate: rate(5 minutes)
-enabled: false
+enabled: true
 ```
 
-The 5-minute publication tick is later work. Do not enable this rule to create a production cadence. `validity_window_seconds` remains 180; that is the submit window, not permission to run a live loop from this template.
+This is testnet/shadow scheduling, not production authorization. `validity_window_seconds` remains 180; that is the submit window, not the cadence. A tick must finish (or fail closed) inside that window. If the previous pending quote is still immature (`PENDING_OPEN`), the tick skips and does not weaken the activation delay.
 
 ## 6. How to deploy to a non-production account
 
@@ -89,12 +90,12 @@ Never deploy this stack with production keys, a production signer set, or TezFin
 
 - `.env`, Secrets Manager values, `edsk` material, AWS access keys
 - `.serverless/`, `.esbuild/`, packaged `.zip` artifacts
-- Production account IDs, production RPC URLs, or an enabled 5-minute rule intended as production authorization
+- Production account IDs, production RPC URLs, or treating the testnet 5-minute rule as production authorization
 
 ## 8. Out of scope
 
 - Four isolated signer environments (A1, A2, B1, B2)
 - Production 3-of-4 and Rust Class B
-- Enabling EventBridge as a live publication loop
+- Treating the testnet EventBridge rule as production authorization
 - TezFin `set_oracle`
 - AWS credentials or `sls deploy` in CI

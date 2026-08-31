@@ -4,8 +4,8 @@
 # src/deploy/* handlers and config/**. Do not nest this file under deploy/.
 # Do not commit secrets, account IDs, or a live cadence. CI never runs sls deploy.
 #
-# EventBridge rate(5 minutes) is declared here and left disabled.
-# Enabling the publication tick is later work.
+# EventBridge rate(5 minutes) is enabled on coordinatorTick for testnet/shadow.
+# This is not production authorization. validity_window_seconds remains 180.
 
 service: tezoracle-testnet-shadow
 
@@ -58,15 +58,20 @@ package:
     - "!**/*.md"
 
 functions:
-  coordinatorTrigger:
-    handler: src/deploy/coordinator.trigger
+  coordinatorTick:
+    handler: src/deploy/tick.tick
     role: CoordinatorLambdaRole
+    timeout: 60
     events:
       - schedule:
           rate: rate(5 minutes)
-          enabled: false
+          enabled: true
           name: tezoracle-testnet-tick
-          description: Declared disabled. Later work enables the 5-minute testnet tick.
+          description: Testnet/shadow publication tick. Not production authorization.
+
+  coordinatorTrigger:
+    handler: src/deploy/coordinator.trigger
+    role: CoordinatorLambdaRole
 
   coordinatorCandidate:
     handler: src/deploy/coordinator.candidate

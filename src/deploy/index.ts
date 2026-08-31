@@ -11,3 +11,4 @@ export { unwrapEvent } from "./event.js";
 export { createCoordinatorHandlers, trigger, candidate, collect, assemble } from "./coordinator.js";
 export { createRelayerHandlers, verify, submit } from "./relayer.js";
 export { createSignerHandlers, resolveSignerSecret, sign } from "./signer.js";
+export { createTickHandler, tick } from "./tick.js";

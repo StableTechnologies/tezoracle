@@ -13,6 +13,7 @@ const SOURCE = readFileSync(YML_PATH, "utf8");
 const DOC = asMap(parseYaml(SOURCE), "serverless.yml");
 
 const COORDINATOR_FUNCTIONS = [
+  "coordinatorTick",
   "coordinatorTrigger",
   "coordinatorCandidate",
   "coordinatorCollect",
@@ -125,6 +126,7 @@ test("required transport functions exist and signer has no public events", () =>
   for (const name of [...COORDINATOR_FUNCTIONS, ...RELAYER_FUNCTIONS, SIGNER_FUNCTION]) {
     assert.ok(fns[name], name);
   }
+  assert.match(String(fns.coordinatorTick?.handler), /src\/deploy\/tick\.tick/);
   assert.match(String(fns.coordinatorTrigger?.handler), /src\/deploy\/coordinator\.trigger/);
   assert.match(String(fns.coordinatorCandidate?.handler), /src\/deploy\/coordinator\.candidate/);
   assert.match(String(fns.coordinatorCollect?.handler), /src\/deploy\/coordinator\.collect/);
@@ -148,14 +150,15 @@ test("coordinator and relayer env never include the oracle signer secret", () =>
   assert.match(signerEnv.TEZORACLE_SIGNER_SECRET_NAME ?? "", /\$\{self:custom\.signerSecretName\}/);
 });
 
-test("EventBridge schedule is declared and disabled", () => {
-  const trigger = functions().coordinatorTrigger;
-  assert.ok(trigger);
-  const events = asList(trigger.events, "coordinatorTrigger.events");
+test("EventBridge schedule is enabled on the coordinator tick at rate(5 minutes)", () => {
+  const tick = functions().coordinatorTick;
+  assert.ok(tick);
+  const events = asList(tick.events, "coordinatorTick.events");
   assert.equal(events.length, 1);
   const schedule = asMap(asMap(events[0], "event").schedule, "schedule");
   assert.equal(schedule.rate, "rate(5 minutes)");
-  assert.equal(schedule.enabled, false);
+  assert.equal(schedule.enabled, true);
+  assert.equal(functions().coordinatorTrigger?.events, undefined);
 });
 
 test("IAM denies coordinator and relayer GetSecretValue on the signer secret", () => {
@@ -200,8 +203,8 @@ test("template has no committed secrets, account IDs, or production cadence", ()
     if (match[0] && !match[0].startsWith("2012")) accountIds.push(match[0]);
   }
   assert.deepEqual(accountIds, []);
-  assert.match(SOURCE, /enabled:\s*false/);
-  assert.doesNotMatch(SOURCE, /enabled:\s*true/);
+  assert.match(SOURCE, /enabled:\s*true/);
+  assert.match(SOURCE, /Not production authorization/);
 });
 
 test("roles are split and backup relayer reuses submit", () => {

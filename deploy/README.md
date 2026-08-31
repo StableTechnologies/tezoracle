@@ -48,13 +48,13 @@ The optional relayer fee-payer secret `tezoracle/testnet/relayer-fee-payer` is n
 
 ## After deploy
 
-This stack is transport config, not a live publication loop. EventBridge stays disabled.
+This stack is testnet/shadow transport. EventBridge `rate(5 minutes)` is enabled on `coordinatorTick`. That is not production authorization.
 
-1. Confirm EventBridge rule `tezoracle-testnet-tick` is **disabled**.
-2. Confirm the coordinator and relayer roles cannot `GetSecretValue` on the Class A signer secret.
+1. Confirm EventBridge rule `tezoracle-testnet-tick` is the testnet/shadow tick, not a production cadence.
+2. Confirm the coordinator (including `coordinatorTick`) and relayer roles cannot `GetSecretValue` on the Class A signer secret.
 3. You may invoke coordinator/relayer directly to inspect wiring. Do not publish a public signer API.
-4. `signerClassA` has the secret **name** only. A live invoke will not sign until a Secrets Manager fetch is injected (later work).
-5. `relayerSubmit` is not a live Ghostnet injector in this repository.
+4. `signerClassA` has the secret **name** only. A live invoke will not sign until a Secrets Manager fetch is injected (later work). The tick must invoke Class A; it must not read the signer secret.
+5. `relayerSubmit` is not a live Ghostnet injector in this repository. Local e2e uses an injected mock / harness RPC.
 6. `relayerBackup` is a second function on the same sealed batch as `relayerSubmit`.
 7. Do not point TezFin `set_oracle` at the originated testnet contract.
 

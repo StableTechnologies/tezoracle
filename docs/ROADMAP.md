@@ -15,8 +15,8 @@ Anything not listed under initial scope requires **separate approval**. Passing 
 | TezFin boundary docs | Upstream price + observation time; aliases/age/bounds remain in TezFin |
 | Class A | Adapter interface, four CEX adapters (Binance, OKX, Kraken, Coinbase), derivation, candidate verify, testnet signing |
 | Coordinator and relayer | Non-authoritative coordinator; permissionless relayer with no keys |
-| AWS / Serverless deploy config | One testnet/shadow Lambda stack; IAM split; EventBridge declared disabled |
-| Local e2e + 5-minute cycle | 1-of-1 observe → derive → sign → simulate/submit → read view, plus the publication tick |
+| AWS / Serverless deploy config | One testnet/shadow Lambda stack; IAM split; EventBridge `rate(5 minutes)` enabled for testnet/shadow only |
+| Local e2e + 5-minute cycle | Shared tick; 1-of-1 observe → derive → sign → simulate/submit → read view; skip if `PENDING_OPEN` |
 | Scope gate | Clean CI, no secrets, stop |
 
 **Stretch inside remaining hours (not a silent expansion):** live testnet origination, DEX TWAP, 5-of-7 gas/size benches. CEX adapters are not stretch.
@@ -34,8 +34,8 @@ Evidence, observer agreement, and the parameter register freeze **with the paylo
 5. `ORACLE_INTERFACE.md` TezFin boundary
 6. Class A TypeScript validator (may overlap with the contract after packing is frozen)
 7. Coordinator and permissionless relayer
-8. AWS / Serverless deploy config (1-of-1 testnet/shadow; EventBridge declared disabled)
-9. Local e2e plus 5-minute publication tick (live origination is stretch)
+8. AWS / Serverless deploy config (1-of-1 testnet/shadow; EventBridge declared in the template)
+9. Local e2e plus 5-minute publication tick (EventBridge `rate(5 minutes)` enabled for testnet/shadow; live origination is stretch)
 10. Scope gate and stop
 
 ## Production phase (not authorized)

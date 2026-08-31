@@ -64,7 +64,7 @@ python scripts/compile_oracle.py   # writes michelson/tezoracle.tz
 
 `.env.example` is placeholders only. Copy it to `.env` only for later local/testnet runs. Never add production secrets.
 
-The current tree includes the public baseline, frozen payload/register/evidence specs, TypeScript/SmartPy packing golden vectors, the N-of-M contract, Class A adapters, a non-authoritative coordinator plus permissionless relayer, and the testnet/shadow Serverless deploy template (EventBridge disabled). Local e2e plus the 5-minute tick, then the scope gate, follow. `policy_hash` and `evidence_digest` in packing vectors are recomputed from `config/` and `tests/packing/evidence/`.
+The current tree includes the public baseline, frozen payload/register/evidence specs, TypeScript/SmartPy packing golden vectors, the N-of-M contract, Class A adapters, a non-authoritative coordinator plus permissionless relayer, a shared publication tick (`src/runtime`), local 1-of-1 e2e over mock CEX fixtures and an injected RPC, and the testnet/shadow Serverless deploy template with EventBridge `rate(5 minutes)` enabled (not production authorization). The scope gate follows. `policy_hash` and `evidence_digest` in packing vectors are recomputed from `config/` and `tests/packing/evidence/`.
 
 ## Repository layout
 
@@ -76,10 +76,11 @@ The current tree includes the public baseline, frozen payload/register/evidence 
 | `src/packing/` | Canonical TypeScript PACK / digest |
 | `src/coordinator/` | Non-authoritative round coordinator |
 | `src/relayer/` | Permissionless submission |
-| `src/deploy/` | Thin Lambda handlers over coordinator, relayer, and Class A |
-| `serverless.yml` | Testnet/shadow Serverless stack at repo root (schedule disabled) |
+| `src/runtime/` | Shared publication tick (observe → sign → submit → view) |
+| `src/deploy/` | Thin Lambda handlers over coordinator, relayer, Class A, and the tick |
+| `serverless.yml` | Testnet/shadow Serverless stack at repo root (`rate(5 minutes)` enabled) |
 | `deploy/` | Operator checklist for a non-production `sls deploy` |
-| `tests/` | Contract, validator, packing, deploy-config, and later e2e tests |
+| `tests/` | Contract, validator, packing, deploy-config, runtime, and local e2e tests |
 | `config/` | Versioned asset parameter register |
 | `docs/` | Architecture, security, specs, engineering response |
 | `.github/workflows/` | TypeScript and Python CI (no secrets) |
@@ -102,7 +103,7 @@ The current tree includes the public baseline, frozen payload/register/evidence 
 | [docs/CLASS_A_VALIDATOR.md](docs/CLASS_A_VALIDATOR.md) | Class A adapters, derivation, candidate verify, testnet signing |
 | [docs/COORDINATOR.md](docs/COORDINATOR.md) | Non-authoritative round trigger, candidate, signature collection |
 | [docs/RELAYER.md](docs/RELAYER.md) | Permissionless verify / simulate / broadcast; backup path |
-| [docs/AWS_DEPLOY.md](docs/AWS_DEPLOY.md) | Non-production Lambda/EventBridge template; IAM split; no live cadence |
+| [docs/AWS_DEPLOY.md](docs/AWS_DEPLOY.md) | Non-production Lambda/EventBridge template; IAM split; testnet 5-minute tick |
 | [tests/packing/README.md](tests/packing/README.md) | Frozen PACK vectors and test-only signatures |
 
 ## License

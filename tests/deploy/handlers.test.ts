@@ -6,6 +6,8 @@ import { assertCoordinatorRuntime, assertRelayerRuntime } from "../../src/deploy
 import { unwrapEvent } from "../../src/deploy/event.js";
 import { createRelayerHandlers } from "../../src/deploy/relayer.js";
 import { createSignerHandlers, resolveSignerSecret } from "../../src/deploy/signer.js";
+import { createTickHandler } from "../../src/deploy/tick.js";
+import { tickHarness, localSign } from "../e2e/helpers.js";
 import { CoordinatorError } from "../../src/coordinator/errors.js";
 import { RelayerError } from "../../src/relayer/errors.js";
 import { createMockRpc } from "../../src/relayer/rpc.js";
@@ -177,6 +179,38 @@ test("relayer submit without an injected RPC is not a live endpoint", async () =
     const submitted = await relayer.submit({ batch: sealed.batch, signers: signerSet1of1() });
     assert.equal(submitted.ok, false);
     assert.equal(submitted.error_code, "INTERNAL");
+  });
+});
+
+test("coordinator tick handler composes the shared tick without holding keys", async () => {
+  await withEnv({ ...domain, TEZORACLE_SIGNER_SECRET_KEY: undefined }, async () => {
+    const harness = tickHarness();
+    const handler = createTickHandler({
+      configDir: CONFIG_DIR,
+      transport: coreMockTransport(),
+      now: () => NOW,
+      rpc: harness,
+      oracle: harness,
+      sign: localSign(),
+      signerSet: signerSet1of1(),
+    });
+    const result = await handler.tick({ group: "CORE" });
+    assert.equal(result.ok, true);
+    assert.equal(result.skipped, false);
+    assert.equal(result.round, "1");
+  });
+});
+
+test("coordinator tick handler refuses a missing signer set and a live RPC default", async () => {
+  await withEnv({ ...domain, TEZORACLE_SIGNER_SECRET_KEY: undefined }, async () => {
+    const missing = createTickHandler({
+      configDir: CONFIG_DIR,
+      transport: coreMockTransport(),
+      now: () => NOW,
+    });
+    const result = await missing.tick({ group: "CORE" });
+    assert.equal(result.ok, false);
+    assert.equal(result.error_code, "INTERNAL");
   });
 });
 
