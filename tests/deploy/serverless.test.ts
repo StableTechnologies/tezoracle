@@ -221,6 +221,66 @@ test("roles are split and backup relayer reuses submit", () => {
   assert.equal(placeholders.FeePayerSecretPlaceholder?.Type, "AWS::SecretsManager::Secret");
 });
 
+test("USDTZ and TZBTC each get their own 5-minute scheduled tick, isolated by reserved concurrency", () => {
+  const fns = functions();
+  for (const [name, group] of [
+    ["coordinatorTick", "CORE"],
+    ["coordinatorTickUsdtz", "USDTZ"],
+    ["coordinatorTickTzbtc", "TZBTC"],
+  ] as const) {
+    const fn = fns[name];
+    assert.ok(fn, name);
+    assert.equal(fn.role, "CoordinatorLambdaRole", name);
+    assert.equal(fn.reservedConcurrency, 1, name);
+    assert.equal(fn.timeout, 180, name);
+    assert.equal(fn.memorySize, 512, name);
+    const events = asList(fn.events, `${name}.events`);
+    assert.equal(events.length, 1, name);
+    const schedule = asMap(asMap(events[0], "event").schedule, "schedule");
+    assert.equal(schedule.rate, "rate(5 minutes)", name);
+    assert.equal(schedule.enabled, true, name);
+    const input = asMap(schedule.input, `${name}.schedule.input`);
+    assert.equal(input.group, group, name);
+  }
+});
+
+test("recommended AWS infra topology is applied (region, arch, no VPC, log retention)", () => {
+  const provider = asMap(DOC.provider, "provider");
+  assert.equal(String(provider.region), '${opt:region, "eu-central-1"}');
+  assert.equal(provider.architecture, "arm64");
+  assert.equal(provider.logRetentionInDays, 60);
+  assert.equal(provider.vpc, undefined);
+});
+
+test("DynamoDB tables exist for TWAP samples and round state with correct IAM scoping", () => {
+  const res = resources();
+  const poolSamples = res.PoolSamplesTable;
+  assert.equal(poolSamples?.Type, "AWS::DynamoDB::Table");
+  const poolSamplesProps = asMap(poolSamples?.Properties, "PoolSamplesTable.Properties");
+  assert.equal(poolSamplesProps.BillingMode, "PAY_PER_REQUEST");
+  const poolSamplesTtl = asMap(poolSamplesProps.TimeToLiveSpecification, "PoolSamplesTable.TimeToLiveSpecification");
+  assert.equal(poolSamplesTtl.Enabled, true);
+
+  const roundState = res.RoundStateTable;
+  assert.equal(roundState?.Type, "AWS::DynamoDB::Table");
+  const roundStateProps = asMap(roundState?.Properties, "RoundStateTable.Properties");
+  assert.equal(roundStateProps.BillingMode, "PAY_PER_REQUEST");
+  // No TTL on round state -- it is replay-protection, not a cache.
+  assert.equal(roundStateProps.TimeToLiveSpecification, undefined);
+
+  const coordinatorPoolSamples = roleStatements("CoordinatorLambdaRole").find(
+    (statement) => statement.Sid === "AllowPoolSamplesTable",
+  );
+  assert.ok(coordinatorPoolSamples);
+  assert.ok(flattenActions(coordinatorPoolSamples.Action).includes("dynamodb:PutItem"));
+
+  const signerStateTables = roleStatements("SignerLambdaRole").find(
+    (statement) => statement.Sid === "AllowStateTables",
+  );
+  assert.ok(signerStateTables);
+  assert.equal(flattenActions(signerStateTables.Action).length, 2);
+});
+
 test("parsed document does not embed secret-shaped strings", () => {
   walk(DOC, (node) => {
     if (typeof node === "string") {

@@ -2,6 +2,7 @@ import type { PublicationGroup } from "../packing/types.js";
 import type { AssetConfig, RegisterConfig, RegisterSnapshot } from "../config/validate.js";
 import { observeXtzPairPool } from "./adapters/dex/observe.js";
 import { createUninjectedPoolRpcClient, type PoolRpcClient } from "./adapters/dex/rpc.js";
+import type { PoolSampleStore } from "./adapters/dex/state.js";
 import type { HttpTransport } from "./adapters/http.js";
 import { absDelta, exceedsBps, medianLower } from "./decimal.js";
 import { ValidatorError } from "./errors.js";
@@ -193,7 +194,7 @@ async function deriveXtzPairGroup(args: {
   now: number;
   round?: string;
   poolRpc: PoolRpcClient;
-  dexStatePath?: string;
+  dexStateStore?: PoolSampleStore;
 }): Promise<GroupDerivation> {
   const { snapshot, group, assetId, transport, now } = args;
   const asset = snapshot.assets[assetId];
@@ -209,7 +210,7 @@ async function deriveXtzPairGroup(args: {
 
   const poolAttempts = await Promise.all(
     dex.pools.map((pool) =>
-      observeXtzPairPool({ pool, asset, dex, rpc: args.poolRpc, statePath: args.dexStatePath, now, xtzUsd: xtzFactor }),
+      observeXtzPairPool({ pool, asset, dex, rpc: args.poolRpc, store: args.dexStateStore, now, xtzUsd: xtzFactor }),
     ),
   );
   const derived = deriveAssetFromObservations(asset, poolAttempts);
@@ -243,7 +244,7 @@ export async function derivePublicationGroup(args: {
   now: number;
   round?: string;
   poolRpc?: PoolRpcClient;
-  dexStatePath?: string;
+  dexStateStore?: PoolSampleStore;
 }): Promise<GroupDerivation> {
   const { snapshot, group, transport, now } = args;
   if (group === "USDTZ" || group === "TZBTC") {
@@ -255,7 +256,7 @@ export async function derivePublicationGroup(args: {
       now,
       round: args.round,
       poolRpc: args.poolRpc ?? createUninjectedPoolRpcClient(),
-      dexStatePath: args.dexStatePath,
+      dexStateStore: args.dexStateStore,
     });
   }
   if (group !== "CORE") {

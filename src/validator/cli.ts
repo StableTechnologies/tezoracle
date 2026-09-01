@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { createMockTransport, defaultHttpTransport, loadFixtureMap, type HttpTransport } from "./adapters/http.js";
 import { createTzktPoolRpcClient } from "./adapters/dex/tzkt_rpc.js";
+import { createFilePoolSampleStore, type PoolSampleStore } from "./adapters/dex/state.js";
 import { candidateFromDerivation, verifyCandidate } from "./candidate.js";
 import { derivePublicationGroup } from "./derive.js";
 import { ValidatorError } from "./errors.js";
@@ -135,6 +136,10 @@ function transportFromFlags(flags: Flags): HttpTransport {
   return createMockTransport(loadFixtureMap(raw));
 }
 
+function dexStateStoreFromFlags(flags: Flags): PoolSampleStore | undefined {
+  return flags.dexState ? createFilePoolSampleStore(flags.dexState) : undefined;
+}
+
 function nowFromFlags(flags: Flags): number {
   if (flags.now !== undefined) {
     if (!/^[1-9][0-9]*$/.test(flags.now)) {
@@ -179,7 +184,7 @@ export async function runCli(argv: string[]): Promise<number> {
           now: derivedNow,
           round: flags.round,
           poolRpc: createTzktPoolRpcClient({ transport }),
-          dexStatePath: flags.dexState,
+          dexStateStore: dexStateStoreFromFlags(flags),
         });
         break;
       } catch (error) {
@@ -263,7 +268,7 @@ export async function runCli(argv: string[]): Promise<number> {
       transport,
       now,
       poolRpc: createTzktPoolRpcClient({ transport }),
-      dexStatePath: flags.dexState,
+      dexStateStore: dexStateStoreFromFlags(flags),
     });
     if (!verified.ok) {
       writeOutput(flags, { ok: false, error_code: verified.code, detail: verified.detail });

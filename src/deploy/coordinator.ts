@@ -1,4 +1,7 @@
 import { defaultHttpTransport, type HttpTransport } from "../validator/adapters/http.js";
+import type { PoolRpcClient } from "../validator/adapters/dex/rpc.js";
+import { createTzktPoolRpcClient } from "../validator/adapters/dex/tzkt_rpc.js";
+import type { PoolSampleStore } from "../validator/adapters/dex/state.js";
 import { defaultConfigDir } from "../validator/policy.js";
 import { assembleCandidate } from "../coordinator/candidate.js";
 import { closeIncomplete, collectSignature, openCollection, parseIncomingSignature, sealCollection } from "../coordinator/collect.js";
@@ -7,6 +10,7 @@ import { assertNoOracleSigningKeys } from "../coordinator/keys.js";
 import { triggerRound } from "../coordinator/round.js";
 import type { CollectionState } from "../coordinator/types.js";
 import { parseSignerSet } from "../relayer/signers.js";
+import { defaultDexStateStoreFor } from "./dynamo.js";
 import { assertCoordinatorRuntime, nowFromEvent, readDomainEnv } from "./env.js";
 import { unwrapEvent } from "./event.js";
 
@@ -14,6 +18,8 @@ export type CoordinatorDeps = {
   transport?: HttpTransport;
   configDir?: string;
   now?: () => number;
+  poolRpc?: PoolRpcClient;
+  dexStateStoreFor?: (group: string) => PoolSampleStore | undefined;
 };
 
 export type HandlerResult = Record<string, unknown>;
@@ -47,6 +53,8 @@ export function createCoordinatorHandlers(deps: CoordinatorDeps = {}) {
   const configDir = deps.configDir ?? process.env.TEZORACLE_CONFIG_DIR ?? defaultConfigDir();
   const transport = deps.transport ?? defaultHttpTransport;
   const clock = deps.now ?? ((): number => Math.floor(Date.now() / 1000));
+  const poolRpc = deps.poolRpc ?? createTzktPoolRpcClient({ transport });
+  const dexStateStoreFor = deps.dexStateStoreFor ?? defaultDexStateStoreFor;
 
   return {
     async trigger(event: unknown): Promise<HandlerResult> {
@@ -89,7 +97,14 @@ export function createCoordinatorHandlers(deps: CoordinatorDeps = {}) {
           collect_timeout_seconds:
             typeof body.collect_timeout_seconds === "number" ? body.collect_timeout_seconds : undefined,
         });
-        const assembled = await assembleCandidate({ request, configDir, transport, now });
+        const assembled = await assembleCandidate({
+          request,
+          configDir,
+          transport,
+          now,
+          poolRpc,
+          dexStateStore: dexStateStoreFor(groupFrom(body)),
+        });
         const result: HandlerResult = {
           ok: true,
           request: assembled.request,

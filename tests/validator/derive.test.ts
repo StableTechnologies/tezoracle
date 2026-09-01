@@ -6,7 +6,7 @@ import test from "node:test";
 
 import { deriveAssetFromObservations, derivePublicationGroup } from "../../src/validator/derive.js";
 import { createMockPoolRpcClient } from "../../src/validator/adapters/dex/rpc.js";
-import { loadPoolSampleState, recordSample, savePoolSampleState } from "../../src/validator/adapters/dex/state.js";
+import { loadPoolSampleState, recordSample, savePoolSampleState, createFilePoolSampleStore } from "../../src/validator/adapters/dex/state.js";
 import { ValidatorError } from "../../src/validator/errors.js";
 import type { SourceAttempt } from "../../src/validator/observe.js";
 import type { SourceObservation } from "../../src/validator/types.js";
@@ -150,7 +150,7 @@ test("USDTZ derives from two independent pool TWAPs once enough samples accumula
           transport: coreMockTransport(),
           now: NOW,
           poolRpc: usdtzPoolRpc(),
-          dexStatePath: insufficientStatePath,
+          dexStateStore: createFilePoolSampleStore(insufficientStatePath),
         }),
       (error: unknown) => error instanceof ValidatorError && error.code === "INSUFFICIENT",
     );
@@ -179,7 +179,7 @@ test("USDTZ derives from two independent pool TWAPs once enough samples accumula
       transport: coreMockTransport(),
       now: NOW,
       poolRpc: usdtzPoolRpc(),
-      dexStatePath: seededStatePath,
+      dexStateStore: createFilePoolSampleStore(seededStatePath),
     });
     assert.equal(derived.group, "USDTZ");
     const usdtz = derived.assets.find((asset) => asset.asset_id === "USDTZ_USD");
@@ -209,7 +209,7 @@ test("TZBTC derives from two independent pool TWAPs once enough samples accumula
           transport: coreMockTransport(),
           now: NOW,
           poolRpc: tzbtcPoolRpc(),
-          dexStatePath: insufficientStatePath,
+          dexStateStore: createFilePoolSampleStore(insufficientStatePath),
         }),
       (error: unknown) => error instanceof ValidatorError && error.code === "INSUFFICIENT",
     );
@@ -238,7 +238,7 @@ test("TZBTC derives from two independent pool TWAPs once enough samples accumula
       transport: coreMockTransport(),
       now: NOW,
       poolRpc: tzbtcPoolRpc(),
-      dexStatePath: seededStatePath,
+      dexStateStore: createFilePoolSampleStore(seededStatePath),
     });
     assert.equal(derived.group, "TZBTC");
     const tzbtc = derived.assets.find((asset) => asset.asset_id === "TZBTC_USD");

@@ -1,4 +1,7 @@
 import { defaultHttpTransport, type HttpTransport } from "../validator/adapters/http.js";
+import type { PoolRpcClient } from "../validator/adapters/dex/rpc.js";
+import { createTzktPoolRpcClient } from "../validator/adapters/dex/tzkt_rpc.js";
+import type { PoolSampleStore } from "../validator/adapters/dex/state.js";
 import { defaultConfigDir } from "../validator/policy.js";
 import { CoordinatorError } from "../coordinator/errors.js";
 import { assertNoOracleSigningKeys } from "../coordinator/keys.js";
@@ -7,6 +10,7 @@ import { parseSignerSet } from "../relayer/signers.js";
 import type { RelayRpc, SignerSet } from "../relayer/types.js";
 import { runTick } from "../runtime/tick.js";
 import type { OracleView, SignCandidate, TickResult } from "../runtime/types.js";
+import { defaultDexStateStoreFor } from "./dynamo.js";
 import { assertCoordinatorRuntime, nowFromEvent, readDomainEnv } from "./env.js";
 import { unwrapEvent } from "./event.js";
 
@@ -18,6 +22,8 @@ export type TickHandlerDeps = {
   oracle?: OracleView;
   sign?: SignCandidate;
   signerSet?: SignerSet;
+  poolRpc?: PoolRpcClient;
+  dexStateStoreFor?: (group: string) => PoolSampleStore | undefined;
 };
 
 export type HandlerResult = Record<string, unknown>;
@@ -41,6 +47,8 @@ export function createTickHandler(deps: TickHandlerDeps = {}) {
   const configDir = deps.configDir ?? process.env.TEZORACLE_CONFIG_DIR ?? defaultConfigDir();
   const transport = deps.transport ?? defaultHttpTransport;
   const clock = deps.now ?? ((): number => Math.floor(Date.now() / 1000));
+  const poolRpc = deps.poolRpc ?? createTzktPoolRpcClient({ transport });
+  const dexStateStoreFor = deps.dexStateStoreFor ?? defaultDexStateStoreFor;
 
   return {
     async tick(event: unknown): Promise<HandlerResult> {
@@ -66,6 +74,7 @@ export function createTickHandler(deps: TickHandlerDeps = {}) {
           throw new CoordinatorError("INTERNAL", "signer set is required");
         }
         const now = nowFromEvent(body, clock);
+        const group = typeof body.group === "string" && body.group.length > 0 ? body.group : "CORE";
         const result = await runTick({
           configDir,
           transport,
@@ -76,8 +85,10 @@ export function createTickHandler(deps: TickHandlerDeps = {}) {
           now: () => now,
           chain_id,
           oracle_address,
-          group: typeof body.group === "string" && body.group.length > 0 ? body.group : "CORE",
+          group,
           signerIndex: typeof body.index === "string" ? body.index : "0",
+          poolRpc,
+          dexStateStore: dexStateStoreFor(group),
         });
         return asResult(result);
       } catch (error) {

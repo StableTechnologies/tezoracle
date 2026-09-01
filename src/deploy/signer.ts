@@ -1,8 +1,18 @@
 import { defaultHttpTransport, type HttpTransport } from "../validator/adapters/http.js";
+import type { PoolRpcClient } from "../validator/adapters/dex/rpc.js";
+import { createTzktPoolRpcClient } from "../validator/adapters/dex/tzkt_rpc.js";
+import type { PoolSampleStore } from "../validator/adapters/dex/state.js";
 import { verifyCandidate } from "../validator/candidate.js";
 import { ValidatorError } from "../validator/errors.js";
 import { defaultConfigDir, pinSnapshot } from "../validator/policy.js";
-import { commitRound, loadRoundState, saveRoundState, signPackedPayload } from "../validator/signer.js";
+import {
+  commitRound,
+  loadRoundState,
+  saveRoundState,
+  signPackedPayload,
+  type RoundStateStore,
+} from "../validator/signer.js";
+import { defaultDexStateStoreFor, defaultRoundStateStore } from "./dynamo.js";
 import { SIGNER_SECRET_ENV, SIGNER_SECRET_NAME_ENV } from "./env.js";
 import { unwrapEvent } from "./event.js";
 
@@ -13,6 +23,9 @@ export type SignerDeps = {
   configDir?: string;
   now?: () => number;
   secretProvider?: SecretProvider;
+  poolRpc?: PoolRpcClient;
+  dexStateStoreFor?: (group: string) => PoolSampleStore | undefined;
+  roundStateStore?: RoundStateStore;
 };
 
 export type HandlerResult = Record<string, unknown>;
@@ -53,10 +66,21 @@ function nowFrom(event: Record<string, unknown>, clock: () => number): number {
   throw new ValidatorError("BAD_TIMESTAMP", "now must be a positive Unix-seconds integer");
 }
 
+function groupFromCandidate(candidate: unknown): string {
+  if (typeof candidate !== "object" || candidate === null) return "CORE";
+  const payload = (candidate as Record<string, unknown>).payload;
+  if (typeof payload !== "object" || payload === null) return "CORE";
+  const group = (payload as Record<string, unknown>).publication_group;
+  return typeof group === "string" && group.length > 0 ? group : "CORE";
+}
+
 export function createSignerHandlers(deps: SignerDeps = {}) {
   const configDir = deps.configDir ?? process.env.TEZORACLE_CONFIG_DIR ?? defaultConfigDir();
   const transport = deps.transport ?? defaultHttpTransport;
   const clock = deps.now ?? ((): number => Math.floor(Date.now() / 1000));
+  const poolRpc = deps.poolRpc ?? createTzktPoolRpcClient({ transport });
+  const dexStateStoreFor = deps.dexStateStoreFor ?? defaultDexStateStoreFor;
+  const roundStateStore = deps.roundStateStore ?? defaultRoundStateStore();
 
   return {
     async sign(event: unknown): Promise<HandlerResult> {
@@ -67,14 +91,21 @@ export function createSignerHandlers(deps: SignerDeps = {}) {
         }
         const { snapshot } = pinSnapshot(configDir);
         const now = nowFrom(body, clock);
-        const verified = await verifyCandidate({ snapshot, candidate: body.candidate, transport, now });
+        const verified = await verifyCandidate({
+          snapshot,
+          candidate: body.candidate,
+          transport,
+          now,
+          poolRpc,
+          dexStateStore: dexStateStoreFor(groupFromCandidate(body.candidate)),
+        });
         if (!verified.ok) {
           return { ok: false, error_code: verified.code, detail: verified.detail };
         }
         const secret = await resolveSignerSecret(deps.secretProvider);
         const statePath =
           (typeof body.state_path === "string" ? body.state_path : undefined) ?? process.env.TEZORACLE_ROUND_STATE_PATH;
-        const state = loadRoundState(statePath);
+        const state = roundStateStore ? await roundStateStore.load() : loadRoundState(statePath);
         const signed = await signPackedPayload({
           payload: verified.payload,
           secretKey: secret,
@@ -86,8 +117,11 @@ export function createSignerHandlers(deps: SignerDeps = {}) {
           deviationBps: verified.deviation_bps_by_asset,
           localSources: verified.local.assets.flatMap((asset) => asset.sources),
         });
-        if (statePath) {
-          saveRoundState(statePath, commitRound(state, verified.payload.publication_group, verified.payload.round));
+        const nextState = commitRound(state, verified.payload.publication_group, verified.payload.round);
+        if (roundStateStore) {
+          await roundStateStore.save(nextState);
+        } else if (statePath) {
+          saveRoundState(statePath, nextState);
         }
         const index = typeof body.index === "string" ? body.index : "0";
         return {

@@ -11,6 +11,7 @@ import {
 import { CoordinatorError } from "../../src/coordinator/errors.js";
 import { COORDINATOR_HOLDS_KEYS, assertNoOracleSigningKeys } from "../../src/coordinator/keys.js";
 import { triggerRound } from "../../src/coordinator/round.js";
+import { ValidatorError } from "../../src/validator/errors.js";
 import {
   CHAIN_ID,
   NOW,
@@ -59,7 +60,7 @@ test("triggerRound copies policy from the pinned register and refuses unknown gr
   );
 });
 
-test("assembleCandidate derives CORE under fixtures and refuses stub groups", async () => {
+test("assembleCandidate derives CORE under fixtures and fails closed on USDTZ without an injected pool RPC", async () => {
   const request = triggerRound({
     configDir: `${ROOT}/config`,
     group: "CORE",
@@ -78,10 +79,13 @@ test("assembleCandidate derives CORE under fixtures and refuses stub groups", as
   assert.equal(assembled.packed_hex.startsWith("05"), true);
   assert.equal(assembled.candidate.payload.policy_hash, request.policy_hash);
 
-  const stub = { ...request, publication_group: "USDTZ" };
+  // USDTZ is a real group now, not a stub -- but with no PoolRpcClient
+  // injected here, its DEX pools fail closed the same way every other
+  // uninjected-RPC path does.
+  const usdtz = { ...request, publication_group: "USDTZ" };
   await assert.rejects(
-    assembleCandidate({ request: stub, configDir: `${ROOT}/config`, transport: coreMockTransport(), now: NOW }),
-    CoordinatorError,
+    assembleCandidate({ request: usdtz, configDir: `${ROOT}/config`, transport: coreMockTransport(), now: NOW }),
+    (error: unknown) => error instanceof ValidatorError && error.code === "INSUFFICIENT",
   );
 });
 

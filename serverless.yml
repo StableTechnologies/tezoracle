@@ -17,6 +17,8 @@ plugins:
 custom:
   signerSecretName: tezoracle/testnet/class-a-signer
   feePayerSecretName: tezoracle/testnet/relayer-fee-payer
+  poolSamplesTable: ${self:service}-${self:provider.stage}-pool-samples
+  roundStateTable: ${self:service}-${self:provider.stage}-round-state
   esbuild:
     bundle: true
     minify: false
@@ -31,10 +33,11 @@ provider:
   name: aws
   runtime: nodejs22.x
   stage: ${opt:stage, "testnet"}
-  region: ${opt:region, "us-east-1"}
+  region: ${opt:region, "eu-central-1"}
   memorySize: 512
   timeout: 60
   architecture: arm64
+  logRetentionInDays: 60
   deploymentBucket:
     blockPublicAccess: true
   stackTags:
@@ -47,6 +50,8 @@ provider:
     TEZOS_CHAIN_ID: ${env:TEZOS_CHAIN_ID, ""}
     ORACLE_ADDRESS: ${env:ORACLE_ADDRESS, ""}
     TEZORACLE_CONFIG_DIR: config
+    TEZORACLE_POOL_SAMPLES_TABLE: ${self:custom.poolSamplesTable}
+    TEZORACLE_ROUND_STATE_TABLE: ${self:custom.roundStateTable}
 
 package:
   individually: true
@@ -61,13 +66,47 @@ functions:
   coordinatorTick:
     handler: src/deploy/tick.tick
     role: CoordinatorLambdaRole
-    timeout: 60
+    memorySize: 512
+    timeout: 180
+    reservedConcurrency: 1
     events:
       - schedule:
           rate: rate(5 minutes)
           enabled: true
           name: tezoracle-testnet-tick
           description: Testnet/shadow publication tick. Not production authorization.
+          input:
+            group: CORE
+
+  coordinatorTickUsdtz:
+    handler: src/deploy/tick.tick
+    role: CoordinatorLambdaRole
+    memorySize: 512
+    timeout: 180
+    reservedConcurrency: 1
+    events:
+      - schedule:
+          rate: rate(5 minutes)
+          enabled: true
+          name: tezoracle-testnet-tick-usdtz
+          description: Testnet/shadow USDTZ publication tick. Not production authorization.
+          input:
+            group: USDTZ
+
+  coordinatorTickTzbtc:
+    handler: src/deploy/tick.tick
+    role: CoordinatorLambdaRole
+    memorySize: 512
+    timeout: 180
+    reservedConcurrency: 1
+    events:
+      - schedule:
+          rate: rate(5 minutes)
+          enabled: true
+          name: tezoracle-testnet-tick-tzbtc
+          description: Testnet/shadow TZBTC publication tick. Not production authorization.
+          input:
+            group: TZBTC
 
   coordinatorTrigger:
     handler: src/deploy/coordinator.trigger
@@ -140,6 +179,12 @@ resources:
                   Action:
                     - lambda:InvokeFunction
                   Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:service}-${self:provider.stage}-signerClassA"
+                - Sid: AllowPoolSamplesTable
+                  Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                  Resource: !GetAtt PoolSamplesTable.Arn
                 - Sid: DenyOracleSignerSecret
                   Effect: Deny
                   Action:
@@ -216,6 +261,14 @@ resources:
                   Action:
                     - secretsmanager:GetSecretValue
                   Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${self:custom.signerSecretName}*"
+                - Sid: AllowStateTables
+                  Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                  Resource:
+                    - !GetAtt PoolSamplesTable.Arn
+                    - !GetAtt RoundStateTable.Arn
 
     SignerSecretPlaceholder:
       Type: AWS::SecretsManager::Secret
@@ -228,3 +281,30 @@ resources:
       Properties:
         Name: ${self:custom.feePayerSecretName}
         Description: Testnet relayer fee-payer. Not an oracle signer. Set the value out of band.
+
+    PoolSamplesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.poolSamplesTable}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+
+    RoundStateTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.roundStateTable}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH

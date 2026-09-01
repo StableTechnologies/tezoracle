@@ -1,10 +1,3 @@
-/**
- * Turns two independent token/XTZ pool TWAPs into SourceObservation-shaped
- * records, so they flow through the same median/deviation aggregation
- * (`deriveAssetFromObservations` in ../../derive.js) that CEX sources use.
- * No separate DEX aggregation path exists or is needed. Used by both the
- * USDTZ (USDtz/XTZ) and TZBTC (tzBTC/XTZ) groups.
- */
 import type { AssetConfig, DexConfig, DexPool } from "../../../config/validate.js";
 import { PRICE_NAT_MAX } from "../../../packing/types.js";
 import { assertPositivePrice, mulScale } from "../../decimal.js";
@@ -13,7 +6,7 @@ import type { SourceAttempt } from "../../observe.js";
 import type { SourceObservation, UsdtFactor } from "../../types.js";
 import { fetchConstantProductSample } from "./constant_product.js";
 import type { PoolRpcClient } from "./rpc.js";
-import { loadPoolSampleState, recordSample, sampleSeries, savePoolSampleState } from "./state.js";
+import { recordSample, sampleSeries, type PoolSampleStore } from "./state.js";
 import { computeLinearTwap } from "./twap.js";
 
 function excluded(pool: DexPool, code: string, detail: string): SourceAttempt {
@@ -30,11 +23,11 @@ export async function observeXtzPairPool(args: {
   asset: AssetConfig;
   dex: DexConfig;
   rpc: PoolRpcClient;
-  statePath: string | undefined;
+  store: PoolSampleStore | undefined;
   now: number;
   xtzUsd: UsdtFactor;
 }): Promise<SourceAttempt> {
-  const { pool, asset, dex, rpc, statePath, now, xtzUsd } = args;
+  const { pool, asset, dex, rpc, store, now, xtzUsd } = args;
   if (dex.twap_window_seconds === null || dex.min_twap_observations === null || dex.min_liquidity === null) {
     return excluded(pool, "INTERNAL", "dex policy is not fully specified");
   }
@@ -48,12 +41,12 @@ export async function observeXtzPairPool(args: {
     return excluded(pool, "DEX_LIQUIDITY", `token reserve ${sample.token_reserve} < min_liquidity ${dex.min_liquidity}`);
   }
 
-  let state = loadPoolSampleState(statePath);
+  let state = store ? await store.load() : {};
   // Retain well beyond the TWAP window itself -- pruning at exactly
   // twap_window_seconds would make the elapsed-window check below nearly
   // unwinnable (see recordSample's doc comment).
   state = recordSample(state, sample, dex.twap_window_seconds * 2);
-  if (statePath) savePoolSampleState(statePath, state);
+  if (store) await store.save(state);
 
   let twap;
   try {

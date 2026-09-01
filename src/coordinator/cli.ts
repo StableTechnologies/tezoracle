@@ -3,6 +3,8 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { createMockTransport, defaultHttpTransport, loadFixtureMap, type HttpTransport } from "../validator/adapters/http.js";
+import { createTzktPoolRpcClient } from "../validator/adapters/dex/tzkt_rpc.js";
+import { createFilePoolSampleStore } from "../validator/adapters/dex/state.js";
 import { defaultConfigDir } from "../validator/policy.js";
 import { parseSignerSet } from "../relayer/signers.js";
 import { assembleCandidate } from "./candidate.js";
@@ -29,6 +31,7 @@ type Flags = {
   collect_timeout?: string;
   close?: boolean;
   help?: boolean;
+  dexState?: string;
 };
 
 function usage(): string {
@@ -87,6 +90,10 @@ function parseFlags(argv: string[]): Flags {
         key === "group"
       ) {
         flags[key] = value;
+        continue;
+      }
+      if (key === "dex-state") {
+        flags.dexState = value;
         continue;
       }
       throw new CoordinatorError("POLICY_PIN", `unknown flag --${key}`);
@@ -178,6 +185,8 @@ export async function runCli(argv: string[]): Promise<number> {
       configDir: flags.config,
       transport: transportFromFlags(flags),
       now,
+      poolRpc: createTzktPoolRpcClient({ transport: transportFromFlags(flags) }),
+      dexStateStore: flags.dexState ? createFilePoolSampleStore(flags.dexState) : undefined,
     });
     if (flags.state) {
       if (!flags.signers) {

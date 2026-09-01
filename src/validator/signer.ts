@@ -28,6 +28,24 @@ export function saveRoundState(path: string, state: RoundState): void {
   writeFileSync(path, `${JSON.stringify(state, null, 2)}\n`);
 }
 
+/** Injectable persistence for round state, so the same sign path works
+ * against a local file (CLI) or a durable store (Lambda). */
+export type RoundStateStore = {
+  load(): Promise<RoundState>;
+  save(state: RoundState): Promise<void>;
+};
+
+export function createFileRoundStateStore(path: string): RoundStateStore {
+  return {
+    async load() {
+      return loadRoundState(path);
+    },
+    async save(state) {
+      saveRoundState(path, state);
+    },
+  };
+}
+
 export function assertFreshRound(state: RoundState, group: PublicationGroup, round: string): void {
   const last = state[group];
   if (last !== undefined && BigInt(round) <= BigInt(last)) {

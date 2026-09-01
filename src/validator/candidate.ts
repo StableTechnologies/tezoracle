@@ -2,6 +2,7 @@ import { parseLogicalPayload } from "../packing/validate.js";
 import type { LogicalPayload } from "../packing/types.js";
 import type { RegisterSnapshot } from "../config/validate.js";
 import type { PoolRpcClient } from "./adapters/dex/rpc.js";
+import type { PoolSampleStore } from "./adapters/dex/state.js";
 import type { HttpTransport } from "./adapters/http.js";
 import { absDelta, exceedsBps } from "./decimal.js";
 import { derivePublicationGroup } from "./derive.js";
@@ -69,7 +70,7 @@ export async function verifyCandidate(args: {
   transport: HttpTransport;
   now: number;
   poolRpc?: PoolRpcClient;
-  dexStatePath?: string;
+  dexStateStore?: PoolSampleStore;
 }): Promise<VerificationResult> {
   const policyHash = policyHashHex(args.snapshot);
   let document: CandidateDocument;
@@ -112,7 +113,7 @@ export async function verifyCandidate(args: {
       now: args.now,
       round: payload.round,
       poolRpc: args.poolRpc,
-      dexStatePath: args.dexStatePath,
+      dexStateStore: args.dexStateStore,
     });
   } catch (error) {
     if (error instanceof ValidatorError) {

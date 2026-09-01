@@ -22,6 +22,24 @@ export function savePoolSampleState(path: string, state: PoolSampleState): void 
   writeFileSync(path, `${JSON.stringify(state, null, 2)}\n`);
 }
 
+/** Injectable persistence for pool sample state, so the same derive/observe
+ * code path works against a local file (CLI) or a durable store (Lambda). */
+export type PoolSampleStore = {
+  load(): Promise<PoolSampleState>;
+  save(state: PoolSampleState): Promise<void>;
+};
+
+export function createFilePoolSampleStore(path: string): PoolSampleStore {
+  return {
+    async load() {
+      return loadPoolSampleState(path);
+    },
+    async save(state) {
+      savePoolSampleState(path, state);
+    },
+  };
+}
+
 /** Ascending by timestamp, oldest first. */
 export function sampleSeries(
   state: PoolSampleState,

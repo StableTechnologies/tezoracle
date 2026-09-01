@@ -150,12 +150,15 @@ test("setInterval driver fires then can be stopped", async () => {
   assert.equal(results[0]?.ok, true);
 });
 
-test("shadow USDTZ and TZBTC are not consumed", async () => {
+test("shadow USDTZ and TZBTC fail closed without an injected DEX pool RPC", async () => {
+  // Real groups now, not stubs -- but this harness never injects a
+  // PoolRpcClient, so their DEX pools fail closed the same way every other
+  // uninjected-RPC path does.
   for (const group of ["USDTZ", "TZBTC"] as const) {
     const result = await runTick(baseTickDeps({ group }));
     assert.equal(result.ok, false);
     if (result.ok) continue;
-    assert.equal(result.error_code, "STUB_GROUP");
+    assert.equal(result.error_code, "INSUFFICIENT");
   }
 });
 

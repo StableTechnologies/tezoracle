@@ -6,7 +6,7 @@ import test from "node:test";
 
 import { candidateFromDerivation, verifyCandidate } from "../../src/validator/candidate.js";
 import { createMockPoolRpcClient } from "../../src/validator/adapters/dex/rpc.js";
-import { loadPoolSampleState, recordSample, savePoolSampleState } from "../../src/validator/adapters/dex/state.js";
+import { loadPoolSampleState, recordSample, savePoolSampleState, createFilePoolSampleStore } from "../../src/validator/adapters/dex/state.js";
 import { derivePublicationGroup } from "../../src/validator/derive.js";
 import { evidenceDigestHex } from "../../src/validator/evidence.js";
 import { NOW, coreMockTransport, pinnedRegister } from "./helpers.js";
@@ -46,6 +46,7 @@ test("a self-derived USDTZ candidate (XTZ-bridged DEX sources) verifies under th
   const dir = mkdtempSync(join(tmpdir(), "tezoracle-candidate-usdtz-"));
   try {
     const statePath = join(dir, "dex-state.json");
+    const store = createFilePoolSampleStore(statePath);
     let state = loadPoolSampleState(statePath);
     for (const timestamp of [NOW - 1800, NOW - 900]) {
       state = recordSample(
@@ -83,7 +84,7 @@ test("a self-derived USDTZ candidate (XTZ-bridged DEX sources) verifies under th
       now: NOW,
       round: "1",
       poolRpc,
-      dexStatePath: statePath,
+      dexStateStore: store,
     });
     const document = candidateFromDerivation({
       derivation,
@@ -99,7 +100,7 @@ test("a self-derived USDTZ candidate (XTZ-bridged DEX sources) verifies under th
       transport: coreMockTransport(),
       now: NOW,
       poolRpc,
-      dexStatePath: statePath,
+      dexStateStore: store,
     });
     assert.equal(result.ok, true);
   } finally {
