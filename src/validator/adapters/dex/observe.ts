@@ -21,7 +21,7 @@ function excluded(pool: DexPool, code: string, detail: string): SourceAttempt {
 }
 
 /** e.g. "USDTZ_USD" -> "USDTZ", "TZBTC_USD" -> "TZBTC". */
-function baseAssetFromId(assetId: string): string {
+export function baseAssetFromId(assetId: string): string {
   return assetId.replace(/_USD$/, "");
 }
 
@@ -49,7 +49,10 @@ export async function observeXtzPairPool(args: {
   }
 
   let state = loadPoolSampleState(statePath);
-  state = recordSample(state, sample, dex.twap_window_seconds);
+  // Retain well beyond the TWAP window itself -- pruning at exactly
+  // twap_window_seconds would make the elapsed-window check below nearly
+  // unwinnable (see recordSample's doc comment).
+  state = recordSample(state, sample, dex.twap_window_seconds * 2);
   if (statePath) savePoolSampleState(statePath, state);
 
   let twap;

@@ -39,11 +39,23 @@ export function sampleSeries(
     .sort((a, b) => a.timestamp - b.timestamp);
 }
 
-/** Appends a sample and drops anything older than `windowSeconds` before it. */
-export function recordSample(state: PoolSampleState, sample: PoolSpotSample, windowSeconds: number): PoolSampleState {
-  const cutoff = sample.timestamp - windowSeconds;
+/**
+ * Appends a sample and drops anything older than `retentionSeconds` before
+ * it. `retentionSeconds` MUST be larger than the TWAP's own
+ * `min_window_seconds` check (computeLinearTwap requires elapsed >=
+ * min_window_seconds over whatever survives here) -- pruning at exactly
+ * the window size would cap elapsed at <= min_window_seconds, making the
+ * window check nearly impossible to ever satisfy.
+ *
+ * Replaces (does not duplicate) any existing entry at the exact same
+ * timestamp: verify/sign re-derive locally against the same state file a
+ * few seconds after derive, and two same-second calls would otherwise
+ * violate computeLinearTwap's strictly-increasing-timestamps invariant.
+ */
+export function recordSample(state: PoolSampleState, sample: PoolSpotSample, retentionSeconds: number): PoolSampleState {
+  const cutoff = sample.timestamp - retentionSeconds;
   const existing = state[sample.pool_address] ?? [];
-  const kept = existing.filter((entry) => entry.timestamp >= cutoff);
+  const kept = existing.filter((entry) => entry.timestamp >= cutoff && entry.timestamp !== sample.timestamp);
   kept.push({
     xtz_reserve: sample.xtz_reserve.toString(),
     token_reserve: sample.token_reserve.toString(),

@@ -49,3 +49,33 @@ test("loadPoolSampleState fails closed (empty) on missing or malformed file", ()
   assert.deepEqual(loadPoolSampleState(undefined), {});
   assert.deepEqual(loadPoolSampleState("/nonexistent/path/state.json"), {});
 });
+
+test("retention must exceed the TWAP window, or the window can never be reached", () => {
+  // Regression: pruning at exactly the TWAP's own window (e.g. 1800s) caps
+  // elapsed at <= windowSeconds forever, since the surviving oldest entry is
+  // always >= newest - windowSeconds by construction. Callers MUST prune with
+  // a retention window strictly larger than the window they need to satisfy.
+  // Irregular real-world-like gaps (not evenly dividing windowSeconds) --
+  // regular gaps can accidentally land a cutoff exactly on a sample and mask
+  // this bug.
+  const windowSeconds = 1800;
+  const timestamps = [0, 232, 420, 671, 987, 1149, 1317, 1604, 1778, 2021, 2320, 2484, 2763];
+
+  let state = loadPoolSampleState(undefined);
+  for (const timestamp of timestamps) {
+    // BUG (do not do this): retention == windowSeconds.
+    state = recordSample(state, { ...POOL, xtz_reserve: 1n, token_reserve: 1n, timestamp }, windowSeconds);
+  }
+  let series = sampleSeries(state, POOL);
+  let elapsed = series[series.length - 1]!.timestamp - series[0]!.timestamp;
+  assert.ok(elapsed < windowSeconds, "buggy retention never reaches the window");
+
+  // Fix: retain with a margin beyond the window (e.g. 2x).
+  state = loadPoolSampleState(undefined);
+  for (const timestamp of timestamps) {
+    state = recordSample(state, { ...POOL, xtz_reserve: 1n, token_reserve: 1n, timestamp }, windowSeconds * 2);
+  }
+  series = sampleSeries(state, POOL);
+  elapsed = series[series.length - 1]!.timestamp - series[0]!.timestamp;
+  assert.ok(elapsed >= windowSeconds, "retention with margin lets the window be reached");
+});

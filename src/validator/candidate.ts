@@ -1,6 +1,7 @@
 import { parseLogicalPayload } from "../packing/validate.js";
 import type { LogicalPayload } from "../packing/types.js";
 import type { RegisterSnapshot } from "../config/validate.js";
+import type { PoolRpcClient } from "./adapters/dex/rpc.js";
 import type { HttpTransport } from "./adapters/http.js";
 import { absDelta, exceedsBps } from "./decimal.js";
 import { derivePublicationGroup } from "./derive.js";
@@ -67,6 +68,8 @@ export async function verifyCandidate(args: {
   candidate: unknown;
   transport: HttpTransport;
   now: number;
+  poolRpc?: PoolRpcClient;
+  dexStatePath?: string;
 }): Promise<VerificationResult> {
   const policyHash = policyHashHex(args.snapshot);
   let document: CandidateDocument;
@@ -80,9 +83,6 @@ export async function verifyCandidate(args: {
   }
 
   const { payload, evidence } = document;
-  if (payload.publication_group === "USDTZ" || payload.publication_group === "TZBTC") {
-    return fail("POLICY_PIN", `${payload.publication_group} is a non-authoritative stub`);
-  }
   if (payload.policy_hash !== policyHash) {
     return fail("POLICY_PIN", "payload policy_hash is not the pinned register hash");
   }
@@ -111,6 +111,8 @@ export async function verifyCandidate(args: {
       transport: args.transport,
       now: args.now,
       round: payload.round,
+      poolRpc: args.poolRpc,
+      dexStatePath: args.dexStatePath,
     });
   } catch (error) {
     if (error instanceof ValidatorError) {

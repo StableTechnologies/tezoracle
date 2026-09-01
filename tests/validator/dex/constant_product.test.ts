@@ -29,12 +29,19 @@ const DEXTER_POOL: DexPool = {
   expected_code_hash: "262032754",
 };
 
-// Real storage shapes fetched from TzKT 2026-09-01.
+// Real storage shapes fetched from TzKT 2026-09-01. QuipuSwap V1's storage
+// wraps the pool record under a top-level %storage field annotation,
+// sibling to %metadata/%dex_lambdas/%token_lambdas bigmap ids.
 const QUIPUSWAP_V1_STORAGE = {
-  veto: "0",
-  tez_pool: "124232308202",
-  token_pool: "32935110728",
-  token_address: "KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
+  storage: {
+    veto: "0",
+    tez_pool: "124232308202",
+    token_pool: "32935110728",
+    token_address: "KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
+  },
+  metadata: 1508,
+  dex_lambdas: 1507,
+  token_lambdas: 1514,
 };
 
 const DEXTER_STORAGE = {
@@ -64,7 +71,10 @@ test("dexter sample matches the real on-chain storage shape", async () => {
 });
 
 test("fails closed on a token identity mismatch", async () => {
-  const badStorage = { ...QUIPUSWAP_V1_STORAGE, token_address: "KT1SomeOtherTokenXXXXXXXXXXXXXXXXXXXX" };
+  const badStorage = {
+    ...QUIPUSWAP_V1_STORAGE,
+    storage: { ...QUIPUSWAP_V1_STORAGE.storage, token_address: "KT1SomeOtherTokenXXXXXXXXXXXXXXXXXXXX" },
+  };
   const rpc = createMockPoolRpcClient({ storage: { [QUIPUSWAP_V1_POOL.pool_address]: badStorage } });
   const result = await fetchConstantProductSample(QUIPUSWAP_V1_POOL, rpc, 0);
   assert.equal(result.ok, false);
@@ -73,7 +83,7 @@ test("fails closed on a token identity mismatch", async () => {
 });
 
 test("fails closed on a zero token reserve", async () => {
-  const badStorage = { ...QUIPUSWAP_V1_STORAGE, token_pool: "0" };
+  const badStorage = { ...QUIPUSWAP_V1_STORAGE, storage: { ...QUIPUSWAP_V1_STORAGE.storage, token_pool: "0" } };
   const rpc = createMockPoolRpcClient({ storage: { [QUIPUSWAP_V1_POOL.pool_address]: badStorage } });
   const result = await fetchConstantProductSample(QUIPUSWAP_V1_POOL, rpc, 0);
   assert.equal(result.ok, false);
@@ -82,8 +92,16 @@ test("fails closed on a zero token reserve", async () => {
 });
 
 test("fails closed on a malformed reserve field", async () => {
-  const badStorage = { ...QUIPUSWAP_V1_STORAGE, tez_pool: "not-a-number" };
+  const badStorage = { ...QUIPUSWAP_V1_STORAGE, storage: { ...QUIPUSWAP_V1_STORAGE.storage, tez_pool: "not-a-number" } };
   const rpc = createMockPoolRpcClient({ storage: { [QUIPUSWAP_V1_POOL.pool_address]: badStorage } });
+  const result = await fetchConstantProductSample(QUIPUSWAP_V1_POOL, rpc, 0);
+  assert.equal(result.ok, false);
+  if (result.ok) return;
+  assert.equal(result.code, "MALFORMED");
+});
+
+test("fails closed when quipuswap_v1 storage is missing its %storage wrapper", async () => {
+  const rpc = createMockPoolRpcClient({ storage: { [QUIPUSWAP_V1_POOL.pool_address]: QUIPUSWAP_V1_STORAGE.storage } });
   const result = await fetchConstantProductSample(QUIPUSWAP_V1_POOL, rpc, 0);
   assert.equal(result.ok, false);
   if (result.ok) return;

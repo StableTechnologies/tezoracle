@@ -14,8 +14,14 @@ function requireDigits(value: unknown, what: string): bigint {
   return BigInt(value);
 }
 
-const RESERVE_FIELDS: Record<DexPool["protocol"], { xtz: string; token: string; tokenAddress: string }> = {
-  quipuswap_v1_amm: { xtz: "tez_pool", token: "token_pool", tokenAddress: "token_address" },
+const RESERVE_FIELDS: Record<
+  DexPool["protocol"],
+  { xtz: string; token: string; tokenAddress: string; nestedUnder?: string }
+> = {
+  // QuipuSwap V1's real Michelson storage has a top-level %storage field
+  // annotation wrapping the pool record (sibling to %metadata/%dex_lambdas/
+  // %token_lambdas bigmap ids) -- verified via TzKT 2026-09-01.
+  quipuswap_v1_amm: { xtz: "tez_pool", token: "token_pool", tokenAddress: "token_address", nestedUnder: "storage" },
   dexter_v1_amm: { xtz: "xtzPool", token: "tokenPool", tokenAddress: "tokenAddress" },
 };
 
@@ -33,12 +39,20 @@ export async function fetchConstantProductSample(
     if (!isObject(storageRaw)) {
       return failSample("MALFORMED", "pool storage must be an object");
     }
-    const tokenAddress = storageRaw[fields.tokenAddress];
+    let record = storageRaw;
+    if (fields.nestedUnder) {
+      const nested = storageRaw[fields.nestedUnder];
+      if (!isObject(nested)) {
+        return failSample("MALFORMED", `pool storage.${fields.nestedUnder} must be an object`);
+      }
+      record = nested;
+    }
+    const tokenAddress = record[fields.tokenAddress];
     if (tokenAddress !== pool.token_a_address) {
       return failSample("WRONG_MARKET", "pool token identity does not match the pinned register");
     }
-    const xtzReserve = requireDigits(storageRaw[fields.xtz], `storage.${fields.xtz}`);
-    const tokenReserve = requireDigits(storageRaw[fields.token], `storage.${fields.token}`);
+    const xtzReserve = requireDigits(record[fields.xtz], `storage.${fields.xtz}`);
+    const tokenReserve = requireDigits(record[fields.token], `storage.${fields.token}`);
     if (tokenReserve === 0n) {
       return failSample("DEX_LIQUIDITY", "token reserve is zero");
     }

@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { createMockTransport, defaultHttpTransport, loadFixtureMap, type HttpTransport } from "./adapters/http.js";
+import { createTzktPoolRpcClient } from "./adapters/dex/tzkt_rpc.js";
 import { candidateFromDerivation, verifyCandidate } from "./candidate.js";
 import { derivePublicationGroup } from "./derive.js";
 import { ValidatorError } from "./errors.js";
@@ -20,22 +21,46 @@ type Flags = {
   round: string;
   output?: string;
   state?: string;
+  dexState?: string;
+  retries: number;
+  retryDelayMs: number;
   help?: boolean;
 };
+
+// Refusal codes that can plausibly clear up on their own within a few
+// seconds (a slow venue, a momentarily thin quorum) as opposed to codes
+// that reflect a real, stable policy or data problem retrying won't fix.
+const RETRYABLE_DERIVE_CODES = new Set(["INSUFFICIENT", "TIMEOUT", "HTTP_STATUS"]);
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((res) => setTimeout(res, ms));
+}
 
 function usage(): string {
   return `TezOracle Class A validator (non-production)
 
 Usage:
-  tezoracle-validator derive  --group CORE [--config dir] [--fixtures file] [--now unix] [--round n]
-  tezoracle-validator verify  --candidate file [--config dir] [--fixtures file] [--now unix]
-  tezoracle-validator sign    --candidate file [--config dir] [--fixtures file] [--now unix] [--state file]
+  tezoracle-validator derive  --group CORE [--config dir] [--fixtures file] [--now unix] [--round n] [--dex-state file] [--retries n] [--retry-delay-ms ms]
+  tezoracle-validator verify  --candidate file [--config dir] [--fixtures file] [--now unix] [--dex-state file]
+  tezoracle-validator sign    --candidate file [--config dir] [--fixtures file] [--now unix] [--state file] [--dex-state file]
 
 Environment:
   TEZORACLE_SIGNER_SECRET_KEY   testnet edsk... (sign only)
   TEZORACLE_SIGNER_ID           signer-local id (default class-a)
   TEZORACLE_ROUND_STATE_PATH    last-signed-round JSON
   TEZOS_CHAIN_ID / ORACLE_ADDRESS   used when derive emits a payload
+
+--dex-state persists raw DEX pool reserve samples between derive calls
+(needed for USDTZ/TZBTC's locally-computed TWAP); pool storage is read
+from TzKT (https://api.tzkt.io), reusing --fixtures when supplied.
+verify/sign re-derive locally to cross-check the candidate, so USDTZ/TZBTC
+candidates need the SAME --dex-state file used to produce them.
+
+--retries (default 0) re-attempts a failed derive on transient refusal
+codes only (INSUFFICIENT, TIMEOUT, HTTP_STATUS), waiting --retry-delay-ms
+(default 2000) between attempts. Other refusal codes (BOUNDS, PAUSED,
+POLICY_PIN, ...) never retry. Ignored when --now is explicitly given, so
+deterministic/fixture-driven runs stay deterministic.
 `;
 }
 
@@ -44,6 +69,8 @@ function parseFlags(argv: string[]): Flags {
     config: defaultConfigDir(),
     group: "CORE",
     round: "1",
+    retries: 0,
+    retryDelayMs: 2_000,
   };
   const positional: string[] = [];
   for (let i = 0; i < argv.length; i++) {
@@ -64,8 +91,27 @@ function parseFlags(argv: string[]): Flags {
         flags.config = value;
         continue;
       }
-      if (key === "fixtures" || key === "candidate" || key === "now" || key === "output" || key === "state" || key === "round") {
+      if (
+        key === "fixtures" ||
+        key === "candidate" ||
+        key === "now" ||
+        key === "output" ||
+        key === "state" ||
+        key === "round"
+      ) {
         flags[key] = value;
+        continue;
+      }
+      if (key === "dex-state") {
+        flags.dexState = value;
+        continue;
+      }
+      if (key === "retries" || key === "retry-delay-ms") {
+        if (!/^[0-9]+$/.test(value)) {
+          throw new ValidatorError("INTERNAL", `--${key} must be a non-negative integer`);
+        }
+        if (key === "retries") flags.retries = Number(value);
+        else flags.retryDelayMs = Number(value);
         continue;
       }
       if (key === "group") {
@@ -116,13 +162,44 @@ export async function runCli(argv: string[]): Promise<number> {
   const now = nowFromFlags(flags);
 
   if (flags.command === "derive") {
-    const derivation = await derivePublicationGroup({
-      snapshot,
-      group: flags.group,
-      transport,
-      now,
-      round: flags.round,
-    });
+    // --now fixes wall-clock time for deterministic/fixture-driven runs;
+    // retrying with the same frozen `now` would just repeat the same
+    // failure, so retries only apply when the caller lets time move.
+    const canRetryOverTime = flags.now === undefined;
+    let attempt = 0;
+    let derivation;
+    let derivedNow = now;
+    for (;;) {
+      derivedNow = attempt === 0 ? now : nowFromFlags(flags);
+      try {
+        derivation = await derivePublicationGroup({
+          snapshot,
+          group: flags.group,
+          transport,
+          now: derivedNow,
+          round: flags.round,
+          poolRpc: createTzktPoolRpcClient({ transport }),
+          dexStatePath: flags.dexState,
+        });
+        break;
+      } catch (error) {
+        const retryable =
+          canRetryOverTime &&
+          attempt < flags.retries &&
+          error instanceof ValidatorError &&
+          RETRYABLE_DERIVE_CODES.has(error.code);
+        if (!retryable) throw error;
+        // error.message already includes "<code>: <detail>" (see ValidatorError) --
+        // the detail matters here since INSUFFICIENT can mean "CEX quorum for
+        // XTZ_USD isn't ready" (no DEX pool fetch happened yet) as much as it
+        // can mean "DEX TWAP window hasn't accumulated enough samples".
+        process.stderr.write(
+          `derive attempt ${attempt + 1}/${flags.retries + 1} failed (${(error as ValidatorError).message}); retrying in ${flags.retryDelayMs}ms\n`,
+        );
+        await sleep(flags.retryDelayMs);
+        attempt += 1;
+      }
+    }
     const chain_id = process.env.TEZOS_CHAIN_ID;
     const oracle_address = process.env.ORACLE_ADDRESS;
     if (chain_id && oracle_address) {
@@ -132,8 +209,8 @@ export async function runCli(argv: string[]): Promise<number> {
         chain_id,
         oracle_address,
         round: flags.round,
-        valid_from: String(now),
-        valid_until: String(now + window),
+        valid_from: String(derivedNow),
+        valid_until: String(derivedNow + window),
       });
       // --output (or stdout when absent) gets the bare {payload, evidence} document
       // so it can be piped straight into `verify`/`sign --candidate`; the summary
@@ -180,7 +257,14 @@ export async function runCli(argv: string[]): Promise<number> {
       throw new ValidatorError("POLICY_PIN", "--candidate is required");
     }
     const candidate = JSON.parse(readFileSync(flags.candidate, "utf8")) as unknown;
-    const verified = await verifyCandidate({ snapshot, candidate, transport, now });
+    const verified = await verifyCandidate({
+      snapshot,
+      candidate,
+      transport,
+      now,
+      poolRpc: createTzktPoolRpcClient({ transport }),
+      dexStatePath: flags.dexState,
+    });
     if (!verified.ok) {
       writeOutput(flags, { ok: false, error_code: verified.code, detail: verified.detail });
       return 1;

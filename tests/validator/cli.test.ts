@@ -5,6 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 
 import { runCli } from "../../src/validator/cli.js";
+import { ValidatorError } from "../../src/validator/errors.js";
 import { FIXTURES_PATH, NOW } from "./helpers.js";
 
 test("CLI --help exits 0", async () => {
@@ -57,4 +58,41 @@ test("CLI verify refuses a mutated candidate", async () => {
   } finally {
     process.stdout.write = previous;
   }
+});
+
+test("CLI derive retries transient failures and still fails closed if they persist", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "tezoracle-retry-"));
+  const dexStatePath = join(dir, "dex-state.json");
+  let stderrOut = "";
+  const previous = process.stderr.write;
+  process.stderr.write = ((chunk: string | Uint8Array) => {
+    stderrOut += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk);
+    return true;
+  }) as typeof process.stderr.write;
+  try {
+    // No TzKT fixtures are registered for USDTZ's pools, so every pool
+    // observation fails and the group stays INSUFFICIENT on every attempt --
+    // this only exercises that retries happen and eventually give up.
+    await assert.rejects(
+      () =>
+        runCli([
+          "derive",
+          "--group",
+          "USDTZ",
+          "--fixtures",
+          FIXTURES_PATH,
+          "--dex-state",
+          dexStatePath,
+          "--retries",
+          "2",
+          "--retry-delay-ms",
+          "1",
+        ]),
+      (error: unknown) => error instanceof ValidatorError && error.code === "INSUFFICIENT",
+    );
+  } finally {
+    process.stderr.write = previous;
+  }
+  const retryMessages = stderrOut.split("\n").filter((line) => line.includes("derive attempt"));
+  assert.equal(retryMessages.length, 2);
 });

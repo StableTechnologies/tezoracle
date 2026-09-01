@@ -24,9 +24,11 @@ function usdtzPoolRpc() {
   return createMockPoolRpcClient({
     storage: {
       [QUIPUSWAP_V1_POOL]: {
-        tez_pool: "133300000000",
-        token_pool: "100000000000",
-        token_address: "KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
+        storage: {
+          tez_pool: "133300000000",
+          token_pool: "100000000000",
+          token_address: "KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
+        },
       },
       [DEXTER_POOL]: {
         xtzPool: "13330000000",
@@ -48,9 +50,11 @@ function tzbtcPoolRpc() {
         tokenAddress: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
       },
       [QUIPUSWAP_TZBTC_POOL]: {
-        tez_pool: "43316500000",
-        token_pool: "50000000",
-        token_address: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+        storage: {
+          tez_pool: "43316500000",
+          token_pool: "50000000",
+          token_address: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+        },
       },
     },
   });
