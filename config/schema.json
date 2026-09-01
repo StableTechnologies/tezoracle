@@ -146,6 +146,7 @@
             "additionalProperties": false,
             "required": [
               "pool_address",
+              "protocol",
               "token_a_address",
               "token_a_id",
               "token_a_decimals",
@@ -156,10 +157,11 @@
             ],
             "properties": {
               "pool_address": { "type": "string" },
+              "protocol": { "type": "string", "enum": ["quipuswap_v1_amm", "dexter_v1_amm"] },
               "token_a_address": { "type": "string" },
               "token_a_id": { "type": ["integer", "null"] },
               "token_a_decimals": { "$ref": "#/$defs/nat" },
-              "token_b_address": { "type": "string" },
+              "token_b_address": { "type": "string", "description": "KT1 contract address or the native XTZ literal" },
               "token_b_id": { "type": ["integer", "null"] },
               "token_b_decimals": { "$ref": "#/$defs/nat" },
               "expected_code_hash": { "type": "string" }

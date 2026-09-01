@@ -130,6 +130,20 @@ const DEX_KEYS = [
   "degraded_one_pool_mode",
 ] as const;
 
+const DEX_POOL_KEYS = [
+  "pool_address",
+  "protocol",
+  "token_a_address",
+  "token_a_id",
+  "token_a_decimals",
+  "token_b_address",
+  "token_b_id",
+  "token_b_decimals",
+  "expected_code_hash",
+] as const;
+
+const DEX_PROTOCOLS = ["quipuswap_v1_amm", "dexter_v1_amm"] as const;
+
 const GROUP_SPEC_KEYS = ["asset_ids"] as const;
 
 const SIGNER_ENV_KEYS = ["status", "regions", "notes"] as const;
@@ -172,9 +186,22 @@ export type SourceConfig = {
   health: SourceHealth;
 };
 
+export type DexPool = {
+  pool_address: string;
+  protocol: "quipuswap_v1_amm" | "dexter_v1_amm";
+  token_a_address: string;
+  token_a_id: number | null;
+  token_a_decimals: number;
+  /** "XTZ" (native, no contract address) or a KT1 token contract. */
+  token_b_address: string;
+  token_b_id: number | null;
+  token_b_decimals: number;
+  expected_code_hash: string;
+};
+
 export type DexConfig = {
   status: "pending_review" | "approved";
-  pools: unknown[];
+  pools: DexPool[];
   quote_size: string | null;
   min_liquidity: string | null;
   max_price_impact_bps: number | null;
@@ -435,6 +462,44 @@ function validateDex(errors: ValidationError[], path: string, raw: unknown, deri
     for (const field of ["quote_size", "min_liquidity", "max_price_impact_bps", "twap_window_seconds", "min_twap_observations", "cross_pool_deviation_bps"] as const) {
       if (raw[field] !== null) fail(errors, `${path}.${field}`, "pending_review stubs must be null");
     }
+  }
+  if (Array.isArray(raw.pools)) {
+    raw.pools.forEach((pool, index) => validateDexPool(errors, `${path}.pools[${index}]`, pool));
+  }
+}
+
+function validateDexPool(errors: ValidationError[], path: string, raw: unknown): void {
+  if (!isObject(raw)) {
+    fail(errors, path, "must be an object");
+    return;
+  }
+  for (const key of extraKeys(raw, DEX_POOL_KEYS)) fail(errors, `${path}.${key}`, "unknown field");
+  for (const key of missingKeys(raw, DEX_POOL_KEYS)) fail(errors, `${path}.${key}`, "missing field");
+  if (typeof raw.pool_address !== "string" || !raw.pool_address.startsWith("KT1")) {
+    fail(errors, `${path}.pool_address`, "must be a KT1 contract address");
+  }
+  if (!DEX_PROTOCOLS.includes(raw.protocol as (typeof DEX_PROTOCOLS)[number])) {
+    fail(errors, `${path}.protocol`, `must be one of ${DEX_PROTOCOLS.join(", ")}`);
+  }
+  for (const field of ["token_a_address", "token_b_address"] as const) {
+    const value = raw[field];
+    if (typeof value !== "string" || !(value.startsWith("KT1") || value === "XTZ")) {
+      fail(errors, `${path}.${field}`, "must be a KT1 contract address or the native XTZ literal");
+    }
+  }
+  if (raw.token_b_address === "XTZ" && raw.token_b_id !== null) {
+    fail(errors, `${path}.token_b_id`, "native XTZ has no token_id; must be null");
+  }
+  for (const field of ["token_a_id", "token_b_id"] as const) {
+    if (raw[field] !== null && !(typeof raw[field] === "number" && Number.isInteger(raw[field]) && (raw[field] as number) >= 0)) {
+      fail(errors, `${path}.${field}`, "must be a non-negative integer or null");
+    }
+  }
+  for (const field of ["token_a_decimals", "token_b_decimals"] as const) {
+    expectNat(errors, `${path}.${field}`, raw[field], 0, 18);
+  }
+  if (typeof raw.expected_code_hash !== "string" || raw.expected_code_hash.length === 0) {
+    fail(errors, `${path}.expected_code_hash`, "must be a non-empty string");
   }
 }
 

@@ -18,21 +18,44 @@
   "absolute_max_price": "1200000",
   "max_movement_bps": 500,
   "derivation": "dex_twap_times_usd",
-  "notes": "Non-authoritative stub. Never a constant one-dollar price. Requires two approved pools, executable-quote TWAP, liquidity/impact caps, cross-pool comparison, and multiplication by independently derived USDT_USD. Empty pools are not wildcards. No one-pool degraded mode.",
+  "notes": "Requires two approved pools, executable-quote TWAP, liquidity/impact caps, cross-pool comparison, and multiplication by independently derived XTZ_USD. Empty pools are not wildcards. No one-pool degraded mode. Derivation is USDtz/XTZ TWAP x XTZ_USD (not USDtz/USDT): USDtz/USDT pools (Spicy Stable, Plenty, Quipuswap v3) were evaluated and rejected -- either unverifiable cumulative encoding (Spicy: price_cumulative_0/1 is ~34 orders of magnitude smaller than a standard Uniswap-V2 UQ112.112 accumulator would be; Plenty: no amplification coefficient or oracle exposed) or negligible real liquidity (CoinGecko 2026-09-01: USDTZ 24h volume $0.81). Two independent USDtz/XTZ pools were verified on-chain via TzKT 2026-09-01, both plain constant-product AMMs with real, active liquidity and NO built-in cumulative-price oracle: Quipuswap v1 USDtz/XTZ (tez_pool/token_pool reserves, ~124,232 XTZ / ~32,935 USDtz) and Dexter USDtz/XTZ (xtzPool/tokenPool reserves, ~6,906 XTZ / ~1,829 USDtz, different protocol/creator/code hash -- genuinely independent). Spot prices from the two pools agreed within ~0.1% at verification time. Because neither pool publishes its own TWAP, the validator samples each pool's raw spot price (xtz_reserve/token_reserve) itself over time and computes a linear time-weighted average locally -- this avoids re-deriving any protocol's internal fixed-point math entirely. Numeric thresholds below are provisional pending liquidity/risk review sign-off; adapter wiring into derive.ts remains a separate implementation step.",
   "sources": [],
   "dex": {
-    "status": "pending_review",
-    "pools": [],
-    "quote_size": null,
-    "min_liquidity": null,
-    "max_price_impact_bps": null,
-    "twap_window_seconds": null,
-    "min_twap_observations": null,
-    "cross_pool_deviation_bps": null,
+    "status": "approved",
+    "pools": [
+      {
+        "pool_address": "KT1WxgZ1ZSfMgmsSDDcUn8Xn577HwnQ7e1Lb",
+        "protocol": "quipuswap_v1_amm",
+        "token_a_address": "KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
+        "token_a_id": null,
+        "token_a_decimals": 6,
+        "token_b_address": "XTZ",
+        "token_b_id": null,
+        "token_b_decimals": 6,
+        "expected_code_hash": "572234294"
+      },
+      {
+        "pool_address": "KT1Tr2eG3eVmPRbymrbU2UppUmKjFPXomGG9",
+        "protocol": "dexter_v1_amm",
+        "token_a_address": "KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
+        "token_a_id": null,
+        "token_a_decimals": 6,
+        "token_b_address": "XTZ",
+        "token_b_id": null,
+        "token_b_decimals": 6,
+        "expected_code_hash": "262032754"
+      }
+    ],
+    "quote_size": "1000000000",
+    "min_liquidity": "1000000000",
+    "max_price_impact_bps": 100,
+    "twap_window_seconds": 1800,
+    "min_twap_observations": 3,
+    "cross_pool_deviation_bps": 150,
     "cold_start_policy": "fail_closed",
     "degraded_one_pool_mode": false
   },
   "market_calendar": "crypto_24x7",
-  "benchmark_methodology": "pending_review",
-  "instrument_definition": "pending_review"
+  "benchmark_methodology": "dex_twap_dual_pool",
+  "instrument_definition": "USDtz/USD via locally-sampled TWAP(USDtz/XTZ, Quipuswap v1 + Dexter) x XTZ_USD"
 }

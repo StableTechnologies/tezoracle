@@ -6,7 +6,7 @@ export const SIGNER_EVIDENCE_DOMAIN = "TEZORACLE_SIGNER_EVIDENCE_V1" as const;
 export const VALIDATOR_CLASS = "A" as const;
 
 export type ConversionLeg = {
-  via_asset_id: "USDT_USD";
+  via_asset_id: "USDT_USD" | "XTZ_USD";
   factor: string;
   factor_decimals: number;
   factor_observation_time: number;

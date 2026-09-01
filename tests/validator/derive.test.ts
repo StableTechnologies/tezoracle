@@ -1,12 +1,39 @@
 import assert from "node:assert/strict";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 
 import { deriveAssetFromObservations, derivePublicationGroup } from "../../src/validator/derive.js";
+import { createMockPoolRpcClient } from "../../src/validator/adapters/dex/rpc.js";
+import { loadPoolSampleState, recordSample, savePoolSampleState } from "../../src/validator/adapters/dex/state.js";
 import { ValidatorError } from "../../src/validator/errors.js";
 import type { SourceAttempt } from "../../src/validator/observe.js";
 import type { SourceObservation } from "../../src/validator/types.js";
 import { CONFIG_DIR, NOW, coreMockTransport, coreMockTransportWithoutHost, pinnedRegister } from "./helpers.js";
 import { loadSnapshot } from "../../src/config/validate.js";
+
+const QUIPUSWAP_V1_POOL = "KT1WxgZ1ZSfMgmsSDDcUn8Xn577HwnQ7e1Lb";
+const DEXTER_POOL = "KT1Tr2eG3eVmPRbymrbU2UppUmKjFPXomGG9";
+
+function usdtzPoolRpc() {
+  // Synthetic reserves (ratio ~1.333 XTZ per USDtz) consistent with the CEX
+  // fixture's XTZ_USD (~0.7502): 1.333 * 0.7502 ~= 1.0 USD per USDtz.
+  return createMockPoolRpcClient({
+    storage: {
+      [QUIPUSWAP_V1_POOL]: {
+        tez_pool: "133300000000",
+        token_pool: "100000000000",
+        token_address: "KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
+      },
+      [DEXTER_POOL]: {
+        xtzPool: "13330000000",
+        tokenPool: "10000000000",
+        tokenAddress: "KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
+      },
+    },
+  });
+}
 
 function observation(sourceId: string, price: string, time: number): SourceObservation {
   return {
@@ -70,16 +97,77 @@ test("loss of one CEX still derives CORE with three venues", async () => {
   }
 });
 
-test("USDTZ and TZBTC groups are refused as stubs", async () => {
+test("TZBTC is refused as a stub; USDTZ fails closed without an injected pool RPC", async () => {
   const { snapshot } = pinnedRegister();
-  await assert.rejects(
-    () => derivePublicationGroup({ snapshot, group: "USDTZ", transport: coreMockTransport(), now: NOW }),
-    (error: unknown) => error instanceof ValidatorError && error.code === "POLICY_PIN",
-  );
   await assert.rejects(
     () => derivePublicationGroup({ snapshot, group: "TZBTC", transport: coreMockTransport(), now: NOW }),
     (error: unknown) => error instanceof ValidatorError && error.code === "POLICY_PIN",
   );
+  // USDTZ's dex policy is approved, but no PoolRpcClient is injected here,
+  // so both pools fail INTERNAL and the group fails closed as INSUFFICIENT.
+  await assert.rejects(
+    () => derivePublicationGroup({ snapshot, group: "USDTZ", transport: coreMockTransport(), now: NOW }),
+    (error: unknown) => error instanceof ValidatorError && error.code === "INSUFFICIENT",
+  );
+});
+
+test("USDTZ derives from two independent pool TWAPs once enough samples accumulate", async () => {
+  const { snapshot } = pinnedRegister();
+  const dir = mkdtempSync(join(tmpdir(), "tezoracle-usdtz-"));
+  try {
+    const insufficientStatePath = join(dir, "dex-state-insufficient.json");
+    // Below min_twap_observations (3) on a fresh state file: fails closed.
+    await assert.rejects(
+      () =>
+        derivePublicationGroup({
+          snapshot,
+          group: "USDTZ",
+          transport: coreMockTransport(),
+          now: NOW,
+          poolRpc: usdtzPoolRpc(),
+          dexStatePath: insufficientStatePath,
+        }),
+      (error: unknown) => error instanceof ValidatorError && error.code === "INSUFFICIENT",
+    );
+
+    // Separate, pre-seeded state file: two older samples plus the one this
+    // call fetches satisfies min_twap_observations (3) and the 1800s window.
+    const seededStatePath = join(dir, "dex-state-seeded.json");
+    let state = loadPoolSampleState(seededStatePath);
+    for (const timestamp of [NOW - 1800, NOW - 900]) {
+      state = recordSample(
+        state,
+        { pool_address: QUIPUSWAP_V1_POOL, protocol: "quipuswap_v1_amm", xtz_reserve: 133_300_000_000n, token_reserve: 100_000_000_000n, timestamp },
+        1800,
+      );
+      state = recordSample(
+        state,
+        { pool_address: DEXTER_POOL, protocol: "dexter_v1_amm", xtz_reserve: 13_330_000_000n, token_reserve: 10_000_000_000n, timestamp },
+        1800,
+      );
+    }
+    savePoolSampleState(seededStatePath, state);
+
+    const derived = await derivePublicationGroup({
+      snapshot,
+      group: "USDTZ",
+      transport: coreMockTransport(),
+      now: NOW,
+      poolRpc: usdtzPoolRpc(),
+      dexStatePath: seededStatePath,
+    });
+    assert.equal(derived.group, "USDTZ");
+    const usdtz = derived.assets.find((asset) => asset.asset_id === "USDTZ_USD");
+    assert.ok(usdtz);
+    assert.equal(usdtz?.sources.length, 2);
+    assert.deepEqual(
+      usdtz?.sources.map((source) => source.source_id).sort(),
+      [DEXTER_POOL, QUIPUSWAP_V1_POOL].sort(),
+    );
+    assert.ok(usdtz!.price > 0n);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("three healthy venues derive; two fail closed", () => {
