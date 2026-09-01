@@ -99,7 +99,7 @@ The current tree includes the public baseline, frozen payload/register/evidence 
 | [docs/PARAMETER_SCHEMA.md](docs/PARAMETER_SCHEMA.md) | Register schema, lifecycle, delayed activation |
 | [docs/CONTRACT_SPEC.md](docs/CONTRACT_SPEC.md) | N-of-M storage, submit, pause, delayed governance, views |
 | [docs/ORACLE_INTERFACE.md](docs/ORACLE_INTERFACE.md) | TezFin boundary: price + observation time; aliases/age/bounds stay in TezFin |
-| [docs/TESTNET_DEPLOY.md](docs/TESTNET_DEPLOY.md) | Ghostnet/sandbox origination without production keys |
+| [docs/TESTNET_DEPLOY.md](docs/TESTNET_DEPLOY.md) | Shadownet/sandbox origination without production keys |
 | [docs/CLASS_A_VALIDATOR.md](docs/CLASS_A_VALIDATOR.md) | Class A adapters, derivation, candidate verify, testnet signing |
 | [docs/COORDINATOR.md](docs/COORDINATOR.md) | Non-authoritative round trigger, candidate, signature collection |
 | [docs/RELAYER.md](docs/RELAYER.md) | Permissionless verify / simulate / broadcast; backup path |

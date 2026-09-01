@@ -32,7 +32,7 @@ function stringField(value: unknown): string | undefined {
 export function readDomainEnv(event: Record<string, unknown> = {}): DomainEnv {
   const chain_id = stringField(event.chain_id) ?? process.env.TEZOS_CHAIN_ID;
   const oracle_address = stringField(event.oracle_address) ?? process.env.ORACLE_ADDRESS;
-  const network = stringField(event.network) ?? process.env.TEZOS_NETWORK ?? "ghostnet";
+  const network = stringField(event.network) ?? process.env.TEZOS_NETWORK ?? "shadownet";
   const rpcUrl = stringField(event.rpc_url) ?? process.env.TEZOS_RPC_URL ?? "";
   if (!chain_id || !oracle_address) {
     throw new CoordinatorError("INTERNAL", "TEZOS_CHAIN_ID and ORACLE_ADDRESS are required");

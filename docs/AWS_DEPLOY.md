@@ -34,7 +34,7 @@ The stack file is at the repo root so Framework v3 `serviceDir` resolves `src/de
 
 There is no public signer HTTP API. 1-of-1 testnet may call Class A in-process (same tick, injected `sign`) or `lambda:InvokeFunction` from the coordinator role. Coordinator and relayer processes still hold no keys. The tick Lambda is a coordinator: it must not read `TEZORACLE_SIGNER_SECRET_KEY`.
 
-`relayerSubmit` is not a live Ghostnet injector in this repository. Local e2e injects a contract harness as `RelayRpc`. A fee-paying Tezos account, if added later, is a **fee-payer** secret and must not appear in the oracle signer set.
+`relayerSubmit` is not a live Shadownet injector in this repository. Local e2e injects a contract harness as `RelayRpc`. A fee-paying Tezos account, if added later, is a **fee-payer** secret and must not appear in the oracle signer set.
 
 ## 3. Environment placeholders
 
@@ -42,7 +42,7 @@ Same names as [.env.example](../.env.example):
 
 | Name | Template default |
 | --- | --- |
-| `TEZOS_NETWORK` | `ghostnet` |
+| `TEZOS_NETWORK` | `shadownet` |
 | `TEZOS_RPC_URL` | empty placeholder |
 | `TEZOS_CHAIN_ID` | empty placeholder |
 | `ORACLE_ADDRESS` | empty placeholder |

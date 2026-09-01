@@ -79,7 +79,7 @@ test("verified mock CORE candidate can be signed", async () => {
   });
   const document = candidateFromDerivation({
     derivation,
-    chain_id: "NetXnHfVqm9iesp",
+    chain_id: "NetXsqzbfFenSTS",
     oracle_address: "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy",
     round: "1",
     valid_from: String(NOW),

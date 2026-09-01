@@ -63,7 +63,7 @@ export function createFailingBroadcastRpc(error = "rpc unavailable"): RecordingR
 
 /**
  * Live Tezos injection is supplied by the local e2e harness (octez mockup or
- * Ghostnet adapter). This module does not talk to a production RPC.
+ * Shadownet adapter). This module does not talk to a production RPC.
  */
 export function createHttpRelayRpc(_args: { rpcUrl: string }): RelayRpc {
   throw new RelayerError(

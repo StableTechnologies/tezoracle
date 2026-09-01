@@ -72,7 +72,7 @@ Cadence is **300 seconds**. `validity_window_seconds` stays **180** (the submit 
 
 Local driver: `runTickLoop` / `startTickInterval` with an injected clock. AWS driver: EventBridge `rate(5 minutes)` on `coordinatorTick`. The tick process is a coordinator and holds no oracle keys.
 
-Local 1-of-1 e2e lives in `tests/e2e/local.test.ts` (mock CEX fixtures + in-memory contract harness). Live Ghostnet origination remains stretch.
+Local 1-of-1 e2e lives in `tests/e2e/local.test.ts` (mock CEX fixtures + in-memory contract harness). Live Shadownet origination remains stretch.
 
 ## 6. CLI
 
@@ -121,4 +121,4 @@ AWS testnet/shadow transport (coordinator Lambdas cannot `GetSecretValue` on the
 - Rust Class B and A1/A2/B1/B2 isolation
 - Choosing a production 3-of-4 as the only supported configuration
 - Treating the testnet 5-minute tick as production authorization
-- Live Ghostnet origination (stretch)
+- Live Shadownet origination (stretch)

@@ -42,7 +42,7 @@ provider:
     Authority: testnet-shadow
     Production: "false"
   environment:
-    TEZOS_NETWORK: ghostnet
+    TEZOS_NETWORK: shadownet
     TEZOS_RPC_URL: ${env:TEZOS_RPC_URL, ""}
     TEZOS_CHAIN_ID: ${env:TEZOS_CHAIN_ID, ""}
     ORACLE_ADDRESS: ${env:ORACLE_ADDRESS, ""}

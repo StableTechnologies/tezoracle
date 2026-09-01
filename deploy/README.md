@@ -19,7 +19,7 @@ CI validates `serverless.yml` and runs `serverless package` (no AWS account). Do
 
 - Node.js 22 (see `.nvmrc`)
 - A non-production AWS account and a profile that can create IAM, Lambda, EventBridge, and Secrets Manager resources in that account
-- Testnet placeholders: `TEZOS_RPC_URL`, `TEZOS_CHAIN_ID`, `ORACLE_ADDRESS` (Ghostnet)
+- Testnet placeholders: `TEZOS_RPC_URL`, `TEZOS_CHAIN_ID`, `ORACLE_ADDRESS` (Shadownet)
 - A **testnet-only** Class A `edsk` that you will paste into Secrets Manager in the console
 
 Pinned operator tools are already in `devDependencies`: `serverless@3.40.0` and `serverless-esbuild@1.57.2`. Do not `npm install serverless` unpinned — that pulls Framework 4, which rejects `frameworkVersion: "3"`.
@@ -33,8 +33,8 @@ npm ci
 From the repository root:
 
 ```bash
-export TEZOS_RPC_URL="https://your-ghostnet-rpc.example"
-export TEZOS_CHAIN_ID="NetXnHfVqm9iesp"
+export TEZOS_RPC_URL="https://rpc.shadownet.teztnets.com"
+export TEZOS_CHAIN_ID="NetXsqzbfFenSTS"
 export ORACLE_ADDRESS="KT1..."   # testnet oracle, never a TezFin production pointer
 
 npx serverless deploy --stage testnet --region us-east-1
@@ -54,7 +54,7 @@ This stack is testnet/shadow transport. EventBridge `rate(5 minutes)` is enabled
 2. Confirm the coordinator (including `coordinatorTick`) and relayer roles cannot `GetSecretValue` on the Class A signer secret.
 3. You may invoke coordinator/relayer directly to inspect wiring. Do not publish a public signer API.
 4. `signerClassA` has the secret **name** only. A live invoke will not sign until a Secrets Manager fetch is injected (later work). The tick must invoke Class A; it must not read the signer secret.
-5. `relayerSubmit` is not a live Ghostnet injector in this repository. Local e2e uses an injected mock / harness RPC.
+5. `relayerSubmit` is not a live Shadownet injector in this repository. Local e2e uses an injected mock / harness RPC.
 6. `relayerBackup` is a second function on the same sealed batch as `relayerSubmit`.
 7. Do not point TezFin `set_oracle` at the originated testnet contract.
 

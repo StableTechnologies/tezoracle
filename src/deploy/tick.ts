@@ -58,7 +58,7 @@ export function createTickHandler(deps: TickHandlerDeps = {}) {
         if (!deps.oracle || !deps.rpc) {
           throw new CoordinatorError(
             "INTERNAL",
-            "oracle view and RelayRpc are injected; this path is not a live Ghostnet endpoint",
+            "oracle view and RelayRpc are injected; this path is not a live Shadownet endpoint",
           );
         }
         const signerSet = deps.signerSet ?? (body.signers !== undefined ? parseSignerSet(body.signers) : undefined);

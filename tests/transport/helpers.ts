@@ -12,7 +12,7 @@ import { NOW, ROOT, coreMockTransport } from "../validator/helpers.js";
 
 export { NOW, ROOT, CONFIG_DIR, FIXTURES_PATH, coreMockTransport, pinnedRegister } from "../validator/helpers.js";
 
-export const CHAIN_ID = "NetXnHfVqm9iesp";
+export const CHAIN_ID = "NetXsqzbfFenSTS";
 export const ORACLE_ADDRESS = "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy";
 
 const transportKeys = JSON.parse(

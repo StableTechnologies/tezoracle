@@ -43,7 +43,7 @@ function withEnv(vars: Record<string, string | undefined>, run: () => void | Pro
 const domain = {
   TEZOS_CHAIN_ID: CHAIN_ID,
   ORACLE_ADDRESS,
-  TEZOS_NETWORK: "ghostnet",
+  TEZOS_NETWORK: "shadownet",
   TEZOS_RPC_URL: "",
 };
 

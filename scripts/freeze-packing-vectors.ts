@@ -29,7 +29,7 @@ const keysDir = join(root, "tests/packing/keys");
 
 const ORACLE_A = "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy";
 const ORACLE_B = "KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton";
-const GHOSTNET = "NetXnHfVqm9iesp";
+const SHADOWNET = "NetXsqzbfFenSTS";
 const MAINNET = "NetXdQprcVkpaWU";
 
 /** Synthetic test-only key. Never funded; never used outside packing fixtures. */
@@ -58,11 +58,11 @@ function specs(policyHash: string): Spec[] {
   return [
     {
       id: "GV-01",
-      description: "CORE batch on Ghostnet; policy_hash and evidence_digest derived from committed sources",
+      description: "CORE batch on Shadownet; policy_hash and evidence_digest derived from committed sources",
       evidenceId: "GV-01",
       payload: withPolicy({
         domain: "TEZORACLE_V1",
-        chain_id: GHOSTNET,
+        chain_id: SHADOWNET,
         oracle_address: ORACLE_A,
         config_version: "1",
         publication_group: "CORE",
@@ -81,7 +81,7 @@ function specs(policyHash: string): Spec[] {
       evidenceId: "GV-02",
       payload: withPolicy({
         domain: "TEZORACLE_V1",
-        chain_id: GHOSTNET,
+        chain_id: SHADOWNET,
         oracle_address: ORACLE_A,
         config_version: "1",
         publication_group: "USDTZ",
@@ -97,7 +97,7 @@ function specs(policyHash: string): Spec[] {
       evidenceId: "GV-03",
       payload: withPolicy({
         domain: "TEZORACLE_V1",
-        chain_id: GHOSTNET,
+        chain_id: SHADOWNET,
         oracle_address: ORACLE_A,
         config_version: "1",
         publication_group: "TZBTC",
@@ -132,7 +132,7 @@ function specs(policyHash: string): Spec[] {
       evidenceId: "GV-01",
       payload: withPolicy({
         domain: "TEZORACLE_V1",
-        chain_id: GHOSTNET,
+        chain_id: SHADOWNET,
         oracle_address: ORACLE_B,
         config_version: "1",
         publication_group: "CORE",
@@ -151,7 +151,7 @@ function specs(policyHash: string): Spec[] {
       evidenceId: "GV-06",
       payload: withPolicy({
         domain: "TEZORACLE_V1",
-        chain_id: GHOSTNET,
+        chain_id: SHADOWNET,
         oracle_address: ORACLE_A,
         config_version: "2",
         publication_group: "CORE",
@@ -170,7 +170,7 @@ function specs(policyHash: string): Spec[] {
       evidenceId: "GV-07",
       payload: withPolicy({
         domain: "TEZORACLE_V1",
-        chain_id: GHOSTNET,
+        chain_id: SHADOWNET,
         oracle_address: ORACLE_A,
         config_version: "1",
         publication_group: "USDTZ",
@@ -186,7 +186,7 @@ function specs(policyHash: string): Spec[] {
       evidenceId: "GV-08",
       payload: withPolicy({
         domain: "TEZORACLE_V1",
-        chain_id: GHOSTNET,
+        chain_id: SHADOWNET,
         oracle_address: ORACLE_A,
         config_version: "1",
         publication_group: "CORE",
@@ -287,7 +287,7 @@ async function main(): Promise<void> {
       {
         label: "tezoracle-packing-test-ed25519-v1",
         curve: "ed25519",
-        note: "SYNTHETIC TEST-ONLY KEY. Generated for CHECK_SIGNATURE packing fixtures. Never funded. Never used on Ghostnet, mainnet, or any network with value. Not a production, testnet-operator, or faucet key.",
+        note: "SYNTHETIC TEST-ONLY KEY. Generated for CHECK_SIGNATURE packing fixtures. Never funded. Never used on Shadownet, mainnet, or any network with value. Not a production, testnet-operator, or faucet key.",
         secret_key: TEST_SECRET,
         public_key: publicKey,
         public_key_hash: publicKeyHash,

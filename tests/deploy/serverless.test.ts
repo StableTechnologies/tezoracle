@@ -114,7 +114,7 @@ test("serverless.yml is one testnet/shadow stack on Node 22", () => {
   assert.equal(provider.runtime, "nodejs22.x");
   assert.equal(String(provider.stage), '${opt:stage, "testnet"}');
   const env = asMap(provider.environment, "provider.environment");
-  assert.equal(env.TEZOS_NETWORK, "ghostnet");
+  assert.equal(env.TEZOS_NETWORK, "shadownet");
   for (const name of PLACEHOLDER_ENV) {
     assert.ok(name in env, `provider.environment.${name}`);
   }
