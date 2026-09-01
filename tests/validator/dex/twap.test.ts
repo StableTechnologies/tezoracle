@@ -19,9 +19,17 @@ function sample(overrides: Partial<PoolSpotSample>): PoolSpotSample {
 test("spotPrice is xtz_reserve/token_reserve at the requested decimals", () => {
   // real Quipuswap v1 reserves verified 2026-09-01: 124232.308202 XTZ / 32935.110728 USDtz
   const s = sample({ xtz_reserve: 124_232_308_202n, token_reserve: 32_935_110_728n });
-  const price = spotPrice(s, 6);
+  const price = spotPrice(s, 6, 6);
   // ~3.772032 XTZ per USDtz (rounds half-away-from-zero up to ...033)
   assert.equal(price, 3_772_033n);
+});
+
+test("spotPrice adjusts for a token with more decimals than XTZ (tzBTC, 8dp)", () => {
+  // real Sirius DEX (Liquidity Baking) reserves verified 2026-09-01:
+  // 4307930.241344 XTZ / 11.91747985 tzBTC (8 decimals) ~= 361556 XTZ per tzBTC
+  const s = sample({ xtz_reserve: 4_307_930_241_344n, token_reserve: 1_191_747_985n });
+  const price = spotPrice(s, 8, 6);
+  assert.equal(price, 361_479_968_548n); // scaled to 6 output decimals
 });
 
 test("computeLinearTwap recovers a constant price held across the whole window", () => {
@@ -30,7 +38,7 @@ test("computeLinearTwap recovers a constant price held across the whole window",
     sample({ xtz_reserve: 2_000_000n, token_reserve: 1_000_000n, timestamp: 900 }),
     sample({ xtz_reserve: 2_000_000n, token_reserve: 1_000_000n, timestamp: 1800 }),
   ];
-  const result = computeLinearTwap(samples, { decimals: 6, minObservations: 3, minWindowSeconds: 1800 });
+  const result = computeLinearTwap(samples, { tokenDecimals: 6, outputDecimals: 6, minObservations: 3, minWindowSeconds: 1800 });
   assert.equal(result.price, 2_000_000n);
   assert.equal(result.elapsed_seconds, 1800);
   assert.equal(result.observation_count, 3);
@@ -43,7 +51,7 @@ test("computeLinearTwap weights by the duration held at each price", () => {
     sample({ xtz_reserve: 2_000_000n, token_reserve: 1_000_000n, timestamp: 1500 }),
     sample({ xtz_reserve: 2_000_000n, token_reserve: 1_000_000n, timestamp: 1800 }),
   ];
-  const result = computeLinearTwap(samples, { decimals: 6, minObservations: 3, minWindowSeconds: 1800 });
+  const result = computeLinearTwap(samples, { tokenDecimals: 6, outputDecimals: 6, minObservations: 3, minWindowSeconds: 1800 });
   // (1_000_000*1500 + 2_000_000*300) / 1800 = 1_166_666.67 -> rounds to 1_166_667
   assert.equal(result.price, 1_166_667n);
 });
@@ -51,7 +59,7 @@ test("computeLinearTwap weights by the duration held at each price", () => {
 test("computeLinearTwap fails closed below min_twap_observations", () => {
   const samples = [sample({ timestamp: 0 }), sample({ timestamp: 1800 })];
   assert.throws(
-    () => computeLinearTwap(samples, { decimals: 6, minObservations: 3, minWindowSeconds: 60 }),
+    () => computeLinearTwap(samples, { tokenDecimals: 6, outputDecimals: 6, minObservations: 3, minWindowSeconds: 60 }),
     (error: unknown) => error instanceof ValidatorError && error.code === "DEX_TWAP",
   );
 });
@@ -63,7 +71,7 @@ test("computeLinearTwap fails closed below the minimum window", () => {
     sample({ timestamp: 20 }),
   ];
   assert.throws(
-    () => computeLinearTwap(samples, { decimals: 6, minObservations: 3, minWindowSeconds: 1800 }),
+    () => computeLinearTwap(samples, { tokenDecimals: 6, outputDecimals: 6, minObservations: 3, minWindowSeconds: 1800 }),
     (error: unknown) => error instanceof ValidatorError && error.code === "DEX_TWAP",
   );
 });
@@ -75,7 +83,7 @@ test("computeLinearTwap refuses samples from different pools", () => {
     sample({ pool_address: "KT1A", timestamp: 1800 }),
   ];
   assert.throws(
-    () => computeLinearTwap(samples, { decimals: 6, minObservations: 3, minWindowSeconds: 60 }),
+    () => computeLinearTwap(samples, { tokenDecimals: 6, outputDecimals: 6, minObservations: 3, minWindowSeconds: 60 }),
     (error: unknown) => error instanceof ValidatorError && error.code === "INTERNAL",
   );
 });

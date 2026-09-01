@@ -1,3 +1,10 @@
+/**
+ * Turns two independent token/XTZ pool TWAPs into SourceObservation-shaped
+ * records, so they flow through the same median/deviation aggregation
+ * (`deriveAssetFromObservations` in ../../derive.js) that CEX sources use.
+ * No separate DEX aggregation path exists or is needed. Used by both the
+ * USDTZ (USDtz/XTZ) and TZBTC (tzBTC/XTZ) groups.
+ */
 import type { AssetConfig, DexConfig, DexPool } from "../../../config/validate.js";
 import { PRICE_NAT_MAX } from "../../../packing/types.js";
 import { assertPositivePrice, mulScale } from "../../decimal.js";
@@ -13,7 +20,12 @@ function excluded(pool: DexPool, code: string, detail: string): SourceAttempt {
   return { ok: false, excluded: { source_id: pool.pool_address, code, detail } };
 }
 
-export async function observeUsdtzPool(args: {
+/** e.g. "USDTZ_USD" -> "USDTZ", "TZBTC_USD" -> "TZBTC". */
+function baseAssetFromId(assetId: string): string {
+  return assetId.replace(/_USD$/, "");
+}
+
+export async function observeXtzPairPool(args: {
   pool: DexPool;
   asset: AssetConfig;
   dex: DexConfig;
@@ -43,7 +55,8 @@ export async function observeUsdtzPool(args: {
   let twap;
   try {
     twap = computeLinearTwap(sampleSeries(state, pool), {
-      decimals: asset.decimals,
+      tokenDecimals: pool.token_a_decimals,
+      outputDecimals: asset.decimals,
       minObservations: dex.min_twap_observations,
       minWindowSeconds: dex.twap_window_seconds,
     });
@@ -73,7 +86,7 @@ export async function observeUsdtzPool(args: {
     market_id: `${pool.token_a_address}/XTZ`,
     endpoint: "",
     query: "",
-    base_asset: "USDTZ",
+    base_asset: baseAssetFromId(asset.asset_id),
     quote_asset: "XTZ",
     unit: "XTZ",
     venue_observation_time: now,

@@ -1,6 +1,6 @@
 import type { PublicationGroup } from "../packing/types.js";
 import type { AssetConfig, RegisterConfig, RegisterSnapshot } from "../config/validate.js";
-import { observeUsdtzPool } from "./adapters/dex/observe.js";
+import { observeXtzPairPool } from "./adapters/dex/observe.js";
 import { createUninjectedPoolRpcClient, type PoolRpcClient } from "./adapters/dex/rpc.js";
 import type { HttpTransport } from "./adapters/http.js";
 import { absDelta, exceedsBps, medianLower } from "./decimal.js";
@@ -185,47 +185,49 @@ async function deriveXtzUsdFactor(
   };
 }
 
-async function deriveUsdtzGroup(args: {
+async function deriveXtzPairGroup(args: {
   snapshot: RegisterSnapshot;
+  group: "USDTZ" | "TZBTC";
+  assetId: "USDTZ_USD" | "TZBTC_USD";
   transport: HttpTransport;
   now: number;
   round?: string;
   poolRpc: PoolRpcClient;
   dexStatePath?: string;
 }): Promise<GroupDerivation> {
-  const { snapshot, transport, now } = args;
-  const usdtzAsset = snapshot.assets.USDTZ_USD;
-  if (!usdtzAsset) {
-    throw new ValidatorError("POLICY_PIN", "USDTZ_USD is missing from the pinned register");
+  const { snapshot, group, assetId, transport, now } = args;
+  const asset = snapshot.assets[assetId];
+  if (!asset) {
+    throw new ValidatorError("POLICY_PIN", `${assetId} is missing from the pinned register`);
   }
-  const dex = usdtzAsset.dex;
+  const dex = asset.dex;
   if (!dex || dex.status !== "approved" || dex.pools.length === 0) {
-    throw new ValidatorError("POLICY_PIN", "USDTZ_USD dex policy is not approved");
+    throw new ValidatorError("POLICY_PIN", `${assetId} dex policy is not approved`);
   }
 
   const { xtzFactor } = await deriveXtzUsdFactor(snapshot, transport, now);
 
   const poolAttempts = await Promise.all(
     dex.pools.map((pool) =>
-      observeUsdtzPool({ pool, asset: usdtzAsset, dex, rpc: args.poolRpc, statePath: args.dexStatePath, now, xtzUsd: xtzFactor }),
+      observeXtzPairPool({ pool, asset, dex, rpc: args.poolRpc, statePath: args.dexStatePath, now, xtzUsd: xtzFactor }),
     ),
   );
-  const usdtzDerived = deriveAssetFromObservations(usdtzAsset, poolAttempts);
-  if (!usdtzDerived.ok) {
-    throw new ValidatorError(usdtzDerived.code, `USDTZ_USD: ${usdtzDerived.detail}`);
+  const derived = deriveAssetFromObservations(asset, poolAttempts);
+  if (!derived.ok) {
+    throw new ValidatorError(derived.code, `${assetId}: ${derived.detail}`);
   }
 
-  const assets = [usdtzDerived.asset];
+  const assets = [derived.asset];
   const policy_hash = policyHashHex(snapshot);
   const evidence = buildSharedManifest({
     snapshot,
     policy_hash,
-    publication_group: "USDTZ",
+    publication_group: group,
     round: args.round ?? "1",
     assets,
   });
   return {
-    group: "USDTZ",
+    group,
     policy_hash,
     config_version: snapshot.register.config_version,
     assets,
@@ -244,12 +246,11 @@ export async function derivePublicationGroup(args: {
   dexStatePath?: string;
 }): Promise<GroupDerivation> {
   const { snapshot, group, transport, now } = args;
-  if (group === "TZBTC") {
-    throw new ValidatorError("POLICY_PIN", `${group} is a non-authoritative stub and is not signed in this phase`);
-  }
-  if (group === "USDTZ") {
-    return deriveUsdtzGroup({
+  if (group === "USDTZ" || group === "TZBTC") {
+    return deriveXtzPairGroup({
       snapshot,
+      group,
+      assetId: group === "USDTZ" ? "USDTZ_USD" : "TZBTC_USD",
       transport,
       now,
       round: args.round,

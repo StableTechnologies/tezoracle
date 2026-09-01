@@ -57,8 +57,8 @@ test("CORE assets are testnet/non-authoritative and USDtz/tzBTC are draft stubs"
     assert.equal(asset.sources.length, 0);
     assert.equal(asset.dex?.degraded_one_pool_mode, false);
   }
-  assert.equal(snapshot.assets.TZBTC_USD?.dex?.status, "pending_review");
-  assert.equal(snapshot.assets.TZBTC_USD?.dex?.pools.length, 0);
+  assert.equal(snapshot.assets.TZBTC_USD?.dex?.status, "approved");
+  assert.equal(snapshot.assets.TZBTC_USD?.dex?.pools.length, 2);
   assert.equal(snapshot.assets.USDTZ_USD?.dex?.status, "approved");
   assert.equal(snapshot.assets.USDTZ_USD?.dex?.pools.length, 2);
 
