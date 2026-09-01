@@ -4,7 +4,7 @@
   "evidence_id": "GV-08",
   "payload": {
     "domain": "TEZORACLE_V1",
-    "chain_id": "NetXnHfVqm9iesp",
+    "chain_id": "NetXsqzbfFenSTS",
     "oracle_address": "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy",
     "config_version": "1",
     "publication_group": "CORE",
@@ -31,8 +31,8 @@
         "observation_time": "1786679900"
       }
     ],
-    "policy_hash": "cee88ce5610e1bc33cbfb1fb0ccd24d0000f62322ff4a0c184d4057e84a9c44d",
-    "evidence_digest": "c1acdc0843b69bf6a3cc4ebe6314ee8325f6e71616489c82e5fac67ef6bd3e0d"
+    "policy_hash": "4f373c77d30cd4e10a5baee143500112378d4cbe47c39e1c2ab02cf2b463f63c",
+    "evidence_digest": "0780df9ee54cbca434ad9366000e697656ec9471ea5be2ddffee452f2e8c7043"
   },
   "micheline": {
     "prim": "Pair",
@@ -44,7 +44,7 @@
         "prim": "Pair",
         "args": [
           {
-            "string": "NetXnHfVqm9iesp"
+            "string": "NetXsqzbfFenSTS"
           },
           {
             "prim": "Pair",
@@ -62,7 +62,7 @@
                     "prim": "Pair",
                     "args": [
                       {
-                        "bytes": "cee88ce5610e1bc33cbfb1fb0ccd24d0000f62322ff4a0c184d4057e84a9c44d"
+                        "bytes": "4f373c77d30cd4e10a5baee143500112378d4cbe47c39e1c2ab02cf2b463f63c"
                       },
                       {
                         "prim": "Pair",
@@ -92,7 +92,7 @@
                                         "prim": "Pair",
                                         "args": [
                                           {
-                                            "bytes": "c1acdc0843b69bf6a3cc4ebe6314ee8325f6e71616489c82e5fac67ef6bd3e0d"
+                                            "bytes": "0780df9ee54cbca434ad9366000e697656ec9471ea5be2ddffee452f2e8c7043"
                                           },
                                           [
                                             {
@@ -197,6 +197,6 @@
       }
     ]
   },
-  "packed_hex": "050707010000000c54455a4f5241434c455f563107070a00000004af1864d907070a00000016019142eb01374f37f03023eefc82f2ede96e8ae515000707000107070a00000020cee88ce5610e1bc33cbfb1fb0ccd24d0000f62322ff4a0c184d4057e84a9c44d07070100000004434f52450707000307070080cbf4a70d070700b4cdf4a70d07070a00000020c1acdc0843b69bf6a3cc4ebe6314ee8325f6e71616489c82e5fac67ef6bd3e0d020000005d070701000000074254435f55534407070080a8d6b90707070006009cc9f4a70d07070100000008555344545f555344070700a0ee6d07070006009cc9f4a70d0707010000000758545a5f555344070700909c0107070006009cc9f4a70d",
-  "blake2b_hex": "c7aa9e490a69428f705493b81c49237639982a4bded3e3a7d55f4c1870b4e49d"
+  "packed_hex": "050707010000000c54455a4f5241434c455f563107070a00000004d052218e07070a00000016019142eb01374f37f03023eefc82f2ede96e8ae515000707000107070a000000204f373c77d30cd4e10a5baee143500112378d4cbe47c39e1c2ab02cf2b463f63c07070100000004434f52450707000307070080cbf4a70d070700b4cdf4a70d07070a000000200780df9ee54cbca434ad9366000e697656ec9471ea5be2ddffee452f2e8c7043020000005d070701000000074254435f55534407070080a8d6b90707070006009cc9f4a70d07070100000008555344545f555344070700a0ee6d07070006009cc9f4a70d0707010000000758545a5f555344070700909c0107070006009cc9f4a70d",
+  "blake2b_hex": "bb645cf49a324562323c5dbfc5ebd1d62ff5300e5dd9634318f6230b86215f1c"
 }

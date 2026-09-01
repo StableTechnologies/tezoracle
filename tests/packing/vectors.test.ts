@@ -56,7 +56,7 @@ test("chain_id and oracle_address are in the packed domain", () => {
   assert.notEqual(gv01.packed_hex, gv04.packed_hex);
   assert.notEqual(gv01.blake2b_hex, gv04.blake2b_hex);
   assert.notEqual(gv01.packed_hex, gv05.packed_hex);
-  assert.equal((gv01.payload as { chain_id: string }).chain_id, "NetXnHfVqm9iesp");
+  assert.equal((gv01.payload as { chain_id: string }).chain_id, "NetXsqzbfFenSTS");
   assert.equal((gv04.payload as { chain_id: string }).chain_id, "NetXdQprcVkpaWU");
 });
 

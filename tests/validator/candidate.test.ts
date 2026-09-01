@@ -7,7 +7,7 @@ import { evidenceDigestHex } from "../../src/validator/evidence.js";
 import { NOW, coreMockTransport, pinnedRegister } from "./helpers.js";
 import { clone } from "./helpers.js";
 
-const GHOSTNET = "NetXnHfVqm9iesp";
+const SHADOWNET = "NetXsqzbfFenSTS";
 const ORACLE = "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy";
 
 async function matchingCandidate() {
@@ -21,7 +21,7 @@ async function matchingCandidate() {
   });
   const document = candidateFromDerivation({
     derivation,
-    chain_id: GHOSTNET,
+    chain_id: SHADOWNET,
     oracle_address: ORACLE,
     round: "1",
     valid_from: String(NOW),

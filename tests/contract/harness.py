@@ -8,7 +8,7 @@ import smartpy as sp
 
 from contract.oracle import main
 
-CHAIN_HEX = "0xaf1864d9"
+CHAIN_HEX = "0xd052218e"
 DOMAIN = "TEZORACLE_V1"
 POLICY_HASH = "11" * 32
 EVIDENCE_DIGEST = "22" * 32

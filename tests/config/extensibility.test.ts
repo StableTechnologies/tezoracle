@@ -45,7 +45,7 @@ test("a new publication group and asset id validate without packer redesign", ()
   const packed = packPayload(
     {
       domain: "TEZORACLE_V1",
-      chain_id: "NetXnHfVqm9iesp",
+      chain_id: "NetXsqzbfFenSTS",
       oracle_address: "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy",
       config_version: "1",
       policy_hash: "aa".repeat(32),

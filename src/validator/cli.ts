@@ -135,7 +135,27 @@ export async function runCli(argv: string[]): Promise<number> {
         valid_from: String(now),
         valid_until: String(now + window),
       });
-      writeOutput(flags, { ok: true, ...candidate, derivation: { assets: derivation.assets, evidence_digest: candidate.payload.evidence_digest } });
+      // --output (or stdout when absent) gets the bare {payload, evidence} document
+      // so it can be piped straight into `verify`/`sign --candidate`; the summary
+      // always goes to stderr so stdout stays a clean, pipeable JSON document.
+      writeOutput(flags, candidate);
+      process.stderr.write(
+        `${JSON.stringify(
+          {
+            ok: true,
+            evidence_digest: candidate.payload.evidence_digest,
+            assets: derivation.assets.map((asset) => ({
+              asset_id: asset.asset_id,
+              price: asset.price.toString(),
+              decimals: asset.decimals,
+              observation_time: asset.observation_time,
+              contributing_source_ids: asset.sources.map((source) => source.source_id),
+            })),
+          },
+          null,
+          2,
+        )}\n`,
+      );
     } else {
       writeOutput(flags, {
         ok: true,
@@ -195,6 +215,7 @@ export async function runCli(argv: string[]): Promise<number> {
     }
     writeOutput(flags, {
       ok: true,
+      payload: signed.payload,
       packed_hex: signed.packed_hex,
       signature: signed.signature,
       public_key: signed.public_key,

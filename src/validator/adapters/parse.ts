@@ -51,10 +51,14 @@ export function parseUnixMs(raw: unknown): number {
 
 export function parseUnixSFractional(raw: unknown): number {
   if (typeof raw === "number") {
-    if (!Number.isInteger(raw) || raw < 1) {
-      throw new ValidatorError("BAD_TIMESTAMP", "unix_s_fractional JSON numbers must be positive integers");
+    if (!Number.isFinite(raw)) {
+      throw new ValidatorError("BAD_TIMESTAMP", "unix_s_fractional JSON number must be finite");
     }
-    return raw;
+    const seconds = Math.trunc(raw);
+    if (seconds < 1 || seconds > Number.MAX_SAFE_INTEGER) {
+      throw new ValidatorError("BAD_TIMESTAMP", "unix_s_fractional out of range");
+    }
+    return seconds;
   }
   if (typeof raw !== "string" || !/^[0-9]+(\.[0-9]+)?$/.test(raw)) {
     throw new ValidatorError("BAD_TIMESTAMP", "unix_s_fractional must be a decimal string");

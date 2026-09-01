@@ -16,7 +16,7 @@ The relayer transports already-signed bytes to `submit`. It verifies signatures 
 | Simulate, broadcast, and confirm via an injected RPC | Submit after a failed simulation |
 | Submit a batch assembled without a coordinator | Ask a coordinator for a new price when the coordinator is down |
 
-A later fee-paying Tezos account used only to inject the operation is not an oracle signer and must not appear in the signer set. This phase’s CI path uses a mock RPC; live injection is supplied by local e2e (octez mockup or Ghostnet adapter).
+A later fee-paying Tezos account used only to inject the operation is not an oracle signer and must not appear in the signer set. This phase’s CI path uses a mock RPC. Local e2e (`tests/e2e/local.test.ts`) injects an in-memory contract harness as `RelayRpc`. Live Shadownet injection remains stretch.
 
 ## 2. Signed batch
 
@@ -87,7 +87,9 @@ npm run relayer -- submit --batch file --signers file
 
 `submit` requires an injected `RelayRpc` (tests and local e2e). `encode` prints the immutable `submit` parameter for an external injector such as `octez-client`.
 
-The relayer never reads `TEZORACLE_SIGNER_SECRET_KEY`.
+The relayer never reads `TEZORACLE_SIGNER_SECRET_KEY`. A later fee-payer secret is not an oracle signer.
+
+AWS testnet/shadow transport (`relayerBackup` is a second function on the same sealed batch): [AWS_DEPLOY.md](AWS_DEPLOY.md).
 
 ## 7. Failure codes
 

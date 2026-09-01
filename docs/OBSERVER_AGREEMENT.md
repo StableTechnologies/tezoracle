@@ -71,7 +71,7 @@ Timestamps:
 
 - Binance `time` and OKX `ts`: integer milliseconds → `floor_div(ms, 1000)` seconds. Reject if not an integer JSON number/string of digits.
 - Coinbase `time`: RFC3339 / ISO-8601 UTC → Unix seconds (fractional seconds truncated toward zero).
-- Kraken trade time: seconds as decimal string; truncate toward zero to Unix seconds.
+- Kraken trade time: seconds as a decimal string or JSON number; truncate toward zero to Unix seconds.
 
 ## 5. Minimum observations and deviation
 

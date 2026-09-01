@@ -17,7 +17,7 @@ def load_vector(path: Path) -> dict:
 
 
 def test_chain_id_hex_matches_known_networks() -> None:
-    assert chain_id_hex("NetXnHfVqm9iesp") == "af1864d9"
+    assert chain_id_hex("NetXsqzbfFenSTS") == "d052218e"
     assert chain_id_hex("NetXdQprcVkpaWU") == "7a06a770"
     with pytest.raises(PackError) as exc:
         chain_id_hex("NetXdQprjJrJcWw")

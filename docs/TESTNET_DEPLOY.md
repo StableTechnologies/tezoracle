@@ -1,18 +1,33 @@
 # Testnet origination
 
-**Status:** non-production. 1-of-1 on Ghostnet (or a local sandbox) only.  
+**Status:** non-production. 1-of-1 on **Shadownet** (or a local sandbox) only.  
 Do **not** originate this contract with production keys, production RPCs, or a production signer set.
 
 Compiled code: `michelson/tezoracle.tz` (regenerate with `PYTHONPATH=src python -m contract.compile` or `python scripts/compile_oracle.py`).
 
+## Network
+
+| | Value |
+| --- | --- |
+| Network | Shadownet |
+| RPC | `https://rpc.shadownet.teztnets.com` |
+| `chain_id` | `NetXsqzbfFenSTS` (packed hex `d052218e`) |
+| Faucet | https://faucet.shadownet.teztnets.com/ |
+
+`chain_id` is not stored on the contract. `submit` checks it against `CHAIN_ID`. Signed payloads for this deployment MUST use `NetXsqzbfFenSTS`, not a leftover Ghostnet id.
+
 ## Prerequisites
 
-- `octez-client` (or another Tezos client) pointed at **Ghostnet** or a local mockup
+- `octez-client` (or another Tezos client) pointed at **Shadownet** or a local mockup
 - A testnet-only `tz1`/`tz2`/`tz3` secret in `.env` as `TEZORACLE_SIGNER_SECRET_KEY` (see `.env.example`)
-- Funded testnet account for origination fees
+- Funded Shadownet account for origination fees
 - Initial storage matching the intended **configuration** (1-of-1 for this phase)
 
 Never paste a production `edsk` into the client, CI, or this repository.
+
+```bash
+octez-client -E https://rpc.shadownet.teztnets.com config update
+```
 
 ## Compile
 
@@ -34,19 +49,29 @@ Originate with the same parameters the harness uses for 1-of-1:
 - `threshold_n = 1`, `threshold_m = 1`
 - class minima empty or `{ "A" = 0 }`
 - `activation_delay_levels ≥ 1`
-- `config_version = 1`
+- `config_version` = the committed register's `config_version` (currently `3`)
 - `policy_hash` = BLAKE2B-256 of the pinned `config/` snapshot
-- Ghostnet `chain_id` is not stored; it is checked against `CHAIN_ID` at `submit`
 - Admin and guardian: your testnet addresses
 - Signer public key: the testnet key from `.env`, never a production key
+- `groups` / `assets` = the full committed register (`CORE`, `USDTZ`, `TZBTC`), not a single asset
 
-SmartPy tests print `storage_tz` on origination (`origination_result["storage_tz"]`). Use a **local** 1-of-1 scenario with your testnet public key to obtain storage, or construct Micheline that matches `docs/CONTRACT_SPEC.md`.
+`scripts/build_origination_storage.py` builds this storage from the real committed `config/` register (not the dummy compile/mockup fixtures) and prints the `policy_hash` plus Micheline for `--init`:
+
+```bash
+PYTHONPATH=src python scripts/build_origination_storage.py \
+  --admin tz1YOUR... \
+  --signer-pk edpkYOUR...
+```
+
+`--admin` and `--signer-pk` must be your testnet-only address/key, never production. `--guardian` defaults to `--admin` if omitted.
 
 ## Example `octez-client` origination
 
-Replace placeholders. This is Ghostnet / sandbox only.
+Replace placeholders. This is Shadownet / sandbox only.
 
 ```bash
+export TEZOS_RPC_URL="https://rpc.shadownet.teztnets.com"
+
 octez-client --endpoint "${TEZOS_RPC_URL}" \
   originate contract tezoracle \
   transferring 0 from testnet-admin \
@@ -55,13 +80,13 @@ octez-client --endpoint "${TEZOS_RPC_URL}" \
   --burn-cap 5
 ```
 
-Record the resulting `KT1…` as `ORACLE_ADDRESS` in local `.env`. Signers must put that exact address in the payload `oracle_address` field.
+Record the resulting `KT1…` as `ORACLE_ADDRESS` in local `.env`. Signers must put that exact address in the payload `oracle_address` field and `TEZOS_CHAIN_ID=NetXsqzbfFenSTS`.
 
 ## After origination
 
 1. Confirm `get_price` fails `NO_PRICE` until a delayed 1-of-1 batch matures.
-2. Submit only with testnet signatures over frozen `PACK(payload)`.
+2. Submit only with testnet signatures over frozen `PACK(payload)` bound to Shadownet `chain_id`.
 3. Do not point TezFin `set_oracle` at this address.
 4. Do not reuse the testnet key on mainnet.
 
-Live Ghostnet origination is stretch for the initial phase. Local/sandbox e2e is the baseline.
+Live Shadownet origination is stretch for the initial phase. Local/sandbox e2e is the baseline.

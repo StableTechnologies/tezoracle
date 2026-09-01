@@ -1,7 +1,7 @@
 {
   "label": "tezoracle-transport-test-ed25519-v1",
   "curve": "ed25519",
-  "note": "SYNTHETIC TEST-ONLY KEYS. Derived from the well-known BIP39 test mnemonic for CHECK_SIGNATURE / quorum fixtures. Never funded. Never used on Ghostnet, mainnet, or any network with value. Not a production, testnet-operator, or faucet key.",
+  "note": "SYNTHETIC TEST-ONLY KEYS. Derived from the well-known BIP39 test mnemonic for CHECK_SIGNATURE / quorum fixtures. Never funded. Never used on Shadownet, mainnet, or any network with value. Not a production, testnet-operator, or faucet key.",
   "mnemonic_note": "abandon ×11 + about; paths 44'/1729'/{0..3}'/0'",
   "signers": [
     {

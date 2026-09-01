@@ -80,6 +80,10 @@ test("CORE assets are testnet/non-authoritative and USDtz/tzBTC are draft stubs"
   const krakenBtc = btc.sources.find((source) => source.source_id === "kraken");
   assert.equal(krakenBtc?.market_id, "XBTUSD");
   assert.equal(krakenBtc?.base_asset, "BTC");
+  assert.equal(krakenBtc?.result_pair_key, "XXBTZUSD");
+  const krakenUsdt = usdt.sources.find((source) => source.source_id === "kraken");
+  assert.equal(krakenUsdt?.market_id, "USDTUSD");
+  assert.equal(krakenUsdt?.result_pair_key, "USDTZUSD");
   const binance = usdt.sources.find((source) => source.source_id === "binance");
   assert.equal(binance?.health.known_restriction, "http_451");
 

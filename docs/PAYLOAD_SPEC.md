@@ -94,7 +94,7 @@ Do not replace `chain_id` with `string` or `bytes`. Do not replace `address` wit
 | Order | Field | Michelson | Constraints |
 | ---: | --- | --- | --- |
 | 1 | `domain` | `string` | Exactly `TEZORACLE_V1`. ASCII, length 12, no BOM, no trailing NUL, no Unicode normalization. |
-| 2 | `chain_id` | `chain_id` | Exact destination Tezos network. Mainnet: `NetXdQprcVkpaWU`. Ghostnet: `NetXnHfVqm9iesp`. |
+| 2 | `chain_id` | `chain_id` | Exact destination Tezos network. Mainnet: `NetXdQprcVkpaWU`. Shadownet: `NetXsqzbfFenSTS`. |
 | 3 | `oracle_address` | `address` | Exact destination KT1. Default entrypoint only. Implicit (`tz1`/`tz2`/`tz3`/`tz4`) addresses are rejected. |
 | 4 | `config_version` | `nat` | ≥ 1. Must equal the active on-chain configuration version. |
 | 5 | `policy_hash` | `bytes` | Exactly 32 bytes. BLAKE2B-256 of the canonical parameter-register snapshot ([PARAMETER_SCHEMA.md](PARAMETER_SCHEMA.md)). |

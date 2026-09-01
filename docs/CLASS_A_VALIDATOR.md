@@ -19,7 +19,7 @@ Coordinator: [COORDINATOR.md](COORDINATOR.md). Relayer: [RELAYER.md](RELAYER.md)
 | Sign `PACK(payload)` with a testnet key from runtime config | Hold a production key; sign a digest other than the frozen packed bytes |
 | Track `last_signed_round` per publication group | Reuse or reorder a locally signed round |
 
-The validator holds the testnet signing key. The coordinator and relayer hold none.
+The validator holds the testnet signing key. The coordinator and relayer hold none. On the AWS testnet/shadow template, only `signerClassA` may read that secret ([AWS_DEPLOY.md](AWS_DEPLOY.md)).
 
 USDtz and tzBTC groups are draft stubs. Class A refuses those groups (`POLICY_PIN`) until a separately reviewed DEX policy exists.
 
@@ -73,10 +73,10 @@ The same four venues as the mainnet allowlist. Endpoints and paths are the regis
 | --- | --- | --- | --- | --- |
 | `binance` | Binance | JSON array of trades | string at `0.price` | integer ms at `0.time` |
 | `okx` | OKX | `{ code: "0", data: [...] }` | string at `data.0.last` | integer-digit ms at `data.0.ts` |
-| `kraken` | Kraken | `{ error: [], result: { <pair>: trades } }` | string at `result.<pair>.0.0` | fractional-second string at `result.<pair>.0.2` |
+| `kraken` | Kraken | `{ error: [], result: { <pair>: trades } }` | string at `result.<pair>.0.0` | fractional seconds (string or JSON number) at `result.<pair>.0.2` |
 | `coinbase` | Coinbase Exchange | ticker object | string at `price` | RFC3339 UTC at `time` |
 
-Kraken `XBTUSD` maps to BTC only through the register `base_asset: "BTC"` and `result_pair_key: "XXBTZUSD"`. That mapping is not a tzBTC alias.
+Kraken `XBTUSD` maps to BTC only through the register `base_asset: "BTC"` and `result_pair_key: "XXBTZUSD"`. That mapping is not a tzBTC alias. Kraken `USDTUSD` is pinned as `result_pair_key: "USDTZUSD"` (venue result key, not the query `pair=`).
 
 OKX `instId` and a Coinbase `product_id` (when present) must equal the pinned `market_id` (`WRONG_MARKET`).
 
