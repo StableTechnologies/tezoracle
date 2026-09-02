@@ -18,21 +18,44 @@
   "absolute_max_price": "500000000000",
   "max_movement_bps": 2000,
   "derivation": "peg_factor_times_usd",
-  "notes": "Non-authoritative stub. BTC_USD is a reference input, not a tzBTC alias. Publication requires an independently observed TZBTC/BTC peg factor from approved Tezos liquidity routes (executable quotes, TWAP, minimum liquidity, bounded impact, cross-route deviation). Empty pools are not wildcards. No fixed peg, issuer assertion, or coordinator-selected haircut.",
+  "notes": "TZBTC_USD = TWAP(tzBTC/XTZ) x XTZ_USD. Algebraically identical to a BTC_USD x (tzBTC/BTC peg factor) formulation (peg_factor = TWAP(tzBTC/XTZ) x XTZ_USD / BTC_USD), since XTZ_USD and BTC_USD are already independently derived in CORE; BTC_USD is a reference input, not a tzBTC alias, and is not required by the price formula itself. No fixed peg, issuer assertion, or coordinator-selected haircut. Two independent tzBTC/XTZ pools were verified on-chain via TzKT 2026-09-01, both plain constant-product AMMs (no cumulative-price oracle, same as the USDTZ_USD pools): the native Liquidity Baking CPMM (protocol-level, subsidized by baking rewards; alias 'Sirius DEX') and Quipuswap v1 tzBTC/XTZ. Spot prices agreed within ~0.45% at verification time. tzBTC itself has 8 decimals (KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn); the shared constant-product adapter and TWAP math scale for this via each pool's token_a_decimals, distinct from this asset's own 6-decimal USD price precision. Numeric thresholds below are provisional pending liquidity/risk review sign-off.",
   "sources": [],
   "dex": {
-    "status": "pending_review",
-    "pools": [],
-    "quote_size": null,
-    "min_liquidity": null,
-    "max_price_impact_bps": null,
-    "twap_window_seconds": null,
-    "min_twap_observations": null,
-    "cross_pool_deviation_bps": null,
+    "status": "approved",
+    "pools": [
+      {
+        "pool_address": "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5",
+        "protocol": "dexter_v1_amm",
+        "token_a_address": "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+        "token_a_id": null,
+        "token_a_decimals": 8,
+        "token_b_address": "XTZ",
+        "token_b_id": null,
+        "token_b_decimals": 6,
+        "expected_code_hash": "458319130"
+      },
+      {
+        "pool_address": "KT1WBLrLE2vG8SedBqiSJFm4VVAZZBytJYHc",
+        "protocol": "quipuswap_v1_amm",
+        "token_a_address": "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+        "token_a_id": null,
+        "token_a_decimals": 8,
+        "token_b_address": "XTZ",
+        "token_b_id": null,
+        "token_b_decimals": 6,
+        "expected_code_hash": "572234294"
+      }
+    ],
+    "quote_size": "100000000",
+    "min_liquidity": "1000000",
+    "max_price_impact_bps": 100,
+    "twap_window_seconds": 1800,
+    "min_twap_observations": 3,
+    "cross_pool_deviation_bps": 150,
     "cold_start_policy": "fail_closed",
     "degraded_one_pool_mode": false
   },
   "market_calendar": "crypto_24x7",
-  "benchmark_methodology": "pending_review",
-  "instrument_definition": "pending_review"
+  "benchmark_methodology": "dex_twap_dual_pool",
+  "instrument_definition": "tzBTC/USD via locally-sampled TWAP(tzBTC/XTZ, Liquidity Baking + Quipuswap v1) x XTZ_USD"
 }

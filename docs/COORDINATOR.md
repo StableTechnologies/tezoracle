@@ -19,7 +19,7 @@ The coordinator may trigger a round and may assemble a candidate for validators 
 
 Policy values come only from the pinned parameter register. A round request carries domain-separation fields (`chain_id`, `oracle_address`, `config_version`, `policy_hash`) copied from that register and from runtime configuration. Unknown request fields that look like policy are refused (`POLICY_PIN`).
 
-USDtz and tzBTC groups are draft stubs. The coordinator refuses to assemble those candidates (`STUB_GROUP`) until a separately reviewed DEX policy exists.
+USDtz and tzBTC groups are derived through an independent DEX pool TWAP bridged via `XTZ_USD` (see [CLASS_A_VALIDATOR.md](CLASS_A_VALIDATOR.md)). The coordinator assembles their candidates like any other group; it just needs an injected `PoolRpcClient` and enough accumulated TWAP samples, or the group fails closed (`INSUFFICIENT`/`DEX_TWAP`) the same way any other unready group does.
 
 ## 2. Round trigger
 
@@ -104,7 +104,6 @@ AWS testnet/shadow transport (coordinator Lambdas cannot `GetSecretValue` on the
 | Code | Meaning |
 | --- | --- |
 | `POLICY_PIN` | Request carried policy-shaped fields, or hash/version is not the pinned register |
-| `STUB_GROUP` | `USDTZ` / `TZBTC` candidate assembly |
 | `PACKED_MISMATCH` | Signature or payload does not match the frozen candidate bytes |
 | `SIGNATURE` | Local `CHECK_SIGNATURE` failed, or public key does not match the set |
 | `UNKNOWN_SIGNER` / `INACTIVE_SIGNER` / `DUPLICATE` | Signer-set checks |

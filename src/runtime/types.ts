@@ -1,4 +1,6 @@
 import type { HttpTransport } from "../validator/adapters/http.js";
+import type { PoolRpcClient } from "../validator/adapters/dex/rpc.js";
+import type { PoolSampleStore } from "../validator/adapters/dex/state.js";
 import type { CandidateDocument, SharedEvidenceManifest } from "../validator/types.js";
 import type { SignedBatch, SignerSet, RelayRpc } from "../relayer/types.js";
 
@@ -43,6 +45,8 @@ export type TickDeps = {
   oracle_address: string;
   group?: string;
   signerIndex?: string;
+  poolRpc?: PoolRpcClient;
+  dexStateStore?: PoolSampleStore;
 };
 
 export type TickSuccess = {

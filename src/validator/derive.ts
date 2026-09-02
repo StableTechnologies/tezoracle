@@ -1,5 +1,8 @@
 import type { PublicationGroup } from "../packing/types.js";
 import type { AssetConfig, RegisterConfig, RegisterSnapshot } from "../config/validate.js";
+import { observeXtzPairPool } from "./adapters/dex/observe.js";
+import { createUninjectedPoolRpcClient, type PoolRpcClient } from "./adapters/dex/rpc.js";
+import type { PoolSampleStore } from "./adapters/dex/state.js";
 import type { HttpTransport } from "./adapters/http.js";
 import { absDelta, exceedsBps, medianLower } from "./decimal.js";
 import { ValidatorError } from "./errors.js";
@@ -141,34 +144,17 @@ function finalizeAttempts(
   });
 }
 
-export async function derivePublicationGroup(args: {
-  snapshot: RegisterSnapshot;
-  group: PublicationGroup;
-  transport: HttpTransport;
-  now: number;
-  round?: string;
-}): Promise<GroupDerivation> {
-  const { snapshot, group, transport, now } = args;
-  if (group === "USDTZ" || group === "TZBTC") {
-    throw new ValidatorError("POLICY_PIN", `${group} is a non-authoritative stub and is not signed in this phase`);
-  }
-  if (group !== "CORE") {
-    throw new ValidatorError("POLICY_PIN", `unknown publication group ${String(group)}`);
-  }
-
+async function deriveXtzUsdFactor(
+  snapshot: RegisterSnapshot,
+  transport: HttpTransport,
+  now: number,
+): Promise<{ usdt: DerivedAsset; xtz: DerivedAsset; xtzFactor: UsdtFactor }> {
   const usdtAsset = snapshot.assets.USDT_USD;
   const xtzAsset = snapshot.assets.XTZ_USD;
-  const btcAsset = snapshot.assets.BTC_USD;
-  if (!usdtAsset || !xtzAsset || !btcAsset) {
+  if (!usdtAsset || !xtzAsset) {
     throw new ValidatorError("POLICY_PIN", "CORE assets missing from the pinned register");
   }
-
-  const [usdtRaw, xtzRaw, btcRaw] = await Promise.all([
-    observeAssetSources(usdtAsset.sources, transport),
-    observeAssetSources(xtzAsset.sources, transport),
-    observeAssetSources(btcAsset.sources, transport),
-  ]);
-
+  const usdtRaw = await observeAssetSources(usdtAsset.sources, transport);
   const usdtDerived = deriveAssetFromObservations(
     usdtAsset,
     finalizeAttempts(usdtAsset, snapshot.register, usdtRaw, now, undefined),
@@ -176,29 +162,128 @@ export async function derivePublicationGroup(args: {
   if (!usdtDerived.ok) {
     throw new ValidatorError(usdtDerived.code, `USDT_USD: ${usdtDerived.detail}`);
   }
-
   const usdt: UsdtFactor = {
     price: usdtDerived.asset.price,
     decimals: usdtDerived.asset.decimals,
     observation_time: usdtDerived.asset.observation_time,
   };
-
+  const xtzRaw = await observeAssetSources(xtzAsset.sources, transport);
   const xtzDerived = deriveAssetFromObservations(
     xtzAsset,
     finalizeAttempts(xtzAsset, snapshot.register, xtzRaw, now, usdt),
   );
+  if (!xtzDerived.ok) {
+    throw new ValidatorError(xtzDerived.code, `XTZ_USD: ${xtzDerived.detail}`);
+  }
+  return {
+    usdt: usdtDerived.asset,
+    xtz: xtzDerived.asset,
+    xtzFactor: {
+      price: xtzDerived.asset.price,
+      decimals: xtzDerived.asset.decimals,
+      observation_time: xtzDerived.asset.observation_time,
+    },
+  };
+}
+
+async function deriveXtzPairGroup(args: {
+  snapshot: RegisterSnapshot;
+  group: "USDTZ" | "TZBTC";
+  assetId: "USDTZ_USD" | "TZBTC_USD";
+  transport: HttpTransport;
+  now: number;
+  round?: string;
+  poolRpc: PoolRpcClient;
+  dexStateStore?: PoolSampleStore;
+}): Promise<GroupDerivation> {
+  const { snapshot, group, assetId, transport, now } = args;
+  const asset = snapshot.assets[assetId];
+  if (!asset) {
+    throw new ValidatorError("POLICY_PIN", `${assetId} is missing from the pinned register`);
+  }
+  const dex = asset.dex;
+  if (!dex || dex.status !== "approved" || dex.pools.length === 0) {
+    throw new ValidatorError("POLICY_PIN", `${assetId} dex policy is not approved`);
+  }
+
+  const { xtzFactor } = await deriveXtzUsdFactor(snapshot, transport, now);
+
+  const poolAttempts = await Promise.all(
+    dex.pools.map((pool) =>
+      observeXtzPairPool({ pool, asset, dex, rpc: args.poolRpc, store: args.dexStateStore, now, xtzUsd: xtzFactor }),
+    ),
+  );
+  const derived = deriveAssetFromObservations(asset, poolAttempts);
+  if (!derived.ok) {
+    throw new ValidatorError(derived.code, `${assetId}: ${derived.detail}`);
+  }
+
+  const assets = [derived.asset];
+  const policy_hash = policyHashHex(snapshot);
+  const evidence = buildSharedManifest({
+    snapshot,
+    policy_hash,
+    publication_group: group,
+    round: args.round ?? "1",
+    assets,
+  });
+  return {
+    group,
+    policy_hash,
+    config_version: snapshot.register.config_version,
+    assets,
+    evidence,
+    evidence_digest: evidenceDigestHex(evidence),
+  };
+}
+
+export async function derivePublicationGroup(args: {
+  snapshot: RegisterSnapshot;
+  group: PublicationGroup;
+  transport: HttpTransport;
+  now: number;
+  round?: string;
+  poolRpc?: PoolRpcClient;
+  dexStateStore?: PoolSampleStore;
+}): Promise<GroupDerivation> {
+  const { snapshot, group, transport, now } = args;
+  if (group === "USDTZ" || group === "TZBTC") {
+    return deriveXtzPairGroup({
+      snapshot,
+      group,
+      assetId: group === "USDTZ" ? "USDTZ_USD" : "TZBTC_USD",
+      transport,
+      now,
+      round: args.round,
+      poolRpc: args.poolRpc ?? createUninjectedPoolRpcClient(),
+      dexStateStore: args.dexStateStore,
+    });
+  }
+  if (group !== "CORE") {
+    throw new ValidatorError("POLICY_PIN", `unknown publication group ${String(group)}`);
+  }
+
+  const btcAsset = snapshot.assets.BTC_USD;
+  if (!btcAsset) {
+    throw new ValidatorError("POLICY_PIN", "CORE assets missing from the pinned register");
+  }
+
+  const { usdt: usdtDerivedAsset, xtz: xtzDerivedAsset } = await deriveXtzUsdFactor(snapshot, transport, now);
+  const usdt: UsdtFactor = {
+    price: usdtDerivedAsset.price,
+    decimals: usdtDerivedAsset.decimals,
+    observation_time: usdtDerivedAsset.observation_time,
+  };
+  const btcRaw = await observeAssetSources(btcAsset.sources, transport);
   const btcDerived = deriveAssetFromObservations(
     btcAsset,
     finalizeAttempts(btcAsset, snapshot.register, btcRaw, now, usdt),
   );
-  if (!xtzDerived.ok) {
-    throw new ValidatorError(xtzDerived.code, `XTZ_USD: ${xtzDerived.detail}`);
-  }
   if (!btcDerived.ok) {
     throw new ValidatorError(btcDerived.code, `BTC_USD: ${btcDerived.detail}`);
   }
 
-  const assets = [btcDerived.asset, usdtDerived.asset, xtzDerived.asset];
+  const assets = [btcDerived.asset, usdtDerivedAsset, xtzDerivedAsset];
   const policy_hash = policyHashHex(snapshot);
   const evidence = buildSharedManifest({
     snapshot,
@@ -216,4 +301,6 @@ export async function derivePublicationGroup(args: {
     evidence_digest: evidenceDigestHex(evidence),
   };
 }
+
+
 

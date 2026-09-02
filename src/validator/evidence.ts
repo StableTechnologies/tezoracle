@@ -1,6 +1,7 @@
 import { blake2b256Hex } from "../packing/pack.js";
 import type { PublicationGroup } from "../packing/types.js";
 import type { AssetConfig, RegisterSnapshot } from "../config/validate.js";
+import { baseAssetFromId } from "./adapters/dex/observe.js";
 import { canonicalJson } from "./canonical.js";
 import { ValidatorError } from "./errors.js";
 import type { RefusalCode } from "./errors.js";
@@ -263,8 +264,8 @@ function parseSourceObservation(raw: unknown): SourceObservation {
     if (!isObject(raw.conversion) || extraKeys(raw.conversion, CONVERSION_KEYS).length > 0 || missingKeys(raw.conversion, CONVERSION_KEYS).length > 0) {
       throw new ValidatorError("EVIDENCE_CANON", "conversion fields are not exact");
     }
-    if (raw.conversion.via_asset_id !== "USDT_USD") {
-      throw new ValidatorError("EVIDENCE_SOURCE", "conversion via_asset_id must be USDT_USD");
+    if (raw.conversion.via_asset_id !== "USDT_USD" && raw.conversion.via_asset_id !== "XTZ_USD") {
+      throw new ValidatorError("EVIDENCE_SOURCE", "conversion via_asset_id must be USDT_USD or XTZ_USD");
     }
     if (typeof raw.conversion.factor !== "string" || !POSITIVE_NAT.test(raw.conversion.factor)) {
       throw new ValidatorError("EVIDENCE_PRICE", "conversion factor must be a positive nat string");
@@ -276,7 +277,7 @@ function parseSourceObservation(raw: unknown): SourceObservation {
       throw new ValidatorError("EVIDENCE_TIME", "factor_observation_time must be an integer");
     }
     conversion = {
-      via_asset_id: "USDT_USD",
+      via_asset_id: raw.conversion.via_asset_id,
       factor: raw.conversion.factor,
       factor_decimals: raw.conversion.factor_decimals,
       factor_observation_time: raw.conversion.factor_observation_time,
@@ -332,14 +333,31 @@ export function bindManifestToRegister(
     const groups = new Set<string>();
     for (const source of assetEvidence.sources) {
       const binding = asset.sources.find((entry) => entry.source_id === source.source_id);
-      if (!binding) return "EVIDENCE_SOURCE";
+      if (binding) {
+        if (
+          binding.endpoint !== source.endpoint ||
+          binding.query !== source.query ||
+          binding.market_id !== source.market_id ||
+          binding.venue !== source.venue ||
+          binding.base_asset !== source.base_asset ||
+          binding.quote_asset !== source.quote_asset
+        ) {
+          return "EVIDENCE_ENDPOINT";
+        }
+        groups.add(source.independence_group);
+        continue;
+      }
+      // DEX-pool sources (USDTZ/TZBTC) have no entry in asset.sources -- they
+      // bind against asset.dex.pools instead, identified by pool_address.
+      const pool = asset.dex?.pools.find((entry) => entry.pool_address === source.source_id);
+      if (!pool) return "EVIDENCE_SOURCE";
       if (
-        binding.endpoint !== source.endpoint ||
-        binding.query !== source.query ||
-        binding.market_id !== source.market_id ||
-        binding.venue !== source.venue ||
-        binding.base_asset !== source.base_asset ||
-        binding.quote_asset !== source.quote_asset
+        source.endpoint !== "" ||
+        source.query !== "" ||
+        source.market_id !== `${pool.token_a_address}/XTZ` ||
+        source.venue !== pool.protocol ||
+        source.base_asset !== baseAssetFromId(asset.asset_id) ||
+        source.quote_asset !== "XTZ"
       ) {
         return "EVIDENCE_ENDPOINT";
       }

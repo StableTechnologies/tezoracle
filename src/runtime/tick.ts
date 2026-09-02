@@ -83,6 +83,8 @@ export async function runTick(deps: TickDeps): Promise<TickResult> {
       configDir: deps.configDir,
       transport: deps.transport,
       now: started,
+      poolRpc: deps.poolRpc,
+      dexStateStore: deps.dexStateStore,
     });
     const current = deps.now();
     if (current > Number(assembled.request.valid_until) || current - started > window) {

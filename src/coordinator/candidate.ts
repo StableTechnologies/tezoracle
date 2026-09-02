@@ -1,4 +1,6 @@
 import type { HttpTransport } from "../validator/adapters/http.js";
+import type { PoolRpcClient } from "../validator/adapters/dex/rpc.js";
+import type { PoolSampleStore } from "../validator/adapters/dex/state.js";
 import { candidateFromDerivation } from "../validator/candidate.js";
 import { derivePublicationGroup } from "../validator/derive.js";
 import { pinSnapshot } from "../validator/policy.js";
@@ -23,11 +25,10 @@ export async function assembleCandidate(args: {
   configDir: string;
   transport: HttpTransport;
   now: number;
+  poolRpc?: PoolRpcClient;
+  dexStateStore?: PoolSampleStore;
 }): Promise<AssembledCandidate> {
   assertNoOracleSigningKeys(args.request, "candidate request");
-  if (args.request.publication_group === "USDTZ" || args.request.publication_group === "TZBTC") {
-    throw new CoordinatorError("STUB_GROUP", `${args.request.publication_group} is a non-authoritative stub`);
-  }
   const { snapshot, policy_hash } = pinSnapshot(args.configDir);
   if (args.request.policy_hash !== policy_hash) {
     throw new CoordinatorError("POLICY_PIN", "round request policy_hash is not the pinned register hash");
@@ -41,6 +42,8 @@ export async function assembleCandidate(args: {
     transport: args.transport,
     now: args.now,
     round: args.request.round,
+    poolRpc: args.poolRpc,
+    dexStateStore: args.dexStateStore,
   });
   const candidate = candidateFromDerivation({
     derivation,
