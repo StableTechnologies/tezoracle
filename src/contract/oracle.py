@@ -11,6 +11,12 @@ import smartpy as sp
 @sp.module
 def main():
     DOMAIN = "TEZORACLE_V1"
+    CONFIG_DOMAIN = "TEZORACLE_CONFIG_V1"
+    CONFIG_CANCEL_DOMAIN = "TEZORACLE_CONFIG_CANCEL_V1"
+    UNPAUSE_DOMAIN = "TEZORACLE_UNPAUSE_V1"
+    UNPAUSE_CANCEL_DOMAIN = "TEZORACLE_UNPAUSE_CANCEL_V1"
+    ASSET_UNPAUSE_DOMAIN = "TEZORACLE_ASSET_UNPAUSE_V1"
+    ASSET_UNPAUSE_CANCEL_DOMAIN = "TEZORACLE_ASSET_UNPAUSE_CANCEL_V1"
     MAX_SIGNERS = 16
     MAX_ASSETS = 16
     MAX_GROUPS = 8
@@ -166,6 +172,8 @@ def main():
         )
     )
 
+    # Explicit comb matching the compiled %propose_config ABI (SmartPy's
+    # default alphabetical field order). Do not reorder without a new artifact.
     t_init: type = sp.record(
         admin=sp.address,
         guardian=sp.address,
@@ -182,10 +190,131 @@ def main():
         class_minima=sp.map[sp.string, sp.nat],
         groups=sp.map[sp.string, sp.list[sp.string]],
         assets=sp.map[sp.string, t_asset_policy],
+    ).layout(
+        (
+            "activation_delay_levels",
+            (
+                "admin",
+                (
+                    "assets",
+                    (
+                        "class_minima",
+                        (
+                            "config_version",
+                            (
+                                "groups",
+                                (
+                                    "guardian",
+                                    (
+                                        "max_clock_skew_seconds",
+                                        (
+                                            "min_activation_delay_levels",
+                                            (
+                                                "policy_hash",
+                                                (
+                                                    "price_nat_max",
+                                                    (
+                                                        "signers",
+                                                        (
+                                                            "threshold_m",
+                                                            (
+                                                                "threshold_n",
+                                                                "validity_window_seconds",
+                                                            ),
+                                                        ),
+                                                    ),
+                                                ),
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
     )
 
     t_pending_config: type = sp.record(activate_at_level=sp.nat, init=t_init).layout(
         ("activate_at_level", "init")
+    )
+
+    t_config_intent: type = sp.record(
+        domain=sp.string,
+        chain_id=sp.chain_id,
+        oracle_address=sp.address,
+        current_config_version=sp.nat,
+        governance_nonce=sp.nat,
+        valid_until=sp.timestamp,
+        init=t_init,
+    ).layout(
+        (
+            "domain",
+            (
+                "chain_id",
+                (
+                    "oracle_address",
+                    (
+                        "current_config_version",
+                        (
+                            "governance_nonce",
+                            ("valid_until", "init"),
+                        ),
+                    ),
+                ),
+            ),
+        )
+    )
+
+    t_simple_governance_intent: type = sp.record(
+        domain=sp.string,
+        chain_id=sp.chain_id,
+        oracle_address=sp.address,
+        current_config_version=sp.nat,
+        governance_nonce=sp.nat,
+        valid_until=sp.timestamp,
+    ).layout(
+        (
+            "domain",
+            (
+                "chain_id",
+                (
+                    "oracle_address",
+                    (
+                        "current_config_version",
+                        ("governance_nonce", "valid_until"),
+                    ),
+                ),
+            ),
+        )
+    )
+
+    t_asset_governance_intent: type = sp.record(
+        domain=sp.string,
+        chain_id=sp.chain_id,
+        oracle_address=sp.address,
+        current_config_version=sp.nat,
+        governance_nonce=sp.nat,
+        valid_until=sp.timestamp,
+        asset_id=sp.string,
+    ).layout(
+        (
+            "domain",
+            (
+                "chain_id",
+                (
+                    "oracle_address",
+                    (
+                        "current_config_version",
+                        (
+                            "governance_nonce",
+                            ("valid_until", "asset_id"),
+                        ),
+                    ),
+                ),
+            ),
+        )
     )
 
     def assert_quorum_config(p):
@@ -346,6 +475,26 @@ def main():
             sp.cast(payload, t_payload)
             self.data.packed = sp.pack(payload)
 
+        @sp.entrypoint
+        def pack_init(self, init):
+            sp.cast(init, t_init)
+            self.data.packed = sp.pack(init)
+
+        @sp.entrypoint
+        def pack_config_intent(self, intent):
+            sp.cast(intent, t_config_intent)
+            self.data.packed = sp.pack(intent)
+
+        @sp.entrypoint
+        def pack_simple_intent(self, intent):
+            sp.cast(intent, t_simple_governance_intent)
+            self.data.packed = sp.pack(intent)
+
+        @sp.entrypoint
+        def pack_asset_intent(self, intent):
+            sp.cast(intent, t_asset_governance_intent)
+            self.data.packed = sp.pack(intent)
+
     class TezOracle(sp.Contract):
         def __init__(self, init):
             assert assert_init_params(init)
@@ -369,6 +518,7 @@ def main():
             self.data.assets = build_asset_states(init.assets)
             self.data.last_round = {}
             self.data.pending_config = None
+            self.data.governance_nonce = 0
 
         @sp.private(with_storage="read-write")
         def consider_pending(self, p):
@@ -566,6 +716,36 @@ def main():
                         )
             return result.unwrap_some(error="NO_PRICE")
 
+        @sp.private(with_storage="read-only")
+        def assert_governance_binding(self, p):
+            assert p.domain == p.expected_domain, "DOMAIN"
+            assert p.chain_id == sp.chain_id, "CHAIN"
+            assert p.oracle_address == sp.self_address, "ORACLE"
+            assert p.current_config_version == self.data.config_version, "CONFIG"
+            assert p.governance_nonce == self.data.governance_nonce, "NONCE"
+            assert p.valid_until >= sp.timestamp(1), "WINDOW"
+            assert sp.now <= p.valid_until, "WINDOW"
+
+        @sp.private(with_storage="read-only")
+        def assert_full_committee(self, p):
+            packed = p.packed
+            signatures = p.signatures
+            sig_len = sp.len(signatures)
+            assert sig_len <= MAX_SIGNERS, "QUORUM"
+            assert sig_len == self.data.threshold_m, "QUORUM"
+            seen = set()
+            valid_count = 0
+            for entry in signatures:
+                assert not (entry.index in seen), "DUPLICATE"
+                seen.add(entry.index)
+                signer = self.data.signers.get(entry.index, error="UNKNOWN_SIGNER")
+                assert signer.active, "INACTIVE_SIGNER"
+                assert sp.check_signature(
+                    signer.public_key, entry.signature, packed
+                ), "SIGNATURE"
+                valid_count += 1
+            assert valid_count == self.data.threshold_m, "QUORUM"
+
         @sp.onchain_view
         def get_price(self, asset_id):
             return self.visible_quote(asset_id)
@@ -721,11 +901,27 @@ def main():
             sp.emit(asset_id, tag="tezoracle_asset_pause")
 
         @sp.entrypoint
-        def propose_unpause(self):
-            assert sp.sender == self.data.admin, "NOT_ADMIN"
+        def propose_unpause(self, intent, signatures):
+            sp.cast(intent, t_simple_governance_intent)
+            sp.cast(signatures, sp.list[t_signature_entry])
+            self.assert_governance_binding(
+                sp.record(
+                    domain=intent.domain,
+                    expected_domain=UNPAUSE_DOMAIN,
+                    chain_id=intent.chain_id,
+                    oracle_address=intent.oracle_address,
+                    current_config_version=intent.current_config_version,
+                    governance_nonce=intent.governance_nonce,
+                    valid_until=intent.valid_until,
+                )
+            )
+            self.assert_full_committee(
+                sp.record(packed=sp.pack(intent), signatures=signatures)
+            )
             assert self.data.paused, "NOT_PAUSED"
             activate_at = sp.level + self.data.activation_delay_levels
             self.data.pending_unpause_level = sp.Some(activate_at)
+            self.data.governance_nonce += 1
             sp.emit(activate_at, tag="tezoracle_unpause_propose")
 
         @sp.entrypoint
@@ -737,22 +933,54 @@ def main():
             sp.emit(True, tag="tezoracle_unpause_activate")
 
         @sp.entrypoint
-        def cancel_pending_unpause(self):
-            assert sp.sender == self.data.admin, "NOT_ADMIN"
+        def cancel_pending_unpause(self, intent, signatures):
+            sp.cast(intent, t_simple_governance_intent)
+            sp.cast(signatures, sp.list[t_signature_entry])
+            self.assert_governance_binding(
+                sp.record(
+                    domain=intent.domain,
+                    expected_domain=UNPAUSE_CANCEL_DOMAIN,
+                    chain_id=intent.chain_id,
+                    oracle_address=intent.oracle_address,
+                    current_config_version=intent.current_config_version,
+                    governance_nonce=intent.governance_nonce,
+                    valid_until=intent.valid_until,
+                )
+            )
+            self.assert_full_committee(
+                sp.record(packed=sp.pack(intent), signatures=signatures)
+            )
             assert self.data.pending_unpause_level.is_some(), "NO_PENDING"
             self.data.pending_unpause_level = None
+            self.data.governance_nonce += 1
             sp.emit(True, tag="tezoracle_unpause_cancel")
 
         @sp.entrypoint
-        def propose_asset_unpause(self, asset_id):
-            assert sp.sender == self.data.admin, "NOT_ADMIN"
-            st = self.data.assets.get(asset_id, error="ASSET_ID")
+        def propose_asset_unpause(self, intent, signatures):
+            sp.cast(intent, t_asset_governance_intent)
+            sp.cast(signatures, sp.list[t_signature_entry])
+            self.assert_governance_binding(
+                sp.record(
+                    domain=intent.domain,
+                    expected_domain=ASSET_UNPAUSE_DOMAIN,
+                    chain_id=intent.chain_id,
+                    oracle_address=intent.oracle_address,
+                    current_config_version=intent.current_config_version,
+                    governance_nonce=intent.governance_nonce,
+                    valid_until=intent.valid_until,
+                )
+            )
+            self.assert_full_committee(
+                sp.record(packed=sp.pack(intent), signatures=signatures)
+            )
+            st = self.data.assets.get(intent.asset_id, error="ASSET_ID")
             assert st.paused, "NOT_PAUSED"
             activate_at = sp.level + self.data.activation_delay_levels
             st.pending_unpause_level = sp.Some(activate_at)
-            self.data.assets[asset_id] = st
+            self.data.assets[intent.asset_id] = st
+            self.data.governance_nonce += 1
             sp.emit(
-                sp.record(asset_id=asset_id, activate_at=activate_at),
+                sp.record(asset_id=intent.asset_id, activate_at=activate_at),
                 tag="tezoracle_asset_unpause_prop",
             )
 
@@ -767,28 +995,62 @@ def main():
             sp.emit(asset_id, tag="tezoracle_asset_unpause_act")
 
         @sp.entrypoint
-        def cancel_asset_unpause(self, asset_id):
-            assert sp.sender == self.data.admin, "NOT_ADMIN"
-            st = self.data.assets.get(asset_id, error="ASSET_ID")
+        def cancel_asset_unpause(self, intent, signatures):
+            sp.cast(intent, t_asset_governance_intent)
+            sp.cast(signatures, sp.list[t_signature_entry])
+            self.assert_governance_binding(
+                sp.record(
+                    domain=intent.domain,
+                    expected_domain=ASSET_UNPAUSE_CANCEL_DOMAIN,
+                    chain_id=intent.chain_id,
+                    oracle_address=intent.oracle_address,
+                    current_config_version=intent.current_config_version,
+                    governance_nonce=intent.governance_nonce,
+                    valid_until=intent.valid_until,
+                )
+            )
+            self.assert_full_committee(
+                sp.record(packed=sp.pack(intent), signatures=signatures)
+            )
+            st = self.data.assets.get(intent.asset_id, error="ASSET_ID")
             assert st.pending_unpause_level.is_some(), "NO_PENDING"
             st.pending_unpause_level = None
-            self.data.assets[asset_id] = st
-            sp.emit(asset_id, tag="tezoracle_asset_unpause_cancel")
+            self.data.assets[intent.asset_id] = st
+            self.data.governance_nonce += 1
+            sp.emit(intent.asset_id, tag="tezoracle_asset_unpause_cancel")
 
         @sp.entrypoint
-        def propose_config(self, init):
-            assert sp.sender == self.data.admin, "NOT_ADMIN"
-            assert assert_init_params(init)
-            assert init.config_version == self.data.config_version + 1, "CONFIG"
+        def propose_config(self, intent, signatures):
+            sp.cast(intent, t_config_intent)
+            sp.cast(signatures, sp.list[t_signature_entry])
+            self.assert_governance_binding(
+                sp.record(
+                    domain=intent.domain,
+                    expected_domain=CONFIG_DOMAIN,
+                    chain_id=intent.chain_id,
+                    oracle_address=intent.oracle_address,
+                    current_config_version=intent.current_config_version,
+                    governance_nonce=intent.governance_nonce,
+                    valid_until=intent.valid_until,
+                )
+            )
+            self.assert_full_committee(
+                sp.record(packed=sp.pack(intent), signatures=signatures)
+            )
+            assert assert_init_params(intent.init)
+            assert intent.init.config_version == self.data.config_version + 1, "CONFIG"
             activate_at = sp.level + self.data.activation_delay_levels
             self.data.pending_config = sp.Some(
                 sp.record(
                     activate_at_level=activate_at,
-                    init=init,
+                    init=intent.init,
                 )
             )
+            self.data.governance_nonce += 1
             sp.emit(
-                sp.record(config_version=init.config_version, activate_at=activate_at),
+                sp.record(
+                    config_version=intent.init.config_version, activate_at=activate_at
+                ),
                 tag="tezoracle_config_propose",
             )
 
@@ -801,8 +1063,24 @@ def main():
             sp.emit(self.data.config_version, tag="tezoracle_config_activate")
 
         @sp.entrypoint
-        def cancel_pending_config(self):
-            assert sp.sender == self.data.admin, "NOT_ADMIN"
+        def cancel_pending_config(self, intent, signatures):
+            sp.cast(intent, t_simple_governance_intent)
+            sp.cast(signatures, sp.list[t_signature_entry])
+            self.assert_governance_binding(
+                sp.record(
+                    domain=intent.domain,
+                    expected_domain=CONFIG_CANCEL_DOMAIN,
+                    chain_id=intent.chain_id,
+                    oracle_address=intent.oracle_address,
+                    current_config_version=intent.current_config_version,
+                    governance_nonce=intent.governance_nonce,
+                    valid_until=intent.valid_until,
+                )
+            )
+            self.assert_full_committee(
+                sp.record(packed=sp.pack(intent), signatures=signatures)
+            )
             assert self.data.pending_config.is_some(), "NO_PENDING"
             self.data.pending_config = None
+            self.data.governance_nonce += 1
             sp.emit(self.data.config_version, tag="tezoracle_config_cancel")

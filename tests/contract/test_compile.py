@@ -30,6 +30,31 @@ EVENT_TAGS = (
 )
 
 
+def _init_comb_type(src: str) -> str:
+    """t_init comb as compiled into %init / propose_config intent."""
+    marker = "(pair %init (nat %activation_delay_levels)"
+    start = src.index(marker)
+    # Take through validity_window_seconds closing the init record.
+    end = src.index("(nat %validity_window_seconds)", start)
+    # include the field and the following closing parens that belong to init
+    # is brittle; compare a stable inner prefix instead.
+    return src[start : end + len("(nat %validity_window_seconds)")]
+
+
+def test_t_init_layout_matches_committed_propose_config_abi():
+    """Explicit t_init.layout must keep the compiled alphabetical comb.
+
+    Source-line FAILWITH integers may move; the init comb must not.
+    """
+    _scenario, contract, _packer, _admin, _guardian, _accounts = originate_1of1()
+    generated = strip_stack_comments(contract.origination_result["code_tz"])
+    committed = MICHELSON.read_text()
+    assert _init_comb_type(generated) == _init_comb_type(committed)
+    assert normalize_source_locations(committed) == normalize_source_locations(
+        generated
+    )
+
+
 def test_originates_1_of_1_and_matches_committed_michelson():
     scenario, contract, _packer, _admin, _guardian, _accounts = originate_1of1()
     result = contract.origination_result

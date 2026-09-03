@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import { loadSnapshot, validateConfigDir } from "../../src/config/validate.js";
+import { sidecarPathForVersion, parseGovernanceSidecar } from "../../src/validator/governance.js";
 import { policyHashHex } from "../../src/validator/policy.js";
 
 const configDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "config");
@@ -90,4 +91,16 @@ test("CORE assets are testnet/non-authoritative and USDtz/tzBTC are draft stubs"
   assert.equal(binance?.health.known_restriction, "http_451");
 
   assert.match(policyHashHex(snapshot), /^[0-9a-f]{64}$/);
+});
+
+test("register config_version has a committed governance sidecar", () => {
+  const { snapshot, errors } = loadSnapshot(configDir);
+  assert.equal(errors.length, 0);
+  const sidecar = parseGovernanceSidecar(
+    JSON.parse(
+      readFileSync(sidecarPathForVersion(configDir, snapshot.register.config_version), "utf8"),
+    ) as unknown,
+  );
+  assert.equal(sidecar.schema_version, 1);
+  assert.equal(sidecar.threshold_m, String(Object.values(sidecar.signers).filter((s) => s.active).length));
 });

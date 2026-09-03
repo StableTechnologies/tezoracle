@@ -1,0 +1,68 @@
+{
+  "id": "GI-02",
+  "description": "4-of-4 with class minima A:1 B:1",
+  "kind": "config",
+  "intent": {
+    "domain": "TEZORACLE_CONFIG_V1",
+    "chain_id": "NetXsqzbfFenSTS",
+    "oracle_address": "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy",
+    "current_config_version": "1",
+    "governance_nonce": "0",
+    "valid_until": "1800000180",
+    "init": {
+      "admin": "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+      "guardian": "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+      "config_version": "2",
+      "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "threshold_n": "4",
+      "threshold_m": "4",
+      "activation_delay_levels": "8",
+      "min_activation_delay_levels": "1",
+      "max_clock_skew_seconds": "5",
+      "validity_window_seconds": "180",
+      "price_nat_max": "79228162514264337593543950335",
+      "signers": {
+        "0": {
+          "public_key": "edpkthVfnY4kq4bZL3axHRX4f3HVfz4itA8HrvjfHDRwazUY9zKwpU",
+          "class_id": "A",
+          "active": true
+        },
+        "1": {
+          "public_key": "edpkufnui6ZgZwyz2AtmHh5AP5T9MMkgXEBcydMQSw7u41pKRhekiP",
+          "class_id": "A",
+          "active": true
+        },
+        "2": {
+          "public_key": "edpkuLamKvsxXPzB9yc67Xoc7ttELWLT7a6Wx8t7BZdUeiqMPkvwGe",
+          "class_id": "B",
+          "active": true
+        },
+        "3": {
+          "public_key": "edpkvEhvYfyysqiK4Ve1opiNfhpQJAzUZnb1V2LGPfC4GJ1aDEFjYM",
+          "class_id": "B",
+          "active": true
+        }
+      },
+      "class_minima": {
+        "A": "1",
+        "B": "1"
+      },
+      "groups": {
+        "CORE": [
+          "XTZ_USD"
+        ]
+      },
+      "assets": {
+        "XTZ_USD": {
+          "decimals": "6",
+          "max_observation_age_seconds": "120",
+          "absolute_min_price": "10000",
+          "absolute_max_price": "100000000",
+          "max_movement_bps": "10000"
+        }
+      }
+    }
+  },
+  "packed_hex": "050707010000001354455a4f5241434c455f434f4e4649475f563107070a00000004d052218e07070a00000016019142eb01374f37f03023eefc82f2ede96e8ae515000707000107070000070700b4caceb40d0707000807070a000000160000bfbf1a0900331bfd281a8898bd9235c9e97f245e070702000000280704010000000758545a5f55534407070006070700b801070700909c010707008084af5f00909c01070702000000140704010000000141000107040100000001420001070700020707020000001c07040100000004434f5245020000000c010000000758545a5f55534407070a000000160000bfbf1a0900331bfd281a8898bd9235c9e97f245e070700050707000107070a000000201111111111111111111111111111111111111111111111111111111111111111070700bfffffffffffffffffffffffff3f070702000000d80704000007070a0000002100076d82e7229a59e9232ac776818978cda005e888004d1c6eaa6c001b3cf9a0d80707010000000141030a0704000107070a00000021008741ef189155214fca4257174a52da20217f5727683d1a50ca4a99f9650890470707010000000141030a0704000207070a00000021005ba3e9f2d5bf86afa395c0bc894979c2be45530b2ec2053364e1840ddd843b2d0707010000000142030a0704000307070a0000002100d1fe2f9539e0c21ab1a034c6aa81f1b14b2d6afeddf1ade5431175fe94dc1f3d0707010000000142030a070700040707000400b402",
+  "blake2b_hex": "7e94fde31c0ba58f2d0895e9c5f7ea068805e02c37e5b8bf5e9d1c870e5de738"
+}

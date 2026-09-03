@@ -1,10 +1,10 @@
-parameter (or (or (or (string %activate_asset_unpause) (or (unit %activate_config) (unit %activate_unpause))) (or (or (string %cancel_asset_unpause) (unit %cancel_pending_config)) (or (unit %cancel_pending_unpause) (string %discard_pending)))) (or (or (unit %pause) (or (string %pause_asset) (string %promote))) (or (or (string %propose_asset_unpause) (pair %propose_config (nat %activation_delay_levels) (pair (address %admin) (pair (map %assets string (pair (nat %decimals) (pair (nat %max_observation_age_seconds) (pair (nat %absolute_min_price) (pair (nat %absolute_max_price) (nat %max_movement_bps)))))) (pair (map %class_minima string nat) (pair (nat %config_version) (pair (map %groups string (list string)) (pair (address %guardian) (pair (nat %max_clock_skew_seconds) (pair (nat %min_activation_delay_levels) (pair (bytes %policy_hash) (pair (nat %price_nat_max) (pair (map %signers nat (pair (key %public_key) (pair (string %class_id) (bool %active)))) (pair (nat %threshold_m) (pair (nat %threshold_n) (nat %validity_window_seconds)))))))))))))))) (or (unit %propose_unpause) (pair %submit (pair %payload (string %domain) (pair (chain_id %chain_id) (pair (address %oracle_address) (pair (nat %config_version) (pair (bytes %policy_hash) (pair (string %publication_group) (pair (nat %round) (pair (timestamp %valid_from) (pair (timestamp %valid_until) (pair (bytes %evidence_digest) (list %assets (pair (string %asset_id) (pair (nat %price) (pair (nat %decimals) (timestamp %observation_time))))))))))))))) (list %signatures (pair (nat %index) (signature %signature))))))));
-storage   (pair (nat %activation_delay_levels) (pair (address %admin) (pair (map %assets string (pair (nat %absolute_max_price) (pair (nat %absolute_min_price) (pair (option %active (pair (nat %price) (pair (timestamp %observation_time) (pair (nat %round) (pair (nat %config_version) (nat %accepted_level)))))) (pair (nat %decimals) (pair (timestamp %last_observation_time) (pair (nat %max_movement_bps) (pair (nat %max_observation_age_seconds) (pair (bool %paused) (pair (option %pending (pair (nat %accepted_level) (pair (nat %activation_level) (pair (nat %config_version) (pair (timestamp %observation_time) (pair (nat %price) (nat %round))))))) (option %pending_unpause_level nat))))))))))) (pair (map %class_minima string nat) (pair (nat %config_version) (pair (map %groups string (list string)) (pair (address %guardian) (pair (nat %last_global_pause_level) (pair (map %last_round string nat) (pair (nat %max_clock_skew_seconds) (pair (nat %min_activation_delay_levels) (pair (bool %paused) (pair (option %pending_config (pair (nat %activate_at_level) (pair %init (nat %activation_delay_levels) (pair (address %admin) (pair (map %assets string (pair (nat %decimals) (pair (nat %max_observation_age_seconds) (pair (nat %absolute_min_price) (pair (nat %absolute_max_price) (nat %max_movement_bps)))))) (pair (map %class_minima string nat) (pair (nat %config_version) (pair (map %groups string (list string)) (pair (address %guardian) (pair (nat %max_clock_skew_seconds) (pair (nat %min_activation_delay_levels) (pair (bytes %policy_hash) (pair (nat %price_nat_max) (pair (map %signers nat (pair (key %public_key) (pair (string %class_id) (bool %active)))) (pair (nat %threshold_m) (pair (nat %threshold_n) (nat %validity_window_seconds))))))))))))))))) (pair (option %pending_unpause_level nat) (pair (bytes %policy_hash) (pair (nat %price_nat_max) (pair (map %signers nat (pair (key %public_key) (pair (string %class_id) (bool %active)))) (pair (nat %threshold_m) (pair (nat %threshold_n) (nat %validity_window_seconds))))))))))))))))))));
+parameter (or (or (or (string %activate_asset_unpause) (or (unit %activate_config) (unit %activate_unpause))) (or (or (pair %cancel_asset_unpause (pair %intent (string %domain) (pair (chain_id %chain_id) (pair (address %oracle_address) (pair (nat %current_config_version) (pair (nat %governance_nonce) (pair (timestamp %valid_until) (string %asset_id))))))) (list %signatures (pair (nat %index) (signature %signature)))) (pair %cancel_pending_config (pair %intent (string %domain) (pair (chain_id %chain_id) (pair (address %oracle_address) (pair (nat %current_config_version) (pair (nat %governance_nonce) (timestamp %valid_until)))))) (list %signatures (pair (nat %index) (signature %signature))))) (or (pair %cancel_pending_unpause (pair %intent (string %domain) (pair (chain_id %chain_id) (pair (address %oracle_address) (pair (nat %current_config_version) (pair (nat %governance_nonce) (timestamp %valid_until)))))) (list %signatures (pair (nat %index) (signature %signature)))) (string %discard_pending)))) (or (or (unit %pause) (or (string %pause_asset) (string %promote))) (or (or (pair %propose_asset_unpause (pair %intent (string %domain) (pair (chain_id %chain_id) (pair (address %oracle_address) (pair (nat %current_config_version) (pair (nat %governance_nonce) (pair (timestamp %valid_until) (string %asset_id))))))) (list %signatures (pair (nat %index) (signature %signature)))) (pair %propose_config (pair %intent (string %domain) (pair (chain_id %chain_id) (pair (address %oracle_address) (pair (nat %current_config_version) (pair (nat %governance_nonce) (pair (timestamp %valid_until) (pair %init (nat %activation_delay_levels) (pair (address %admin) (pair (map %assets string (pair (nat %decimals) (pair (nat %max_observation_age_seconds) (pair (nat %absolute_min_price) (pair (nat %absolute_max_price) (nat %max_movement_bps)))))) (pair (map %class_minima string nat) (pair (nat %config_version) (pair (map %groups string (list string)) (pair (address %guardian) (pair (nat %max_clock_skew_seconds) (pair (nat %min_activation_delay_levels) (pair (bytes %policy_hash) (pair (nat %price_nat_max) (pair (map %signers nat (pair (key %public_key) (pair (string %class_id) (bool %active)))) (pair (nat %threshold_m) (pair (nat %threshold_n) (nat %validity_window_seconds))))))))))))))))))))) (list %signatures (pair (nat %index) (signature %signature))))) (or (pair %propose_unpause (pair %intent (string %domain) (pair (chain_id %chain_id) (pair (address %oracle_address) (pair (nat %current_config_version) (pair (nat %governance_nonce) (timestamp %valid_until)))))) (list %signatures (pair (nat %index) (signature %signature)))) (pair %submit (pair %payload (string %domain) (pair (chain_id %chain_id) (pair (address %oracle_address) (pair (nat %config_version) (pair (bytes %policy_hash) (pair (string %publication_group) (pair (nat %round) (pair (timestamp %valid_from) (pair (timestamp %valid_until) (pair (bytes %evidence_digest) (list %assets (pair (string %asset_id) (pair (nat %price) (pair (nat %decimals) (timestamp %observation_time))))))))))))))) (list %signatures (pair (nat %index) (signature %signature))))))));
+storage   (pair (nat %activation_delay_levels) (pair (address %admin) (pair (map %assets string (pair (nat %absolute_max_price) (pair (nat %absolute_min_price) (pair (option %active (pair (nat %price) (pair (timestamp %observation_time) (pair (nat %round) (pair (nat %config_version) (nat %accepted_level)))))) (pair (nat %decimals) (pair (timestamp %last_observation_time) (pair (nat %max_movement_bps) (pair (nat %max_observation_age_seconds) (pair (bool %paused) (pair (option %pending (pair (nat %accepted_level) (pair (nat %activation_level) (pair (nat %config_version) (pair (timestamp %observation_time) (pair (nat %price) (nat %round))))))) (option %pending_unpause_level nat))))))))))) (pair (map %class_minima string nat) (pair (nat %config_version) (pair (nat %governance_nonce) (pair (map %groups string (list string)) (pair (address %guardian) (pair (nat %last_global_pause_level) (pair (map %last_round string nat) (pair (nat %max_clock_skew_seconds) (pair (nat %min_activation_delay_levels) (pair (bool %paused) (pair (option %pending_config (pair (nat %activate_at_level) (pair %init (nat %activation_delay_levels) (pair (address %admin) (pair (map %assets string (pair (nat %decimals) (pair (nat %max_observation_age_seconds) (pair (nat %absolute_min_price) (pair (nat %absolute_max_price) (nat %max_movement_bps)))))) (pair (map %class_minima string nat) (pair (nat %config_version) (pair (map %groups string (list string)) (pair (address %guardian) (pair (nat %max_clock_skew_seconds) (pair (nat %min_activation_delay_levels) (pair (bytes %policy_hash) (pair (nat %price_nat_max) (pair (map %signers nat (pair (key %public_key) (pair (string %class_id) (bool %active)))) (pair (nat %threshold_m) (pair (nat %threshold_n) (nat %validity_window_seconds))))))))))))))))) (pair (option %pending_unpause_level nat) (pair (bytes %policy_hash) (pair (nat %price_nat_max) (pair (map %signers nat (pair (key %public_key) (pair (string %class_id) (bool %active)))) (pair (nat %threshold_m) (pair (nat %threshold_n) (nat %validity_window_seconds)))))))))))))))))))));
 code
   {
     LAMBDA
-      (pair (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat))))))))))))))))))))
-      (pair unit (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat))))))))))))))))))))
+      (pair (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
+      (pair unit (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
       {
         UNPAIR;
         LAMBDA
@@ -105,7 +105,7 @@ code
                             GET;
                             IF_NONE
                               {
-                                PUSH int 314;
+                                PUSH int 443;
                                 FAILWITH;
                               }
                               {};
@@ -181,7 +181,7 @@ code
                             GET;
                             IF_NONE
                               {
-                                PUSH int 326;
+                                PUSH int 455;
                                 FAILWITH;
                               }
                               {};
@@ -212,17 +212,17 @@ code
               };
           };
         DUP 3;
-        GET 33;
+        GET 35;
         DUP 4;
-        GET 29;
+        GET 31;
         DUP 5;
-        GET 37;
+        GET 39;
         DUP 6;
         GET 7;
         DUP 7;
-        GET 31;
+        GET 33;
         DUP 8;
-        GET 35;
+        GET 37;
         DUP 8;
         GET 23;
         DUP 9;
@@ -256,7 +256,7 @@ code
                 GET;
                 IF_NONE
                   {
-                    PUSH int 448;
+                    PUSH int 598;
                     FAILWITH;
                   }
                   {};
@@ -350,7 +350,7 @@ code
                     GET 5;
                     IF_NONE
                       {
-                        PUSH int 467;
+                        PUSH int 617;
                         FAILWITH;
                       }
                       {};
@@ -437,57 +437,256 @@ code
         UPDATE 3;
         DUP 3;
         GET 13;
-        UPDATE 13;
+        UPDATE 15;
         DUP 3;
         GET 9;
         UPDATE 9;
         DUP 3;
         GET 19;
-        UPDATE 29;
+        UPDATE 31;
         DUP 3;
         GET 27;
-        UPDATE 37;
+        UPDATE 39;
         DUP 3;
         GET 25;
-        UPDATE 35;
+        UPDATE 37;
         DUP 3;
         CAR;
         UPDATE 1;
         DUP 3;
         GET 17;
-        UPDATE 21;
+        UPDATE 23;
         DUP 3;
         GET 15;
-        UPDATE 19;
+        UPDATE 21;
         DUP 3;
         GET 28;
-        UPDATE 38;
+        UPDATE 40;
         DUP 3;
         GET 21;
-        UPDATE 31;
+        UPDATE 33;
         DUP 3;
         GET 23;
-        UPDATE 33;
+        UPDATE 35;
         DUP 3;
         GET 7;
         UPDATE 7;
         DUG 2;
         DUG 2;
         GET 11;
-        UPDATE 11;
+        UPDATE 13;
         SWAP;
         UPDATE 5;
         NONE nat;
-        UPDATE 27;
+        UPDATE 29;
         EMPTY_MAP string nat;
-        UPDATE 17;
+        UPDATE 19;
         UNIT;
         PAIR;
       };
     SWAP;
     LAMBDA
-      (pair (pair bool string) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat))))))))))))))))))))
-      (pair unit (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat))))))))))))))))))))
+      (pair (pair bytes (list (pair nat signature))) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
+      (pair unit (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
+      {
+        UNPAIR;
+        DUP;
+        CAR;
+        DUP 2;
+        CDR;
+        DUP;
+        SIZE;
+        PUSH nat 16;
+        DUP 2;
+        COMPARE;
+        LE;
+        IF
+          {}
+          {
+            PUSH string "QUORUM";
+            FAILWITH;
+          };
+        DUP 5;
+        GET 37;
+        DUP 2;
+        COMPARE;
+        EQ;
+        IF
+          {}
+          {
+            PUSH string "QUORUM";
+            FAILWITH;
+          };
+        EMPTY_SET nat;
+        PUSH nat 0;
+        DUP 4;
+        ITER
+          {
+            DUP 3;
+            DUP 2;
+            CAR;
+            MEM;
+            IF
+              {
+                PUSH string "DUPLICATE";
+                FAILWITH;
+              }
+              {};
+            DIG 2;
+            PUSH bool True;
+            DUP 3;
+            CAR;
+            UPDATE;
+            DUG 2;
+            DUP 8;
+            GET 35;
+            DUP 2;
+            CAR;
+            GET;
+            IF_NONE
+              {
+                PUSH string "UNKNOWN_SIGNER";
+                FAILWITH;
+              }
+              {};
+            DUP;
+            GET 4;
+            IF
+              {}
+              {
+                PUSH string "INACTIVE_SIGNER";
+                FAILWITH;
+              };
+            DUP 7;
+            DIG 2;
+            CDR;
+            DIG 2;
+            CAR;
+            CHECK_SIGNATURE;
+            IF
+              {}
+              {
+                PUSH string "SIGNATURE";
+                FAILWITH;
+              };
+            PUSH nat 1;
+            ADD;
+          };
+        SWAP;
+        DROP;
+        SWAP;
+        DROP;
+        SWAP;
+        DROP;
+        SWAP;
+        DROP;
+        SWAP;
+        DROP;
+        DUP 2;
+        GET 37;
+        COMPARE;
+        EQ;
+        IF
+          {}
+          {
+            PUSH string "QUORUM";
+            FAILWITH;
+          };
+        UNIT;
+        PAIR;
+      };
+    SWAP;
+    LAMBDA
+      (pair (pair chain_id (pair nat (pair string (pair string (pair nat (pair address timestamp)))))) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
+      (pair unit (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
+      {
+        UNPAIR;
+        DUP;
+        GET 7;
+        DUP 2;
+        GET 5;
+        COMPARE;
+        EQ;
+        IF
+          {}
+          {
+            PUSH string "DOMAIN";
+            FAILWITH;
+          };
+        CHAIN_ID;
+        DUP 2;
+        CAR;
+        COMPARE;
+        EQ;
+        IF
+          {}
+          {
+            PUSH string "CHAIN";
+            FAILWITH;
+          };
+        SELF_ADDRESS;
+        DUP 2;
+        GET 11;
+        COMPARE;
+        EQ;
+        IF
+          {}
+          {
+            PUSH string "ORACLE";
+            FAILWITH;
+          };
+        DUP 2;
+        GET 9;
+        DUP 2;
+        GET 3;
+        COMPARE;
+        EQ;
+        IF
+          {}
+          {
+            PUSH string "CONFIG";
+            FAILWITH;
+          };
+        DUP 2;
+        GET 11;
+        DUP 2;
+        GET 9;
+        COMPARE;
+        EQ;
+        IF
+          {}
+          {
+            PUSH string "NONCE";
+            FAILWITH;
+          };
+        PUSH timestamp "1970-01-01T00:00:01Z";
+        DUP 2;
+        GET 12;
+        COMPARE;
+        GE;
+        IF
+          {}
+          {
+            PUSH string "WINDOW";
+            FAILWITH;
+          };
+        GET 12;
+        NOW;
+        COMPARE;
+        LE;
+        IF
+          {}
+          {
+            PUSH string "WINDOW";
+            FAILWITH;
+          };
+        UNIT;
+        PAIR;
+      };
+    SWAP;
+    LAMBDA
+      (pair (pair bool string) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
+      (pair unit (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
       {
         UNPAIR;
         DUP;
@@ -495,7 +694,7 @@ code
         DUP 2;
         CAR;
         DUP 4;
-        GET 23;
+        GET 25;
         IF
           {
             DROP 3;
@@ -507,7 +706,7 @@ code
             GET;
             IF_NONE
               {
-                PUSH int 378;
+                PUSH int 528;
                 FAILWITH;
               }
               {};
@@ -530,7 +729,7 @@ code
                     GET 17;
                     IF_NONE
                       {
-                        PUSH int 381;
+                        PUSH int 531;
                         FAILWITH;
                       }
                       {};
@@ -546,7 +745,7 @@ code
                       }
                       {
                         DUP 6;
-                        GET 15;
+                        GET 17;
                         DUP 2;
                         CAR;
                         COMPARE;
@@ -590,7 +789,7 @@ code
                                 GET 5;
                                 IF_NONE
                                   {
-                                    PUSH int 395;
+                                    PUSH int 545;
                                     FAILWITH;
                                   }
                                   {};
@@ -627,7 +826,7 @@ code
                                             ISNAT;
                                             IF_NONE
                                               {
-                                                PUSH int 294;
+                                                PUSH int 423;
                                                 FAILWITH;
                                               }
                                               {};
@@ -646,7 +845,7 @@ code
                                             ISNAT;
                                             IF_NONE
                                               {
-                                                PUSH int 297;
+                                                PUSH int 426;
                                                 FAILWITH;
                                               }
                                               {};
@@ -751,12 +950,12 @@ code
       };
     SWAP;
     LAMBDA
-      (pair string (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat))))))))))))))))))))
-      (pair (pair nat timestamp) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat))))))))))))))))))))
+      (pair string (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
+      (pair (pair nat timestamp) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
       {
         UNPAIR;
         DUP 2;
-        GET 23;
+        GET 25;
         IF
           {
             PUSH string "PAUSED";
@@ -793,7 +992,7 @@ code
             GET 17;
             IF_NONE
               {
-                PUSH int 529;
+                PUSH int 679;
                 FAILWITH;
               }
               {};
@@ -806,7 +1005,7 @@ code
             IF
               {
                 DUP 6;
-                GET 15;
+                GET 17;
                 DUP 2;
                 CAR;
                 COMPARE;
@@ -840,7 +1039,7 @@ code
                     GET 5;
                     IF_NONE
                       {
-                        PUSH int 540;
+                        PUSH int 690;
                         FAILWITH;
                       }
                       {};
@@ -877,7 +1076,7 @@ code
                                 ISNAT;
                                 IF_NONE
                                   {
-                                    PUSH int 294;
+                                    PUSH int 423;
                                     FAILWITH;
                                   }
                                   {};
@@ -896,7 +1095,7 @@ code
                                 ISNAT;
                                 IF_NONE
                                   {
-                                    PUSH int 297;
+                                    PUSH int 426;
                                     FAILWITH;
                                   }
                                   {};
@@ -971,7 +1170,7 @@ code
                 GET 5;
                 IF_NONE
                   {
-                    PUSH int 559;
+                    PUSH int 709;
                     FAILWITH;
                   }
                   {};
@@ -1051,6 +1250,10 @@ code
                 DROP;
                 DIG 5;
                 DROP;
+                DIG 5;
+                DROP;
+                DIG 5;
+                DROP;
                 COMPARE;
                 GE;
                 IF
@@ -1081,7 +1284,7 @@ code
                 IF_LEFT
                   {
                     DUP 2;
-                    GET 25;
+                    GET 27;
                     IF_NONE
                       {
                         PUSH string "NO_PENDING";
@@ -1092,6 +1295,10 @@ code
                     CAR;
                     LEVEL;
                     DIG 3;
+                    DROP;
+                    DIG 4;
+                    DROP;
+                    DIG 4;
                     DROP;
                     DIG 4;
                     DROP;
@@ -1110,7 +1317,7 @@ code
                     EXEC;
                     CDR;
                     NONE (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))));
-                    UPDATE 25;
+                    UPDATE 27;
                     NIL operation;
                     DUP 2;
                     GET 9;
@@ -1119,7 +1326,7 @@ code
                   }
                   {
                     DUP 2;
-                    GET 27;
+                    GET 29;
                     IF_NONE
                       {
                         PUSH string "NO_PENDING";
@@ -1138,6 +1345,10 @@ code
                     DROP;
                     DIG 3;
                     DROP;
+                    DIG 3;
+                    DROP;
+                    DIG 3;
+                    DROP;
                     COMPARE;
                     GE;
                     IF
@@ -1147,9 +1358,9 @@ code
                         FAILWITH;
                       };
                     PUSH bool False;
-                    UPDATE 23;
+                    UPDATE 25;
                     NONE nat;
-                    UPDATE 27;
+                    UPDATE 29;
                     NIL operation;
                     PUSH bool True;
                     EMIT %tezoracle_unpause_activate bool;
@@ -1158,30 +1369,67 @@ code
               };
           }
           {
-            DIG 3;
-            DROP;
-            DIG 3;
-            DROP;
             IF_LEFT
               {
                 IF_LEFT
                   {
-                    DIG 2;
-                    DROP;
+                    DUP 5;
                     DUP 2;
+                    CAR;
+                    GET 11;
+                    DUP 3;
+                    CAR;
+                    GET 5;
+                    DUP 4;
+                    CAR;
+                    GET 9;
+                    PUSH string "TEZORACLE_ASSET_UNPAUSE_CANCEL_V1";
+                    DUP 6;
+                    CAR;
+                    CAR;
+                    DUP 7;
+                    CAR;
+                    GET 7;
+                    DUP 8;
+                    CAR;
                     GET 3;
-                    SENDER;
-                    COMPARE;
-                    EQ;
-                    IF
-                      {}
-                      {
-                        PUSH string "NOT_ADMIN";
-                        FAILWITH;
-                      };
+                    PAIR 7;
+                    DIG 4;
+                    DROP;
+                    DIG 4;
+                    DROP;
+                    DIG 4;
+                    DROP;
+                    DIG 5;
+                    DROP;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DIG 2;
+                    SWAP;
+                    DIG 2;
+                    DIG 2;
+                    DUP 2;
+                    CDR;
+                    DUP 3;
+                    CAR;
+                    PACK;
+                    PAIR;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    SWAP;
                     DUP 2;
                     GET 5;
                     DUP 2;
+                    CAR;
+                    GET 12;
                     GET;
                     IF_NONE
                       {
@@ -1207,65 +1455,72 @@ code
                     DIG 2;
                     SOME;
                     DUP 4;
+                    CAR;
+                    GET 12;
                     UPDATE;
                     UPDATE 5;
+                    DUP;
+                    GET 11;
+                    PUSH nat 1;
+                    ADD;
+                    UPDATE 11;
                     SWAP;
+                    CAR;
+                    GET 12;
                     EMIT %tezoracle_asset_unpause_cancel string;
                     NIL operation;
                     SWAP;
                     CONS;
                   }
                   {
-                    DROP;
-                    SWAP;
-                    DROP;
-                    DUP;
-                    GET 3;
-                    SENDER;
-                    COMPARE;
-                    EQ;
-                    IF
-                      {}
-                      {
-                        PUSH string "NOT_ADMIN";
-                        FAILWITH;
-                      };
-                    DUP;
-                    GET 25;
-                    IF_NONE
-                      {
-                        PUSH string "NO_PENDING";
-                        FAILWITH;
-                      }
-                      {
-                        DROP;
-                      };
-                    NONE (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))));
-                    UPDATE 25;
-                    NIL operation;
+                    DUP 5;
                     DUP 2;
+                    CAR;
+                    GET 10;
+                    DUP 3;
+                    CAR;
+                    GET 5;
+                    DUP 4;
+                    CAR;
                     GET 9;
-                    EMIT %tezoracle_config_cancel nat;
-                    CONS;
-                  };
-              }
-              {
-                IF_LEFT
-                  {
+                    PUSH string "TEZORACLE_CONFIG_CANCEL_V1";
+                    DUP 6;
+                    CAR;
+                    CAR;
+                    DUP 7;
+                    CAR;
+                    GET 7;
+                    DUP 8;
+                    CAR;
+                    GET 3;
+                    PAIR 7;
+                    DIG 4;
+                    DROP;
+                    DIG 4;
+                    DROP;
+                    DIG 4;
+                    DROP;
+                    DIG 5;
                     DROP;
                     SWAP;
-                    DROP;
-                    DUP;
-                    GET 3;
-                    SENDER;
-                    COMPARE;
-                    EQ;
-                    IF
-                      {}
-                      {
-                        PUSH string "NOT_ADMIN";
-                        FAILWITH;
-                      };
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DIG 2;
+                    SWAP;
+                    DIG 2;
+                    DIG 2;
+                    SWAP;
+                    UNPAIR;
+                    PACK;
+                    PAIR;
+                    SWAP;
+                    DUG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
                     DUP;
                     GET 27;
                     IF_NONE
@@ -1276,14 +1531,102 @@ code
                       {
                         DROP;
                       };
-                    NONE nat;
+                    NONE (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))));
                     UPDATE 27;
+                    DUP;
+                    GET 11;
+                    PUSH nat 1;
+                    ADD;
+                    UPDATE 11;
+                    NIL operation;
+                    DUP 2;
+                    GET 9;
+                    EMIT %tezoracle_config_cancel nat;
+                    CONS;
+                  };
+              }
+              {
+                IF_LEFT
+                  {
+                    DUP 5;
+                    DUP 2;
+                    CAR;
+                    GET 10;
+                    DUP 3;
+                    CAR;
+                    GET 5;
+                    DUP 4;
+                    CAR;
+                    GET 9;
+                    PUSH string "TEZORACLE_UNPAUSE_CANCEL_V1";
+                    DUP 6;
+                    CAR;
+                    CAR;
+                    DUP 7;
+                    CAR;
+                    GET 7;
+                    DUP 8;
+                    CAR;
+                    GET 3;
+                    PAIR 7;
+                    DIG 4;
+                    DROP;
+                    DIG 4;
+                    DROP;
+                    DIG 4;
+                    DROP;
+                    DIG 5;
+                    DROP;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DIG 2;
+                    SWAP;
+                    DIG 2;
+                    DIG 2;
+                    SWAP;
+                    UNPAIR;
+                    PACK;
+                    PAIR;
+                    SWAP;
+                    DUG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUP;
+                    GET 29;
+                    IF_NONE
+                      {
+                        PUSH string "NO_PENDING";
+                        FAILWITH;
+                      }
+                      {
+                        DROP;
+                      };
+                    NONE nat;
+                    UPDATE 29;
+                    DUP;
+                    GET 11;
+                    PUSH nat 1;
+                    ADD;
+                    UPDATE 11;
                     NIL operation;
                     PUSH bool True;
                     EMIT %tezoracle_unpause_cancel bool;
                     CONS;
                   }
                   {
+                    DIG 2;
+                    DROP;
+                    DIG 2;
+                    DROP;
+                    DIG 2;
+                    DROP;
+                    DIG 2;
+                    DROP;
                     DIG 2;
                     DROP;
                     DUP 2;
@@ -1297,7 +1640,7 @@ code
                       }
                       {
                         DUP 2;
-                        GET 13;
+                        GET 15;
                         SENDER;
                         COMPARE;
                         EQ;
@@ -1363,7 +1706,7 @@ code
                   }
                   {
                     DUP 2;
-                    GET 13;
+                    GET 15;
                     SENDER;
                     COMPARE;
                     EQ;
@@ -1376,9 +1719,9 @@ code
                   };
                 SWAP;
                 PUSH bool True;
-                UPDATE 23;
+                UPDATE 25;
                 NONE nat;
-                UPDATE 27;
+                UPDATE 29;
                 LEVEL;
                 DIG 2;
                 DROP;
@@ -1388,7 +1731,11 @@ code
                 DROP;
                 DIG 2;
                 DROP;
-                UPDATE 15;
+                DIG 2;
+                DROP;
+                DIG 2;
+                DROP;
+                UPDATE 17;
                 NIL operation;
                 PUSH bool True;
                 EMIT %tezoracle_pause bool;
@@ -1397,6 +1744,10 @@ code
               {
                 IF_LEFT
                   {
+                    DIG 2;
+                    DROP;
+                    DIG 2;
+                    DROP;
                     DIG 2;
                     DROP;
                     DIG 2;
@@ -1414,7 +1765,7 @@ code
                       }
                       {
                         DUP 2;
-                        GET 13;
+                        GET 15;
                         SENDER;
                         COMPARE;
                         EQ;
@@ -1460,8 +1811,12 @@ code
                     DROP;
                     DIG 3;
                     DROP;
+                    DIG 3;
+                    DROP;
+                    DIG 3;
+                    DROP;
                     DUP 2;
-                    GET 23;
+                    GET 25;
                     IF
                       {
                         PUSH string "PAUSED";
@@ -1512,7 +1867,7 @@ code
                     GET;
                     IF_NONE
                       {
-                        PUSH int 683;
+                        PUSH int 863;
                         FAILWITH;
                       }
                       {};
@@ -1543,7 +1898,7 @@ code
                         GET 17;
                         IF_NONE
                           {
-                            PUSH int 687;
+                            PUSH int 867;
                             FAILWITH;
                           }
                           {};
@@ -1569,26 +1924,61 @@ code
           {
             IF_LEFT
               {
-                DIG 3;
-                DROP;
-                DIG 3;
-                DROP;
                 IF_LEFT
                   {
+                    DUP 5;
                     DUP 2;
+                    CAR;
+                    GET 11;
+                    DUP 3;
+                    CAR;
+                    GET 5;
+                    DUP 4;
+                    CAR;
+                    GET 9;
+                    PUSH string "TEZORACLE_ASSET_UNPAUSE_V1";
+                    DUP 6;
+                    CAR;
+                    CAR;
+                    DUP 7;
+                    CAR;
+                    GET 7;
+                    DUP 8;
+                    CAR;
                     GET 3;
-                    SENDER;
-                    COMPARE;
-                    EQ;
-                    IF
-                      {}
-                      {
-                        PUSH string "NOT_ADMIN";
-                        FAILWITH;
-                      };
+                    PAIR 7;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUG 6;
+                    DUG 6;
+                    DIG 5;
+                    DIG 6;
+                    DUP 6;
+                    DUP 2;
+                    CDR;
+                    DUP 3;
+                    CAR;
+                    PACK;
+                    PAIR;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUG 6;
+                    DUG 6;
+                    DIG 5;
+                    DIG 6;
                     DUP 2;
                     GET 5;
                     DUP 2;
+                    CAR;
+                    GET 12;
                     GET;
                     IF_NONE
                       {
@@ -1609,6 +1999,14 @@ code
                     LEVEL;
                     DIG 5;
                     DROP;
+                    DIG 5;
+                    DROP;
+                    DIG 5;
+                    DROP;
+                    DIG 5;
+                    DROP;
+                    DIG 5;
+                    DROP;
                     ADD;
                     SWAP;
                     DUP 2;
@@ -1621,27 +2019,74 @@ code
                     DIG 3;
                     SOME;
                     DUP 5;
+                    CAR;
+                    GET 12;
                     UPDATE;
                     UPDATE 5;
+                    DUP;
+                    GET 11;
+                    PUSH nat 1;
+                    ADD;
+                    UPDATE 11;
                     DUG 2;
                     NIL operation;
-                    DUG 2;
+                    DIG 2;
+                    CAR;
+                    GET 12;
+                    DIG 2;
                     PAIR;
                     EMIT %tezoracle_asset_unpause_prop (pair (nat %activate_at) (string %asset_id));
                     CONS;
                   }
                   {
+                    DUP 5;
                     DUP 2;
+                    CAR;
+                    GET 11;
+                    DUP 3;
+                    CAR;
+                    GET 5;
+                    DUP 4;
+                    CAR;
+                    GET 9;
+                    PUSH string "TEZORACLE_CONFIG_V1";
+                    DUP 6;
+                    CAR;
+                    CAR;
+                    DUP 7;
+                    CAR;
+                    GET 7;
+                    DUP 8;
+                    CAR;
                     GET 3;
-                    SENDER;
-                    COMPARE;
-                    EQ;
-                    IF
-                      {}
-                      {
-                        PUSH string "NOT_ADMIN";
-                        FAILWITH;
-                      };
+                    PAIR 7;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUG 6;
+                    DUG 6;
+                    DIG 5;
+                    DIG 6;
+                    DUP 6;
+                    DUP 2;
+                    CDR;
+                    DUP 3;
+                    CAR;
+                    PACK;
+                    PAIR;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUG 6;
+                    DUG 6;
+                    DIG 5;
+                    DIG 6;
                     LAMBDA
                       (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat))))))))))))))
                       bool
@@ -2171,11 +2616,13 @@ code
                         PUSH bool True;
                       };
                     DUP 2;
+                    CAR;
+                    GET 12;
                     EXEC;
                     IF
                       {}
                       {
-                        PUSH string "Assert failure: assert_init_params(params)";
+                        PUSH string "Assert failure: assert_init_params(params.intent.init)";
                         FAILWITH;
                       };
                     PUSH nat 1;
@@ -2183,7 +2630,8 @@ code
                     GET 9;
                     ADD;
                     DUP 2;
-                    GET 9;
+                    CAR;
+                    GET 21;
                     COMPARE;
                     EQ;
                     IF
@@ -2197,17 +2645,33 @@ code
                     LEVEL;
                     DIG 4;
                     DROP;
+                    DIG 4;
+                    DROP;
+                    DIG 4;
+                    DROP;
+                    DIG 4;
+                    DROP;
+                    DIG 4;
+                    DROP;
                     ADD;
                     DIG 2;
                     DUP 3;
+                    CAR;
+                    GET 12;
                     DUP 3;
                     PAIR;
                     SOME;
-                    UPDATE 25;
+                    UPDATE 27;
+                    DUP;
+                    GET 11;
+                    PUSH nat 1;
+                    ADD;
+                    UPDATE 11;
                     DUG 2;
                     NIL operation;
                     DIG 2;
-                    GET 9;
+                    CAR;
+                    GET 21;
                     DIG 2;
                     PAIR;
                     EMIT %tezoracle_config_propose (pair (nat %activate_at) (nat %config_version));
@@ -2217,19 +2681,56 @@ code
               {
                 IF_LEFT
                   {
+                    DUP 5;
                     DUP 2;
+                    CAR;
+                    GET 10;
+                    DUP 3;
+                    CAR;
+                    GET 5;
+                    DUP 4;
+                    CAR;
+                    GET 9;
+                    PUSH string "TEZORACLE_UNPAUSE_V1";
+                    DUP 6;
+                    CAR;
+                    CAR;
+                    DUP 7;
+                    CAR;
+                    GET 7;
+                    DUP 8;
+                    CAR;
                     GET 3;
-                    SENDER;
-                    COMPARE;
-                    EQ;
-                    IF
-                      {}
-                      {
-                        PUSH string "NOT_ADMIN";
-                        FAILWITH;
-                      };
+                    PAIR 7;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUG 6;
+                    DUG 6;
+                    DIG 5;
+                    DIG 6;
+                    DUP 6;
                     DUP 2;
-                    GET 23;
+                    CDR;
+                    DUP 3;
+                    CAR;
+                    PACK;
+                    PAIR;
+                    SWAP;
+                    DIG 3;
+                    DIG 2;
+                    PAIR;
+                    EXEC;
+                    CDR;
+                    DUG 6;
+                    DUG 6;
+                    DIG 5;
+                    DIG 6;
+                    DUP 2;
+                    GET 25;
                     IF
                       {}
                       {
@@ -2247,11 +2748,20 @@ code
                     DROP;
                     DIG 3;
                     DROP;
+                    DIG 3;
+                    DROP;
+                    DIG 3;
+                    DROP;
                     ADD;
                     SWAP;
                     DUP 2;
                     SOME;
-                    UPDATE 27;
+                    UPDATE 29;
+                    DUP;
+                    GET 11;
+                    PUSH nat 1;
+                    ADD;
+                    UPDATE 11;
                     SWAP;
                     EMIT %tezoracle_unpause_propose nat;
                     NIL operation;
@@ -2260,7 +2770,7 @@ code
                   }
                   {
                     DUP 2;
-                    GET 23;
+                    GET 25;
                     IF
                       {
                         PUSH string "PAUSED";
@@ -2342,7 +2852,7 @@ code
                         FAILWITH;
                       };
                     DUP 2;
-                    GET 29;
+                    GET 31;
                     DUP 2;
                     CAR;
                     GET 9;
@@ -2355,7 +2865,7 @@ code
                         FAILWITH;
                       };
                     DUP 2;
-                    GET 11;
+                    GET 13;
                     DUP 2;
                     CAR;
                     GET 11;
@@ -2379,7 +2889,7 @@ code
                         FAILWITH;
                       };
                     DUP 3;
-                    GET 17;
+                    GET 19;
                     DUP 3;
                     CAR;
                     GET 11;
@@ -2447,7 +2957,7 @@ code
                     GET 17;
                     SUB;
                     DUP 5;
-                    GET 38;
+                    GET 40;
                     INT;
                     DUP 2;
                     COMPARE;
@@ -2506,14 +3016,18 @@ code
                         PAIR;
                         EXEC;
                         CDR;
-                        DIG 9;
-                        DIG 9;
-                        DIG 9;
-                        DIG 3;
-                        DUG 9;
-                        DUG 9;
-                        DUG 9;
-                        DUG 9;
+                        DIG 11;
+                        DIG 11;
+                        DIG 11;
+                        DIG 11;
+                        DIG 11;
+                        DIG 5;
+                        DIG 11;
+                        DIG 11;
+                        DIG 11;
+                        DIG 11;
+                        DIG 11;
+                        DIG 11;
                         DUP 7;
                         GET 5;
                         DUP 2;
@@ -2543,7 +3057,7 @@ code
                             GET 17;
                             IF_NONE
                               {
-                                PUSH int 608;
+                                PUSH int 788;
                                 FAILWITH;
                               }
                               {};
@@ -2592,7 +3106,7 @@ code
                             FAILWITH;
                           };
                         DUP 8;
-                        GET 31;
+                        GET 33;
                         DUP 3;
                         GET 3;
                         COMPARE;
@@ -2639,7 +3153,7 @@ code
                             FAILWITH;
                           };
                         DUP 8;
-                        GET 19;
+                        GET 21;
                         INT;
                         NOW;
                         ADD;
@@ -2706,7 +3220,7 @@ code
                         FAILWITH;
                       };
                     DUP 7;
-                    GET 37;
+                    GET 39;
                     DUP 2;
                     COMPARE;
                     GE;
@@ -2743,7 +3257,7 @@ code
                         UPDATE;
                         DUG 3;
                         DUP 12;
-                        GET 33;
+                        GET 35;
                         DUP 2;
                         CAR;
                         GET;
@@ -2796,7 +3310,7 @@ code
                         UPDATE;
                       };
                     DUP 11;
-                    GET 37;
+                    GET 39;
                     DUP 3;
                     COMPARE;
                     GE;
@@ -2847,7 +3361,7 @@ code
                         GET;
                         IF_NONE
                           {
-                            PUSH int 651;
+                            PUSH int 831;
                             FAILWITH;
                           }
                           {};
@@ -2887,9 +3401,13 @@ code
                     DROP;
                     DIG 2;
                     DROP;
+                    DIG 2;
+                    DROP;
+                    DIG 2;
+                    DROP;
                     SWAP;
                     DUP;
-                    GET 17;
+                    GET 19;
                     DUP 3;
                     CAR;
                     GET 13;
@@ -2898,7 +3416,7 @@ code
                     CAR;
                     GET 11;
                     UPDATE;
-                    UPDATE 17;
+                    UPDATE 19;
                     SWAP;
                     NIL operation;
                     SWAP;
@@ -2926,12 +3444,12 @@ view
   {
     UNPAIR;
     LAMBDA
-      (pair string (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat))))))))))))))))))))
-      (pair (pair nat timestamp) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat))))))))))))))))))))
+      (pair string (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
+      (pair (pair nat timestamp) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
       {
         UNPAIR;
         DUP 2;
-        GET 23;
+        GET 25;
         IF
           {
             PUSH string "PAUSED";
@@ -2968,7 +3486,7 @@ view
             GET 17;
             IF_NONE
               {
-                PUSH int 529;
+                PUSH int 679;
                 FAILWITH;
               }
               {};
@@ -2981,7 +3499,7 @@ view
             IF
               {
                 DUP 6;
-                GET 15;
+                GET 17;
                 DUP 2;
                 CAR;
                 COMPARE;
@@ -3015,7 +3533,7 @@ view
                     GET 5;
                     IF_NONE
                       {
-                        PUSH int 540;
+                        PUSH int 690;
                         FAILWITH;
                       }
                       {};
@@ -3052,7 +3570,7 @@ view
                                 ISNAT;
                                 IF_NONE
                                   {
-                                    PUSH int 294;
+                                    PUSH int 423;
                                     FAILWITH;
                                   }
                                   {};
@@ -3071,7 +3589,7 @@ view
                                 ISNAT;
                                 IF_NONE
                                   {
-                                    PUSH int 297;
+                                    PUSH int 426;
                                     FAILWITH;
                                   }
                                   {};
@@ -3146,7 +3664,7 @@ view
                 GET 5;
                 IF_NONE
                   {
-                    PUSH int 559;
+                    PUSH int 709;
                     FAILWITH;
                   }
                   {};
@@ -3200,12 +3718,12 @@ view
   {
     UNPAIR;
     LAMBDA
-      (pair string (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat))))))))))))))))))))
-      (pair (pair nat timestamp) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat))))))))))))))))))))
+      (pair string (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
+      (pair (pair nat timestamp) (pair nat (pair address (pair (map string (pair nat (pair nat (pair (option (pair nat (pair timestamp (pair nat (pair nat nat))))) (pair nat (pair timestamp (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair nat (pair timestamp (pair nat nat)))))) (option nat))))))))))) (pair (map string nat) (pair nat (pair nat (pair (map string (list string)) (pair address (pair nat (pair (map string nat) (pair nat (pair nat (pair bool (pair (option (pair nat (pair nat (pair address (pair (map string (pair nat (pair nat (pair nat (pair nat nat))))) (pair (map string nat) (pair nat (pair (map string (list string)) (pair address (pair nat (pair nat (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))) (pair (option nat) (pair bytes (pair nat (pair (map nat (pair key (pair string bool))) (pair nat (pair nat nat)))))))))))))))))))))
       {
         UNPAIR;
         DUP 2;
-        GET 23;
+        GET 25;
         IF
           {
             PUSH string "PAUSED";
@@ -3242,7 +3760,7 @@ view
             GET 17;
             IF_NONE
               {
-                PUSH int 529;
+                PUSH int 679;
                 FAILWITH;
               }
               {};
@@ -3255,7 +3773,7 @@ view
             IF
               {
                 DUP 6;
-                GET 15;
+                GET 17;
                 DUP 2;
                 CAR;
                 COMPARE;
@@ -3289,7 +3807,7 @@ view
                     GET 5;
                     IF_NONE
                       {
-                        PUSH int 540;
+                        PUSH int 690;
                         FAILWITH;
                       }
                       {};
@@ -3326,7 +3844,7 @@ view
                                 ISNAT;
                                 IF_NONE
                                   {
-                                    PUSH int 294;
+                                    PUSH int 423;
                                     FAILWITH;
                                   }
                                   {};
@@ -3345,7 +3863,7 @@ view
                                 ISNAT;
                                 IF_NONE
                                   {
-                                    PUSH int 297;
+                                    PUSH int 426;
                                     FAILWITH;
                                   }
                                   {};
@@ -3420,7 +3938,7 @@ view
                 GET 5;
                 IF_NONE
                   {
-                    PUSH int 559;
+                    PUSH int 709;
                     FAILWITH;
                   }
                   {};

@@ -18,6 +18,10 @@ from tests.contract.harness import (
     originate,
     originate_1of1,
     pack_payload,
+    propose_asset_unpause,
+    propose_config,
+    propose_unpause,
+    cancel_pending_config,
     read_price,
     sign_indices,
     submit,
@@ -315,7 +319,7 @@ def test_delayed_unpause_before_and_after_activation():
     sc, c, packer, admin, guardian, accounts = originate_1of1()
     submit(c, packer, accounts, make_payload(c.address), indices=[0])
     c.pause(**ctx(SUBMIT_LEVEL + 1, sender=admin))
-    c.propose_unpause(**ctx(SUBMIT_LEVEL + 1, sender=admin))
+    propose_unpause(c, packer, accounts, 0, level=SUBMIT_LEVEL + 1)
     c.activate_unpause(
         _valid=False,
         _exception="DELAY",
@@ -341,10 +345,16 @@ def test_delayed_unpause_before_and_after_activation():
 def test_guardian_cannot_unpause_or_configure():
     sc, c, packer, admin, guardian, accounts = originate_1of1()
     c.pause(**ctx(SUBMIT_LEVEL, sender=guardian))
-    c.propose_unpause(
-        _valid=False,
-        _exception="NOT_ADMIN",
-        **ctx(SUBMIT_LEVEL, sender=guardian),
+    propose_unpause(
+        c,
+        packer,
+        accounts,
+        0,
+        indices=[],
+        valid=False,
+        exception="QUORUM",
+        level=SUBMIT_LEVEL,
+        sender=guardian,
     )
     nxt = make_init(
         admin.address,
@@ -354,7 +364,18 @@ def test_guardian_cannot_unpause_or_configure():
         config_version=2,
         policy_hash=sp.bytes("0x" + "33" * 32),
     )
-    c.propose_config(nxt, _valid=False, _exception="NOT_ADMIN", **ctx(SUBMIT_LEVEL, sender=guardian))
+    propose_config(
+        c,
+        packer,
+        accounts,
+        nxt,
+        0,
+        indices=[],
+        valid=False,
+        exception="QUORUM",
+        level=SUBMIT_LEVEL,
+        sender=guardian,
+    )
 
 
 def test_delayed_config_before_and_after_activation():
@@ -368,7 +389,7 @@ def test_delayed_config_before_and_after_activation():
         config_version=2,
         policy_hash=new_hash,
     )
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL, sender=admin))
+    propose_config(c, packer, accounts, nxt, 0, level=SUBMIT_LEVEL)
     c.activate_config(_valid=False, _exception="DELAY", **ctx(SUBMIT_LEVEL))
     submit(
         c,
@@ -414,8 +435,8 @@ def test_cancel_pending_config():
         config_version=2,
         policy_hash=sp.bytes("0x" + "33" * 32),
     )
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL, sender=admin))
-    c.cancel_pending_config(**ctx(SUBMIT_LEVEL, sender=admin))
+    propose_config(c, packer, accounts, nxt, 0, level=SUBMIT_LEVEL)
+    cancel_pending_config(c, packer, accounts, 1, level=SUBMIT_LEVEL)
     c.activate_config(_valid=False, _exception="NO_PENDING", **ctx(SUBMIT_LEVEL + DELAY))
     sc.verify(c.data.config_version == 1)
 
@@ -433,7 +454,7 @@ def test_asset_pause_and_delayed_resume():
         exception="ASSET_PAUSED",
         level=SUBMIT_LEVEL,
     )
-    c.propose_asset_unpause("XTZ_USD", **ctx(SUBMIT_LEVEL, sender=admin))
+    propose_asset_unpause(c, packer, accounts, "XTZ_USD", 0, level=SUBMIT_LEVEL)
     c.activate_asset_unpause(
         "XTZ_USD", _valid=False, _exception="DELAY", **ctx(SUBMIT_LEVEL)
     )

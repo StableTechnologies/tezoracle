@@ -8,6 +8,12 @@ import { createFilePoolSampleStore, type PoolSampleStore } from "./adapters/dex/
 import { candidateFromDerivation, verifyCandidate } from "./candidate.js";
 import { derivePublicationGroup } from "./derive.js";
 import { ValidatorError } from "./errors.js";
+import {
+  loadGovernanceArtifact,
+  loadGovernanceSidecar,
+  sidecarPathForVersion,
+  signGovernanceArtifact,
+} from "./governance.js";
 import { defaultConfigDir, pinSnapshot } from "./policy.js";
 import { commitRound, loadRoundState, saveRoundState, signPackedPayload } from "./signer.js";
 import type { PublicationGroup } from "../packing/types.js";
@@ -18,6 +24,8 @@ type Flags = {
   group: PublicationGroup;
   fixtures?: string;
   candidate?: string;
+  intent?: string;
+  sidecar?: string;
   now?: string;
   round: string;
   output?: string;
@@ -44,11 +52,13 @@ Usage:
   tezoracle-validator derive  --group CORE [--config dir] [--fixtures file] [--now unix] [--round n] [--dex-state file] [--retries n] [--retry-delay-ms ms]
   tezoracle-validator verify  --candidate file [--config dir] [--fixtures file] [--now unix] [--dex-state file]
   tezoracle-validator sign    --candidate file [--config dir] [--fixtures file] [--now unix] [--state file] [--dex-state file]
+  tezoracle-validator sign-governance --intent artifact.json [--sidecar governance.json] [--config dir] [--now unix]
 
 Environment:
   TEZORACLE_SIGNER_SECRET_KEY   testnet edsk... (sign only)
   TEZORACLE_SIGNER_ID           signer-local id (default class-a)
   TEZORACLE_ROUND_STATE_PATH    last-signed-round JSON
+  TEZORACLE_GOVERNANCE_SIDECAR  override sidecar path (default config/governance/v<N>/sidecar.json)
   TEZOS_CHAIN_ID / ORACLE_ADDRESS   used when derive emits a payload
 
 --dex-state persists raw DEX pool reserve samples between derive calls
@@ -95,6 +105,8 @@ function parseFlags(argv: string[]): Flags {
       if (
         key === "fixtures" ||
         key === "candidate" ||
+        key === "intent" ||
+        key === "sidecar" ||
         key === "now" ||
         key === "output" ||
         key === "state" ||
@@ -309,6 +321,39 @@ export async function runCli(argv: string[]): Promise<number> {
       signature: signed.signature,
       public_key: signed.public_key,
       local_record: signed.local_record,
+    });
+    return 0;
+  }
+
+  if (flags.command === "sign-governance") {
+    if (!flags.intent) {
+      throw new ValidatorError("POLICY_PIN", "--intent is required");
+    }
+    const secret = process.env.TEZORACLE_SIGNER_SECRET_KEY;
+    if (!secret) {
+      throw new ValidatorError("INTERNAL", "TEZORACLE_SIGNER_SECRET_KEY is required to sign");
+    }
+    const artifact = loadGovernanceArtifact(flags.intent);
+    const sidecarPath =
+      flags.sidecar ??
+      process.env.TEZORACLE_GOVERNANCE_SIDECAR ??
+      sidecarPathForVersion(flags.config, snapshot.register.config_version);
+    const sidecar = loadGovernanceSidecar(sidecarPath);
+    const signed = await signGovernanceArtifact({
+      artifact,
+      snapshot,
+      sidecar,
+      secretKey: secret,
+      now,
+    });
+    writeOutput(flags, {
+      ok: true,
+      intent: signed.intent,
+      packed_hex: signed.packed_hex,
+      blake2b_hex: signed.blake2b_hex,
+      public_key: signed.public_key,
+      public_key_hash: signed.public_key_hash,
+      signature: signed.signature,
     });
     return 0;
   }

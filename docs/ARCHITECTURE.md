@@ -121,7 +121,7 @@ Logical fields, in specification order:
 
 `domain`, `chain_id`, `oracle_address`, `config_version`, `policy_hash`, `publication_group`, `round`, `valid_from`, `valid_until`, `evidence_digest`, ordered asset list (`asset_id`, `price`, `decimals`, `observation_time`).
 
-Domain: `TEZORACLE_V1`. Exact Michelson type, rejection rules, and PACK rules: [PAYLOAD_SPEC.md](PAYLOAD_SPEC.md). Evidence digest: [EVIDENCE_SPEC.md](EVIDENCE_SPEC.md). Derivation and candidate checks: [OBSERVER_AGREEMENT.md](OBSERVER_AGREEMENT.md). Asset policy: [PARAMETER_SCHEMA.md](PARAMETER_SCHEMA.md) and `config/`. On-chain N-of-M behavior: [CONTRACT_SPEC.md](CONTRACT_SPEC.md). Testnet origination: [TESTNET_DEPLOY.md](TESTNET_DEPLOY.md).
+Domain: `TEZORACLE_V1`. Exact Michelson type, rejection rules, and PACK rules: [PAYLOAD_SPEC.md](PAYLOAD_SPEC.md). Governance PACK (`t_init` layout, domains, nonce): [GOVERNANCE_PACK_SPEC.md](GOVERNANCE_PACK_SPEC.md). Evidence digest: [EVIDENCE_SPEC.md](EVIDENCE_SPEC.md). Derivation and candidate checks: [OBSERVER_AGREEMENT.md](OBSERVER_AGREEMENT.md). Asset policy: [PARAMETER_SCHEMA.md](PARAMETER_SCHEMA.md) and `config/`. On-chain N-of-M behavior: [CONTRACT_SPEC.md](CONTRACT_SPEC.md). Testnet origination: [TESTNET_DEPLOY.md](TESTNET_DEPLOY.md).
 
 Signatures cover `PACK(payload)` exactly. Packing implementations must not silently reorder or normalize fields. Frozen hex, Micheline, and BLAKE2B live in `tests/packing/vectors/`; TypeScript and SmartPy must match them byte-for-byte. Rust Class B is later work against the same vectors.
 

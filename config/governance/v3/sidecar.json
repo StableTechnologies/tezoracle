@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "admin": "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+  "guardian": "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+  "threshold_n": "1",
+  "threshold_m": "1",
+  "signers": {
+    "0": {
+      "public_key": "edpktnrDwsBBd5M2N9TGquSrUZP28q44GnvahhD3QQNMNQmbGTDGhb",
+      "class_id": "A",
+      "active": true
+    }
+  },
+  "class_minima": {}
+}

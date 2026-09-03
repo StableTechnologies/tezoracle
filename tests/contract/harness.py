@@ -18,8 +18,16 @@ NOW = 1_800_000_000
 OBS = NOW - 30
 VALID_FROM = NOW - 10
 VALID_UNTIL = NOW + 60
+GOV_VALID_UNTIL = NOW + 10_000
 SUBMIT_LEVEL = 100
 DELAY = 1
+
+CONFIG_DOMAIN = "TEZORACLE_CONFIG_V1"
+CONFIG_CANCEL_DOMAIN = "TEZORACLE_CONFIG_CANCEL_V1"
+UNPAUSE_DOMAIN = "TEZORACLE_UNPAUSE_V1"
+UNPAUSE_CANCEL_DOMAIN = "TEZORACLE_UNPAUSE_CANCEL_V1"
+ASSET_UNPAUSE_DOMAIN = "TEZORACLE_ASSET_UNPAUSE_V1"
+ASSET_UNPAUSE_CANCEL_DOMAIN = "TEZORACLE_ASSET_UNPAUSE_CANCEL_V1"
 
 CORE_PRICES = {
     "BTC_USD": 65_000_000_000,
@@ -278,13 +286,295 @@ def ctx(level: int, now: int = NOW, sender=None):
     return kwargs
 
 
+def _gov_call_kwargs(
+    *,
+    now: int,
+    level: int,
+    sender=None,
+    valid: bool = True,
+    exception: str | None = None,
+) -> dict[str, Any]:
+    kwargs = ctx(level, now=now, sender=sender)
+    kwargs["_valid"] = valid
+    if exception is not None:
+        kwargs["_exception"] = exception
+    return kwargs
+
+
+def make_config_intent(
+    oracle_address,
+    init,
+    nonce: int,
+    *,
+    current_config_version: int = 1,
+    valid_until: int = GOV_VALID_UNTIL,
+    domain: str = CONFIG_DOMAIN,
+):
+    return sp.record(
+        domain=domain,
+        chain_id=chain_id(),
+        oracle_address=oracle_address,
+        current_config_version=current_config_version,
+        governance_nonce=nonce,
+        valid_until=sp.timestamp(valid_until),
+        init=init,
+    )
+
+
+def make_simple_intent(
+    oracle_address,
+    domain: str,
+    nonce: int,
+    *,
+    current_config_version: int = 1,
+    valid_until: int = GOV_VALID_UNTIL,
+):
+    return sp.record(
+        domain=domain,
+        chain_id=chain_id(),
+        oracle_address=oracle_address,
+        current_config_version=current_config_version,
+        governance_nonce=nonce,
+        valid_until=sp.timestamp(valid_until),
+    )
+
+
+def make_asset_intent(
+    oracle_address,
+    domain: str,
+    asset_id: str,
+    nonce: int,
+    *,
+    current_config_version: int = 1,
+    valid_until: int = GOV_VALID_UNTIL,
+):
+    return sp.record(
+        domain=domain,
+        chain_id=chain_id(),
+        oracle_address=oracle_address,
+        current_config_version=current_config_version,
+        governance_nonce=nonce,
+        valid_until=sp.timestamp(valid_until),
+        asset_id=asset_id,
+    )
+
+
+def propose_config(
+    contract,
+    packer,
+    accounts,
+    init,
+    nonce: int,
+    *,
+    current_config_version: int = 1,
+    indices: Sequence[int] | None = None,
+    now: int = NOW,
+    level: int = SUBMIT_LEVEL,
+    sender=None,
+    valid: bool = True,
+    exception: str | None = None,
+    valid_until: int = GOV_VALID_UNTIL,
+):
+    intent = make_config_intent(
+        contract.address,
+        init,
+        nonce,
+        current_config_version=current_config_version,
+        valid_until=valid_until,
+    )
+    packer.pack_config_intent(intent)
+    if indices is None:
+        indices = list(range(len(accounts)))
+    signatures = sign_indices(accounts, packer.data.packed, indices)
+    contract.propose_config(
+        intent=intent,
+        signatures=signatures,
+        **_gov_call_kwargs(
+            now=now, level=level, sender=sender, valid=valid, exception=exception
+        ),
+    )
+
+
+def cancel_pending_config(
+    contract,
+    packer,
+    accounts,
+    nonce: int,
+    *,
+    current_config_version: int = 1,
+    indices: Sequence[int] | None = None,
+    now: int = NOW,
+    level: int = SUBMIT_LEVEL,
+    sender=None,
+    valid: bool = True,
+    exception: str | None = None,
+):
+    intent = make_simple_intent(
+        contract.address,
+        CONFIG_CANCEL_DOMAIN,
+        nonce,
+        current_config_version=current_config_version,
+    )
+    packer.pack_simple_intent(intent)
+    if indices is None:
+        indices = list(range(len(accounts)))
+    signatures = sign_indices(accounts, packer.data.packed, indices)
+    contract.cancel_pending_config(
+        intent=intent,
+        signatures=signatures,
+        **_gov_call_kwargs(
+            now=now, level=level, sender=sender, valid=valid, exception=exception
+        ),
+    )
+
+
+def propose_unpause(
+    contract,
+    packer,
+    accounts,
+    nonce: int,
+    *,
+    current_config_version: int = 1,
+    indices: Sequence[int] | None = None,
+    now: int = NOW,
+    level: int = SUBMIT_LEVEL,
+    sender=None,
+    valid: bool = True,
+    exception: str | None = None,
+):
+    intent = make_simple_intent(
+        contract.address,
+        UNPAUSE_DOMAIN,
+        nonce,
+        current_config_version=current_config_version,
+    )
+    packer.pack_simple_intent(intent)
+    if indices is None:
+        indices = list(range(len(accounts)))
+    signatures = sign_indices(accounts, packer.data.packed, indices)
+    contract.propose_unpause(
+        intent=intent,
+        signatures=signatures,
+        **_gov_call_kwargs(
+            now=now, level=level, sender=sender, valid=valid, exception=exception
+        ),
+    )
+
+
+def cancel_pending_unpause(
+    contract,
+    packer,
+    accounts,
+    nonce: int,
+    *,
+    current_config_version: int = 1,
+    indices: Sequence[int] | None = None,
+    now: int = NOW,
+    level: int = SUBMIT_LEVEL,
+    sender=None,
+    valid: bool = True,
+    exception: str | None = None,
+):
+    intent = make_simple_intent(
+        contract.address,
+        UNPAUSE_CANCEL_DOMAIN,
+        nonce,
+        current_config_version=current_config_version,
+    )
+    packer.pack_simple_intent(intent)
+    if indices is None:
+        indices = list(range(len(accounts)))
+    signatures = sign_indices(accounts, packer.data.packed, indices)
+    contract.cancel_pending_unpause(
+        intent=intent,
+        signatures=signatures,
+        **_gov_call_kwargs(
+            now=now, level=level, sender=sender, valid=valid, exception=exception
+        ),
+    )
+
+
+def propose_asset_unpause(
+    contract,
+    packer,
+    accounts,
+    asset_id: str,
+    nonce: int,
+    *,
+    current_config_version: int = 1,
+    indices: Sequence[int] | None = None,
+    now: int = NOW,
+    level: int = SUBMIT_LEVEL,
+    sender=None,
+    valid: bool = True,
+    exception: str | None = None,
+):
+    intent = make_asset_intent(
+        contract.address,
+        ASSET_UNPAUSE_DOMAIN,
+        asset_id,
+        nonce,
+        current_config_version=current_config_version,
+    )
+    packer.pack_asset_intent(intent)
+    if indices is None:
+        indices = list(range(len(accounts)))
+    signatures = sign_indices(accounts, packer.data.packed, indices)
+    contract.propose_asset_unpause(
+        intent=intent,
+        signatures=signatures,
+        **_gov_call_kwargs(
+            now=now, level=level, sender=sender, valid=valid, exception=exception
+        ),
+    )
+
+
+def cancel_asset_unpause(
+    contract,
+    packer,
+    accounts,
+    asset_id: str,
+    nonce: int,
+    *,
+    current_config_version: int = 1,
+    indices: Sequence[int] | None = None,
+    now: int = NOW,
+    level: int = SUBMIT_LEVEL,
+    sender=None,
+    valid: bool = True,
+    exception: str | None = None,
+):
+    intent = make_asset_intent(
+        contract.address,
+        ASSET_UNPAUSE_CANCEL_DOMAIN,
+        asset_id,
+        nonce,
+        current_config_version=current_config_version,
+    )
+    packer.pack_asset_intent(intent)
+    if indices is None:
+        indices = list(range(len(accounts)))
+    signatures = sign_indices(accounts, packer.data.packed, indices)
+    contract.cancel_asset_unpause(
+        intent=intent,
+        signatures=signatures,
+        **_gov_call_kwargs(
+            now=now, level=level, sender=sender, valid=valid, exception=exception
+        ),
+    )
+
+
 def last_events(scenario) -> list[dict[str, Any]]:
     """Events from the most recent entrypoint call in this scenario."""
-    payload = scenario.entrypoint_calls[-1][1]
+    raw = scenario.entrypoint_calls[-1][1]
+    blobs = [raw]
+    if isinstance(raw.get("message"), dict):
+        blobs.append(raw["message"])
     events: list[dict[str, Any]] = []
-    for item in payload.get("sub_results") or []:
-        if isinstance(item, list) and item and item[0] == "Event":
-            events.append(item[1])
+    for payload in blobs:
+        for item in payload.get("sub_results") or []:
+            if isinstance(item, list) and item and item[0] == "Event":
+                events.append(item[1])
     return events
 
 

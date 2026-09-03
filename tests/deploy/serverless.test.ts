@@ -20,7 +20,7 @@ const COORDINATOR_FUNCTIONS = [
   "coordinatorAssemble",
 ] as const;
 const RELAYER_FUNCTIONS = ["relayerVerify", "relayerSubmit", "relayerBackup"] as const;
-const SIGNER_FUNCTION = "signerClassA";
+const SIGNER_FUNCTIONS = ["signerClassA", "signerGovernance"] as const;
 
 function functions(): { [name: string]: { [key: string]: YamlValue } } {
   const raw = asMap(DOC.functions, "functions");
@@ -123,7 +123,7 @@ test("serverless.yml is one testnet/shadow stack on Node 22", () => {
 
 test("required transport functions exist and signer has no public events", () => {
   const fns = functions();
-  for (const name of [...COORDINATOR_FUNCTIONS, ...RELAYER_FUNCTIONS, SIGNER_FUNCTION]) {
+  for (const name of [...COORDINATOR_FUNCTIONS, ...RELAYER_FUNCTIONS, ...SIGNER_FUNCTIONS]) {
     assert.ok(fns[name], name);
   }
   assert.match(String(fns.coordinatorTick?.handler), /src\/deploy\/tick\.tick/);
@@ -136,6 +136,8 @@ test("required transport functions exist and signer has no public events", () =>
   assert.equal(fns.relayerBackup?.handler, fns.relayerSubmit?.handler);
   assert.match(String(fns.signerClassA?.handler), /src\/deploy\/signer\.sign/);
   assert.equal(fns.signerClassA?.events, undefined);
+  assert.match(String(fns.signerGovernance?.handler), /src\/deploy\/signer\.signGovernance/);
+  assert.equal(fns.signerGovernance?.events, undefined);
 });
 
 test("coordinator and relayer env never include the oracle signer secret", () => {
@@ -145,9 +147,18 @@ test("coordinator and relayer env never include the oracle signer secret", () =>
     assert.equal(env[SIGNER_SECRET_ENV], undefined, name);
     assert.equal(env.TEZORACLE_SIGNER_SECRET_NAME, undefined, name);
   }
-  const signerEnv = mergedEnv(fns[SIGNER_FUNCTION] ?? {});
-  assert.equal(signerEnv[SIGNER_SECRET_ENV], undefined);
-  assert.match(signerEnv.TEZORACLE_SIGNER_SECRET_NAME ?? "", /\$\{self:custom\.signerSecretName\}/);
+  for (const name of SIGNER_FUNCTIONS) {
+    const signerEnv = mergedEnv(fns[name] ?? {});
+    assert.equal(signerEnv[SIGNER_SECRET_ENV], undefined);
+    assert.match(signerEnv.TEZORACLE_SIGNER_SECRET_NAME ?? "", /\$\{self:custom\.signerSecretName\}/);
+  }
+  const governanceEnv = mergedEnv(fns.signerGovernance ?? {});
+  assert.equal(governanceEnv.TEZORACLE_GOVERNANCE_INTENT_PATH, undefined);
+  assert.equal(governanceEnv.TEZORACLE_GOVERNANCE_SIDECAR, undefined);
+  assert.equal(governanceEnv.TEZORACLE_GOVERNANCE_INTENT_SHA256, undefined);
+  assert.equal(governanceEnv.TEZORACLE_GOVERNANCE_SIDECAR_SHA256, undefined);
+  const custom = asMap(DOC.custom, "custom");
+  assert.equal(custom.governanceManifest, undefined);
 });
 
 test("EventBridge schedule is enabled on the coordinator tick at rate(5 minutes)", () => {
@@ -193,6 +204,16 @@ test("IAM denies coordinator and relayer GetSecretValue on the signer secret", (
   assert.ok(flattenResources(signerAllow.Resource).some((arn) => arn.includes("${self:custom.signerSecretName}")));
 });
 
+test("coordinator cannot invoke the governance signer", () => {
+  const invoke = roleStatements("CoordinatorLambdaRole").find(
+    (statement) => statement.Sid === "InvokeClassASigner",
+  );
+  assert.ok(invoke);
+  const allowed = flattenResources(invoke.Resource);
+  assert.ok(allowed.some((arn) => arn.endsWith("-signerClassA")));
+  assert.ok(allowed.every((arn) => !arn.includes("signerGovernance")));
+});
+
 test("template has no committed secrets, account IDs, or production cadence", () => {
   assert.doesNotMatch(SOURCE, /edsk[1-9A-HJ-NP-Za-km-z]{20,}/);
   assert.doesNotMatch(SOURCE, /TEZORACLE_SIGNER_SECRET_KEY\s*:/);
@@ -215,7 +236,9 @@ test("roles are split and backup relayer reuses submit", () => {
   for (const name of RELAYER_FUNCTIONS) {
     assert.equal(fns[name]?.role, "RelayerLambdaRole");
   }
-  assert.equal(fns[SIGNER_FUNCTION]?.role, "SignerLambdaRole");
+  for (const name of SIGNER_FUNCTIONS) {
+    assert.equal(fns[name]?.role, "SignerLambdaRole");
+  }
   const placeholders = resources();
   assert.equal(placeholders.SignerSecretPlaceholder?.Type, "AWS::SecretsManager::Secret");
   assert.equal(placeholders.FeePayerSecretPlaceholder?.Type, "AWS::SecretsManager::Secret");

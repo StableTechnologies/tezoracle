@@ -16,6 +16,12 @@ wallets/
 *.wallet
 faucet.json
 
+# Per-action governance envelope. Committee sidecars live in git as
+# config/governance/v<config_version>/sidecar.json and are reviewed with the
+# register bump. Intent nonce/expiry is not a config-version pin.
+config/governance/intent.json
+config/governance/manifest.json
+
 # Serverless / AWS package artifacts — never commit deploy output
 .serverless/
 .esbuild/

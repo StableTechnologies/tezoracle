@@ -149,6 +149,15 @@ functions:
       TEZORACLE_SIGNER_SECRET_NAME: ${self:custom.signerSecretName}
       TEZORACLE_SIGNER_ID: ${env:TEZORACLE_SIGNER_ID, "class-a"}
 
+  # Manual invoke only. The event contains action/index, never config or PACK
+  # bytes. Each signer deployment packages its independently approved files.
+  signerGovernance:
+    handler: src/deploy/signer.signGovernance
+    role: SignerLambdaRole
+    environment:
+      TEZORACLE_SIGNER_SECRET_NAME: ${self:custom.signerSecretName}
+      TEZORACLE_SIGNER_ID: ${env:TEZORACLE_SIGNER_ID, "class-a"}
+
 resources:
   Resources:
     CoordinatorLambdaRole:
