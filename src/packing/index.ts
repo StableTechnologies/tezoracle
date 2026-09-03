@@ -5,7 +5,13 @@
  * Rust Class B packing is later work and must match these golden vectors.
  */
 
-export { packPayload, packUnchecked, blake2b256Hex, bytesToHex, hexToBytes, type PackedPayload } from "./pack.js";
+export { packPayload, packUnchecked, packMichelineWithType, blake2b256Hex, bytesToHex, hexToBytes, type PackedPayload } from "./pack.js";
+export {
+  packInit,
+  packConfigIntent,
+  packSimpleIntent,
+  packAssetIntent,
+} from "./governance.js";
 export { parseLogicalPayload } from "./validate.js";
 export { PAYLOAD_MICHELSON_TYPE, ASSET_ENTRY_TYPE, payloadMicheline } from "./michelson.js";
 export {

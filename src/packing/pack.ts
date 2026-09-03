@@ -20,7 +20,7 @@ export function hexToBytes(hex: string): Uint8Array {
   return out;
 }
 
-export type PackedPayload<T extends PackablePayload = PackablePayload> = {
+export type PackedPayload<T extends PackablePayload | object = PackablePayload> = {
   payload: T;
   micheline: Micheline;
   packedHex: string;
@@ -28,8 +28,12 @@ export type PackedPayload<T extends PackablePayload = PackablePayload> = {
   blake2bHex: string;
 };
 
-function packMicheline<T extends PackablePayload>(payload: T, micheline: Micheline): PackedPayload<T> {
-  const packed = packDataBytes(micheline as never, PAYLOAD_MICHELSON_TYPE as never);
+export function packMichelineWithType<T extends object>(
+  payload: T,
+  micheline: Micheline,
+  michelsonType: Micheline,
+): PackedPayload<T> {
+  const packed = packDataBytes(micheline as never, michelsonType as never);
   const packedHex = packed.bytes.toLowerCase();
   if (!packedHex.startsWith("05")) {
     throw new PackError("PACK", "PACK output must start with the 0x05 tag");
@@ -42,6 +46,10 @@ function packMicheline<T extends PackablePayload>(payload: T, micheline: Micheli
     packedBytes,
     blake2bHex: blake2b256Hex(packedBytes),
   };
+}
+
+function packMicheline<T extends PackablePayload>(payload: T, micheline: Micheline): PackedPayload<T> {
+  return packMichelineWithType(payload, micheline, PAYLOAD_MICHELSON_TYPE);
 }
 
 export function packPayload(input: unknown, policy?: RegisterPolicy): PackedPayload<LogicalPayload> {

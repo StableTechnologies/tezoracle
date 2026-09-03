@@ -21,6 +21,8 @@ CI validates `serverless.yml` and runs `serverless package` (no AWS account). Do
 - A non-production AWS account and a profile that can create IAM, Lambda, EventBridge, and Secrets Manager resources in that account
 - Testnet placeholders: `TEZOS_RPC_URL`, `TEZOS_CHAIN_ID`, `ORACLE_ADDRESS` (Shadownet)
 - A **testnet-only** Class A `edsk` that you will paste into Secrets Manager in the console
+- Per-action `config/governance/intent.json`. Committee sidecar is
+  `config/governance/v<config_version>/sidecar.json` in git.
 
 Pinned operator tools are already in `devDependencies`: `serverless@3.40.0` and `serverless-esbuild@1.57.2`. Do not `npm install serverless` unpinned — that pulls Framework 4, which rejects `frameworkVersion: "3"`.
 
@@ -37,6 +39,10 @@ export TEZOS_RPC_URL="https://rpc.shadownet.teztnets.com"
 export TEZOS_CHAIN_ID="NetXsqzbfFenSTS"
 export ORACLE_ADDRESS="KT1..."   # testnet oracle, never a TezFin production pointer
 
+npm run governance:check-sidecar
+npm run governance:freeze-deployment
+npm run governance:check-deployment
+npm run deploy:package
 npx serverless deploy --stage testnet --region us-east-1
 ```
 
@@ -53,10 +59,15 @@ This stack is testnet/shadow transport. EventBridge `rate(5 minutes)` is enabled
 1. Confirm EventBridge rule `tezoracle-testnet-tick` is the testnet/shadow tick, not a production cadence.
 2. Confirm the coordinator (including `coordinatorTick`) and relayer roles cannot `GetSecretValue` on the Class A signer secret.
 3. You may invoke coordinator/relayer directly to inspect wiring. Do not publish a public signer API.
-4. `signerClassA` has the secret **name** only. A live invoke will not sign until a Secrets Manager fetch is injected (later work). The tick must invoke Class A; it must not read the signer secret.
-5. `relayerSubmit` is not a live Shadownet injector in this repository. Local e2e uses an injected mock / harness RPC.
-6. `relayerBackup` is a second function on the same sealed batch as `relayerSubmit`.
-7. Do not point TezFin `set_oracle` at the originated testnet contract.
+4. `signerClassA` and `signerGovernance` resolve the secret by name inside
+   the signer-only process. The coordinator must not read it.
+5. Confirm `signerGovernance.zip` contains
+   `config/governance/v<config_version>/sidecar.json`. `intent.json` is
+   present only for a governance-capable package. Invocation rejects any
+   event key other than `action` and optional `index`.
+6. `relayerSubmit` is not a live Shadownet injector in this repository. Local e2e uses an injected mock / harness RPC.
+7. `relayerBackup` is a second function on the same sealed batch as `relayerSubmit`.
+8. Do not point TezFin `set_oracle` at the originated testnet contract.
 
 Remove the stack from the same non-production account when finished:
 

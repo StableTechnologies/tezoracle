@@ -1,0 +1,82 @@
+{
+  "intent": {
+    "domain": "TEZORACLE_CONFIG_V1",
+    "chain_id": "NetXsqzbfFenSTS",
+    "oracle_address": "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy",
+    "current_config_version": "2",
+    "governance_nonce": "0",
+    "valid_until": "1800000180",
+    "init": {
+      "admin": "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+      "guardian": "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+      "config_version": "3",
+      "policy_hash": "57a77d1b62ffae4ea59855f731d50b343056f3f015f42b90da42600a9f1a0854",
+      "threshold_n": "1",
+      "threshold_m": "1",
+      "activation_delay_levels": "1",
+      "min_activation_delay_levels": "1",
+      "max_clock_skew_seconds": "5",
+      "validity_window_seconds": "180",
+      "price_nat_max": "79228162514264337593543950335",
+      "signers": {
+        "0": {
+          "public_key": "edpktnrDwsBBd5M2N9TGquSrUZP28q44GnvahhD3QQNMNQmbGTDGhb",
+          "class_id": "A",
+          "active": true
+        }
+      },
+      "class_minima": {},
+      "groups": {
+        "CORE": [
+          "BTC_USD",
+          "USDT_USD",
+          "XTZ_USD"
+        ],
+        "USDTZ": [
+          "USDTZ_USD"
+        ],
+        "TZBTC": [
+          "TZBTC_USD"
+        ]
+      },
+      "assets": {
+        "BTC_USD": {
+          "decimals": "6",
+          "max_observation_age_seconds": "120",
+          "absolute_min_price": "1000000000",
+          "absolute_max_price": "500000000000",
+          "max_movement_bps": "2000"
+        },
+        "TZBTC_USD": {
+          "decimals": "6",
+          "max_observation_age_seconds": "120",
+          "absolute_min_price": "1000000000",
+          "absolute_max_price": "500000000000",
+          "max_movement_bps": "2000"
+        },
+        "USDTZ_USD": {
+          "decimals": "6",
+          "max_observation_age_seconds": "120",
+          "absolute_min_price": "800000",
+          "absolute_max_price": "1200000",
+          "max_movement_bps": "500"
+        },
+        "USDT_USD": {
+          "decimals": "6",
+          "max_observation_age_seconds": "120",
+          "absolute_min_price": "900000",
+          "absolute_max_price": "1100000",
+          "max_movement_bps": "300"
+        },
+        "XTZ_USD": {
+          "decimals": "6",
+          "max_observation_age_seconds": "120",
+          "absolute_min_price": "10000",
+          "absolute_max_price": "100000000",
+          "max_movement_bps": "2000"
+        }
+      }
+    }
+  },
+  "packed_hex": "050707010000001354455a4f5241434c455f434f4e4649475f563107070a00000004d052218e07070a00000016019142eb01374f37f03023eefc82f2ede96e8ae515000707000207070000070700b4caceb40d0707000107070a000000160000bfbf1a0900331bfd281a8898bd9235c9e97f245e070702000000d0070401000000074254435f55534407070006070700b80107070080a8d6b90707070080a094a58d1d00901f07040100000009545a4254435f55534407070006070700b80107070080a8d6b90707070080a094a58d1d00901f07040100000009555344545a5f55534407070006070700b80107070080d46107070080be920100b40707040100000008555344545f55534407070006070700b801070700a0ee6d070700a0a3860100ac040704010000000758545a5f55534407070006070700b801070700909c010707008084af5f00901f07070200000000070700030707020000007307040100000004434f5245020000002501000000074254435f5553440100000008555344545f555344010000000758545a5f55534407040100000005545a425443020000000e0100000009545a4254435f55534407040100000005555344545a020000000e0100000009555344545a5f55534407070a000000160000bfbf1a0900331bfd281a8898bd9235c9e97f245e070700050707000107070a0000002057a77d1b62ffae4ea59855f731d50b343056f3f015f42b90da42600a9f1a0854070700bfffffffffffffffffffffffff3f070702000000360704000007070a00000021001395e801a1b212e184de86f61d7e40606095684ef11c66ea6d65132c4a628ef70707010000000141030a070700010707000100b402"
+}

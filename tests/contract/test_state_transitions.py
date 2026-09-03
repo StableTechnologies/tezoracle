@@ -37,6 +37,12 @@ from tests.contract.harness import (
     make_payload,
     originate,
     originate_1of1,
+    propose_asset_unpause,
+    propose_config,
+    propose_unpause,
+    cancel_asset_unpause,
+    cancel_pending_config,
+    cancel_pending_unpause,
     read_price,
     submit,
 )
@@ -125,7 +131,7 @@ def test_discard_pending_before_unpause():
     c.pause(**ctx(SUBMIT_LEVEL, sender=guardian))
     c.discard_pending("XTZ_USD", **ctx(SUBMIT_LEVEL, sender=guardian))
     sc.verify(c.data.assets["XTZ_USD"].pending.is_none())
-    c.propose_unpause(**ctx(SUBMIT_LEVEL, sender=admin))
+    propose_unpause(c, packer, accounts, 0, level=SUBMIT_LEVEL)
     c.activate_unpause(**ctx(SUBMIT_LEVEL + DELAY))
     _fail_view(sc, c, "XTZ_USD", SUBMIT_LEVEL + DELAY, "NO_PRICE")
 
@@ -134,7 +140,7 @@ def test_unpause_does_not_resurrect_quarantined_pending():
     sc, c, packer, admin, guardian, accounts = originate_1of1()
     submit(c, packer, accounts, make_payload(c.address), indices=[0])
     c.pause(**ctx(SUBMIT_LEVEL + DELAY, sender=guardian))
-    c.propose_unpause(**ctx(SUBMIT_LEVEL + DELAY, sender=admin))
+    propose_unpause(c, packer, accounts, 0, level=SUBMIT_LEVEL + DELAY)
     c.activate_unpause(**ctx(SUBMIT_LEVEL + DELAY + DELAY))
     _fail_view(sc, c, "XTZ_USD", SUBMIT_LEVEL + DELAY + DELAY, "NO_PRICE")
 
@@ -186,7 +192,7 @@ def test_config_activation_clears_pending_and_requires_fresh_publish():
         accounts,
         policy_hash=sp.bytes("0x" + "33" * 32),
     )
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL, sender=admin))
+    propose_config(c, packer, accounts, nxt, 0, level=SUBMIT_LEVEL)
     c.activate_config(**ctx(SUBMIT_LEVEL + DELAY))
     sc.verify(c.data.assets["XTZ_USD"].pending.is_none())
     sc.verify(c.data.assets["XTZ_USD"].active.is_none())
@@ -211,7 +217,7 @@ def test_config_activation_drops_active_on_decimals_change():
         decimals=8, abs_min=10_000, abs_max=100_000_000
     )
     nxt = _next_init(admin, guardian, accounts, extra={"assets": assets})
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL + DELAY, sender=admin))
+    propose_config(c, packer, accounts, nxt, 0, level=SUBMIT_LEVEL + DELAY)
     c.activate_config(**ctx(SUBMIT_LEVEL + DELAY + DELAY))
     sc.verify(c.data.assets["XTZ_USD"].active.is_none())
     sc.verify(c.data.assets["XTZ_USD"].pending.is_none())
@@ -235,7 +241,7 @@ def test_config_activation_drops_active_on_bounds_change():
     assets = default_assets()
     assets["XTZ_USD"] = asset_policy(abs_min=20_000, abs_max=100_000_000)
     nxt = _next_init(admin, guardian, accounts, extra={"assets": assets})
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL + DELAY, sender=admin))
+    propose_config(c, packer, accounts, nxt, 0, level=SUBMIT_LEVEL + DELAY)
     c.activate_config(**ctx(SUBMIT_LEVEL + DELAY + DELAY))
     sc.verify(c.data.assets["XTZ_USD"].active.is_none())
     quote = read_price(sc, c, "BTC_USD", SUBMIT_LEVEL + DELAY + DELAY)
@@ -256,7 +262,7 @@ def test_config_activation_drops_quotes_on_signer_or_policy_change():
     )
     new_hash = sp.bytes("0x" + "33" * 32)
     nxt = _next_init(admin, guardian, accounts, policy_hash=new_hash)
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL + DELAY, sender=admin))
+    propose_config(c, packer, accounts, nxt, 0, level=SUBMIT_LEVEL + DELAY)
     c.activate_config(**ctx(SUBMIT_LEVEL + DELAY + DELAY))
     sc.verify(c.data.assets["XTZ_USD"].active.is_none())
     sc.verify(c.data.assets["BTC_USD"].active.is_none())
@@ -271,7 +277,15 @@ def test_config_activation_drops_quotes_on_signer_or_policy_change():
         config_version=3,
         policy_hash=new_hash,
     )
-    c.propose_config(nxt2, **ctx(SUBMIT_LEVEL + DELAY + DELAY, sender=admin))
+    propose_config(
+        c,
+        packer,
+        accounts,
+        nxt2,
+        1,
+        current_config_version=2,
+        level=SUBMIT_LEVEL + DELAY + DELAY,
+    )
     c.activate_config(**ctx(SUBMIT_LEVEL + DELAY + DELAY + DELAY))
     sc.verify(c.data.signers[0].public_key == replacement.public_key)
     _fail_view(sc, c, "XTZ_USD", SUBMIT_LEVEL + DELAY + DELAY + DELAY, "NO_PRICE")
@@ -297,7 +311,7 @@ def test_compatible_admin_rotation_preserves_active_quote():
         1,
         config_version=2,
     )
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL + DELAY, sender=admin))
+    propose_config(c, packer, accounts, nxt, 0, level=SUBMIT_LEVEL + DELAY)
     c.activate_config(**ctx(SUBMIT_LEVEL + DELAY + DELAY))
     sc.verify(c.data.admin == new_admin.address)
     sc.verify(c.data.assets["XTZ_USD"].pending.is_none())
@@ -310,12 +324,12 @@ def test_compatible_admin_rotation_preserves_active_quote():
 def test_config_activation_clears_pending_unpause():
     sc, c, packer, admin, guardian, accounts = originate_1of1()
     c.pause(**ctx(SUBMIT_LEVEL, sender=guardian))
-    c.propose_unpause(**ctx(SUBMIT_LEVEL, sender=admin))
+    propose_unpause(c, packer, accounts, 0, level=SUBMIT_LEVEL)
     sc.verify(c.data.pending_unpause_level.is_some())
     nxt = _next_init(
         admin, guardian, accounts, policy_hash=sp.bytes("0x" + "33" * 32)
     )
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL, sender=admin))
+    propose_config(c, packer, accounts, nxt, 1, level=SUBMIT_LEVEL)
     c.activate_config(**ctx(SUBMIT_LEVEL + DELAY))
     sc.verify(c.data.paused)
     sc.verify(c.data.pending_unpause_level.is_none())
@@ -327,12 +341,12 @@ def test_config_activation_clears_pending_unpause():
 def test_config_activation_clears_pending_asset_unpause():
     sc, c, packer, admin, guardian, accounts = originate_1of1()
     c.pause_asset("XTZ_USD", **ctx(SUBMIT_LEVEL, sender=guardian))
-    c.propose_asset_unpause("XTZ_USD", **ctx(SUBMIT_LEVEL, sender=admin))
+    propose_asset_unpause(c, packer, accounts, "XTZ_USD", 0, level=SUBMIT_LEVEL)
     sc.verify(c.data.assets["XTZ_USD"].pending_unpause_level.is_some())
     nxt = _next_init(
         admin, guardian, accounts, policy_hash=sp.bytes("0x" + "33" * 32)
     )
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL, sender=admin))
+    propose_config(c, packer, accounts, nxt, 1, level=SUBMIT_LEVEL)
     c.activate_config(**ctx(SUBMIT_LEVEL + DELAY))
     sc.verify(c.data.assets["XTZ_USD"].paused)
     sc.verify(c.data.assets["XTZ_USD"].pending_unpause_level.is_none())
@@ -421,7 +435,7 @@ def test_config_activation_clears_pending_even_when_active_is_kept():
         1,
         config_version=2,
     )
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL + DELAY, sender=admin))
+    propose_config(c, packer, accounts, nxt, 0, level=SUBMIT_LEVEL + DELAY)
     c.activate_config(**ctx(SUBMIT_LEVEL + DELAY + DELAY))
     sc.verify(c.data.assets["XTZ_USD"].pending.is_none())
     sc.verify(c.data.assets["XTZ_USD"].active.is_some())
@@ -450,7 +464,7 @@ def test_config_activation_drops_active_and_pending_on_signer_change():
         1,
         config_version=2,
     )
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL + DELAY, sender=admin))
+    propose_config(c, packer, accounts, nxt, 0, level=SUBMIT_LEVEL + DELAY)
     c.activate_config(**ctx(SUBMIT_LEVEL + DELAY + DELAY))
     sc.verify(c.data.signers[0].public_key == replacement.public_key)
     sc.verify(c.data.policy_hash == sp.bytes("0x" + "11" * 32))
@@ -462,7 +476,7 @@ def test_config_activation_drops_active_and_pending_on_signer_change():
 def test_pending_unpause_cleared_on_admin_rotation():
     sc, c, packer, admin, guardian, accounts = originate_1of1()
     c.pause(**ctx(SUBMIT_LEVEL, sender=guardian))
-    c.propose_unpause(**ctx(SUBMIT_LEVEL, sender=admin))
+    propose_unpause(c, packer, accounts, 0, level=SUBMIT_LEVEL)
     sc.verify(c.data.pending_unpause_level.is_some())
     new_admin = sp.test_account("admin-rotated")
     nxt = make_init(
@@ -472,7 +486,7 @@ def test_pending_unpause_cleared_on_admin_rotation():
         1,
         config_version=2,
     )
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL, sender=admin))
+    propose_config(c, packer, accounts, nxt, 1, level=SUBMIT_LEVEL)
     c.activate_config(**ctx(SUBMIT_LEVEL + DELAY))
     sc.verify(c.data.admin == new_admin.address)
     sc.verify(c.data.paused)
@@ -480,12 +494,26 @@ def test_pending_unpause_cleared_on_admin_rotation():
     c.activate_unpause(
         _valid=False, _exception="NO_PENDING", **ctx(SUBMIT_LEVEL + DELAY)
     )
-    c.propose_unpause(
-        _valid=False,
-        _exception="NOT_ADMIN",
-        **ctx(SUBMIT_LEVEL + DELAY, sender=admin),
+    propose_unpause(
+        c,
+        packer,
+        accounts,
+        2,
+        current_config_version=2,
+        indices=[],
+        valid=False,
+        exception="QUORUM",
+        level=SUBMIT_LEVEL + DELAY,
+        sender=admin,
     )
-    c.propose_unpause(**ctx(SUBMIT_LEVEL + DELAY, sender=new_admin))
+    propose_unpause(
+        c,
+        packer,
+        accounts,
+        2,
+        current_config_version=2,
+        level=SUBMIT_LEVEL + DELAY,
+    )
     sc.verify(c.data.pending_unpause_level.is_some())
 
 
@@ -532,32 +560,40 @@ def test_unpause_and_config_emit_distinct_events():
     sc, c, packer, admin, guardian, accounts = originate_1of1()
     c.pause(**ctx(SUBMIT_LEVEL, sender=guardian))
     assert last_event_tags(sc) == ["tezoracle_pause"]
-    c.propose_unpause(**ctx(SUBMIT_LEVEL, sender=admin))
+    propose_unpause(c, packer, accounts, 0, level=SUBMIT_LEVEL)
     assert last_event_tags(sc) == ["tezoracle_unpause_propose"]
-    c.cancel_pending_unpause(**ctx(SUBMIT_LEVEL, sender=admin))
+    cancel_pending_unpause(c, packer, accounts, 1, level=SUBMIT_LEVEL)
     assert last_event_tags(sc) == ["tezoracle_unpause_cancel"]
-    c.propose_unpause(**ctx(SUBMIT_LEVEL, sender=admin))
+    propose_unpause(c, packer, accounts, 2, level=SUBMIT_LEVEL)
     c.activate_unpause(**ctx(SUBMIT_LEVEL + DELAY))
     assert last_event_tags(sc) == ["tezoracle_unpause_activate"]
 
     c.pause_asset("XTZ_USD", **ctx(SUBMIT_LEVEL + DELAY, sender=guardian))
     assert last_event_tags(sc) == ["tezoracle_asset_pause"]
-    c.propose_asset_unpause("XTZ_USD", **ctx(SUBMIT_LEVEL + DELAY, sender=admin))
+    propose_asset_unpause(
+        c, packer, accounts, "XTZ_USD", 3, level=SUBMIT_LEVEL + DELAY
+    )
     assert last_event_tags(sc) == ["tezoracle_asset_unpause_prop"]
-    c.cancel_asset_unpause("XTZ_USD", **ctx(SUBMIT_LEVEL + DELAY, sender=admin))
+    cancel_asset_unpause(
+        c, packer, accounts, "XTZ_USD", 4, level=SUBMIT_LEVEL + DELAY
+    )
     assert last_event_tags(sc) == ["tezoracle_asset_unpause_cancel"]
-    c.propose_asset_unpause("XTZ_USD", **ctx(SUBMIT_LEVEL + DELAY, sender=admin))
+    propose_asset_unpause(
+        c, packer, accounts, "XTZ_USD", 5, level=SUBMIT_LEVEL + DELAY
+    )
     c.activate_asset_unpause("XTZ_USD", **ctx(SUBMIT_LEVEL + DELAY + DELAY))
     assert last_event_tags(sc) == ["tezoracle_asset_unpause_act"]
 
     nxt = _next_init(
         admin, guardian, accounts, policy_hash=sp.bytes("0x" + "33" * 32)
     )
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL + DELAY + DELAY, sender=admin))
+    propose_config(c, packer, accounts, nxt, 6, level=SUBMIT_LEVEL + DELAY + DELAY)
     assert last_event_tags(sc) == ["tezoracle_config_propose"]
-    c.cancel_pending_config(**ctx(SUBMIT_LEVEL + DELAY + DELAY, sender=admin))
+    cancel_pending_config(
+        c, packer, accounts, 7, level=SUBMIT_LEVEL + DELAY + DELAY
+    )
     assert last_event_tags(sc) == ["tezoracle_config_cancel"]
-    c.propose_config(nxt, **ctx(SUBMIT_LEVEL + DELAY + DELAY, sender=admin))
+    propose_config(c, packer, accounts, nxt, 8, level=SUBMIT_LEVEL + DELAY + DELAY)
     c.activate_config(**ctx(SUBMIT_LEVEL + DELAY + DELAY + DELAY))
     assert last_event_tags(sc) == ["tezoracle_config_activate"]
 

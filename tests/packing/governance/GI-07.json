@@ -1,0 +1,125 @@
+{
+  "id": "GI-07",
+  "description": "16 signers (MAX_SIGNERS)",
+  "kind": "config",
+  "intent": {
+    "domain": "TEZORACLE_CONFIG_V1",
+    "chain_id": "NetXsqzbfFenSTS",
+    "oracle_address": "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy",
+    "current_config_version": "1",
+    "governance_nonce": "0",
+    "valid_until": "1800000180",
+    "init": {
+      "admin": "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+      "guardian": "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+      "config_version": "2",
+      "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "threshold_n": "16",
+      "threshold_m": "16",
+      "activation_delay_levels": "8",
+      "min_activation_delay_levels": "1",
+      "max_clock_skew_seconds": "5",
+      "validity_window_seconds": "180",
+      "price_nat_max": "79228162514264337593543950335",
+      "signers": {
+        "0": {
+          "public_key": "edpkv5xyFHqL5BLcq5uvTUwfa8rBkFexosuMduhd4uxrdDoYckFPsY",
+          "class_id": "A",
+          "active": true
+        },
+        "1": {
+          "public_key": "edpkuDufWyxgTM8uiL4AqFWN9w4jDq37b7iZkvUnDXzQ1gQ3j7psK5",
+          "class_id": "A",
+          "active": true
+        },
+        "2": {
+          "public_key": "edpku7gpQ29RwewmqCeBbbwWoNrhXhErzLQjJBpZsU1W4PEXv2dk1J",
+          "class_id": "A",
+          "active": true
+        },
+        "3": {
+          "public_key": "edpkuw9aUnAJaHH5SEUZ2M4w6XfiYQDrxRUUmmtJZaMSAtVTnNiE2R",
+          "class_id": "A",
+          "active": true
+        },
+        "4": {
+          "public_key": "edpkvaeCeAXG8LQVSA485ps69UJzvZcgdemsenPDjxQBPqWTUR4vWA",
+          "class_id": "A",
+          "active": true
+        },
+        "5": {
+          "public_key": "edpkvJUk6yACn7nEptk9Y5hwfzGUoik35uThTpDSsXybcAtC6cc1Vj",
+          "class_id": "A",
+          "active": true
+        },
+        "6": {
+          "public_key": "edpkuuMWD7WtWHUP3BdGqiGxCKjdQUjCk7qg5Fdwj8SyTeoboNzqfw",
+          "class_id": "A",
+          "active": true
+        },
+        "7": {
+          "public_key": "edpkuKsKJXdvdtdcPiMVSbH7DRnojXkHQ5t5WfSRSL13uAw2RjMpJK",
+          "class_id": "A",
+          "active": true
+        },
+        "8": {
+          "public_key": "edpkv7Q9s4CwpJV59enLDdp2Fx6q1HxCh7g4pDsr4osWZLcYnZrs46",
+          "class_id": "A",
+          "active": true
+        },
+        "9": {
+          "public_key": "edpkvSrda1yHXa91KRkC7qSPkPmqxUfPpNyKRTceFznM7EPiecs5KG",
+          "class_id": "A",
+          "active": true
+        },
+        "10": {
+          "public_key": "edpkvZxFq6YKhmTEj4wijmqGqm7gbAMn2EyayHpBf6JJk7Zz4yJaW8",
+          "class_id": "A",
+          "active": true
+        },
+        "11": {
+          "public_key": "edpkvThrK4jc9ugiqVakymfvyNep5MFhTQhdGvuS8eXUsFYxUkUY8L",
+          "class_id": "A",
+          "active": true
+        },
+        "12": {
+          "public_key": "edpkugcUwGuhqpfMAFCbF6AfXziApUVYmqTTiNxkuXbZpawYZTTQ1V",
+          "class_id": "A",
+          "active": true
+        },
+        "13": {
+          "public_key": "edpkuyvauBCFA4bYdGsku9BZErXpRTsva9HWgxHmZuhzNn4mexrwwK",
+          "class_id": "A",
+          "active": true
+        },
+        "14": {
+          "public_key": "edpkvPjkFhaJfLJapLz9UNRHyKLNcYqknhWdiNk2KzquWwnLqUc6re",
+          "class_id": "A",
+          "active": true
+        },
+        "15": {
+          "public_key": "edpktiJf3VHtJ3un1GH4qGApFmbaUqwrp2qeZR4c8U9zZ6Mzpf1xHe",
+          "class_id": "A",
+          "active": true
+        }
+      },
+      "class_minima": {},
+      "groups": {
+        "CORE": [
+          "XTZ_USD"
+        ]
+      },
+      "assets": {
+        "XTZ_USD": {
+          "decimals": "6",
+          "max_observation_age_seconds": "120",
+          "absolute_min_price": "10000",
+          "absolute_max_price": "100000000",
+          "max_movement_bps": "10000"
+        }
+      }
+    }
+  },
+  "packed_hex": "050707010000001354455a4f5241434c455f434f4e4649475f563107070a00000004d052218e07070a00000016019142eb01374f37f03023eefc82f2ede96e8ae515000707000107070000070700b4caceb40d0707000807070a000000160000bfbf1a0900331bfd281a8898bd9235c9e97f245e070702000000280704010000000758545a5f55534407070006070700b801070700909c010707008084af5f00909c0107070200000000070700020707020000001c07040100000004434f5245020000000c010000000758545a5f55534407070a000000160000bfbf1a0900331bfd281a8898bd9235c9e97f245e070700050707000107070a000000201111111111111111111111111111111111111111111111111111111111111111070700bfffffffffffffffffffffffff3f070702000003600704000007070a0000002100be25782f46878ff9b4aec0333df6c413a08419c79f2cfba6513dd66f90b273530707010000000141030a0704000107070a00000021004c7c5fb76bcec117dde0d6e9067e6c0e2281d35e2ec89ab9ee942c19ac354e280707010000000141030a0704000207070a00000021003e5bf2161f5592dae8eab5a0fe44461fe8525e69ed07190808f6fde9ef86c6d90707010000000141030a0704000307070a0000002100aa2043a05fe563fb7cf731aaa7b7b9b37c80ea6b8664d5f7f64b0dfc6b3b408e0707010000000141030a0704000407070a0000002100ff42770dd0cc4f711fab45e789cea0ad708a982ca3ee70fb7d5cdafb730a80dd0707010000000141030a0704000507070a0000002100da8f363da6b4cbfcb454d8b2feaadce94384dacd1ce31bb55b3aee11cb23fdca0707010000000141030a0704000607070a0000002100a60d3b7c7afac1ce34fbdf20b932fc40ce479dba1f8a290c7d288bdba25053cc0707010000000141030a0704000707070a00000021005a0483402115e5996b4a1bce89466bd689a24cd0d28fe29710510f7ed8e657c00707010000000141030a0704000807070a0000002100c167227c69e409e0a37a3472f8ac1188f55bb7529d4c9779a2fd6d608fd382a30707010000000141030a0704000907070a0000002100ed94cd7dae455c97098a7856649c2e7ba0cc2d0c4ab6af061fe694c01f4bdbcd0707010000000141030a0704000a07070a0000002100fdb2223b33702981caaf38a61d9fea5d50c2dce384ecaaf5c82b10ff69a3a1a50707010000000141030a0704000b07070a0000002100ef8215d4d01b9aa262fbf110f16f68ce0dfcdd0eb471a650495342d899c2f88d0707010000000141030a0704000c07070a0000002100891eb64dae076d4482e72951788682babb0926f21239692a9274de68a3041d370707010000000141030a0704000d07070a0000002100b06de357c92909215ebb6cf96fce2e511492bcbf55122e84ded8bbfd48cdff950707010000000141030a0704000e07070a0000002100e67ff7202e5b4b26c8125a01e8e7bdddab0b3d2b30d04bf9876eb544620cdcd90707010000000141030a0704000f07070a000000210009446b76a3810ebf81aafdda90f34f7de1b079c04a69a91bd74abead6c6f08ff0707010000000141030a070700100707001000b402",
+  "blake2b_hex": "a2d705618540516c7e50e62b7d9978dfaafaf8c08aa6649134a229f7e699e717"
+}

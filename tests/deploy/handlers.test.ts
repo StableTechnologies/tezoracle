@@ -1,12 +1,29 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 
+import { verifySignature } from "@taquito/utils";
+
+import { loadCommittedRegister } from "../../src/config/policy.js";
 import { createCoordinatorHandlers } from "../../src/deploy/coordinator.js";
 import { assertCoordinatorRuntime, assertRelayerRuntime } from "../../src/deploy/env.js";
 import { unwrapEvent } from "../../src/deploy/event.js";
 import { createRelayerHandlers } from "../../src/deploy/relayer.js";
-import { createSignerHandlers, resolveSignerSecret } from "../../src/deploy/signer.js";
+import {
+  assertPinnedFileDigest,
+  createSecretsManagerSecretProvider,
+  createSignerHandlers,
+  resolveSignerSecret,
+} from "../../src/deploy/signer.js";
 import { createTickHandler } from "../../src/deploy/tick.js";
+import { packConfigIntent } from "../../src/packing/governance.js";
+import {
+  buildPinnedInit,
+  type GovernanceSidecar,
+} from "../../src/validator/governance.js";
 import { tickHarness, localSign } from "../e2e/helpers.js";
 import { CoordinatorError } from "../../src/coordinator/errors.js";
 import { RelayerError } from "../../src/relayer/errors.js";
@@ -64,9 +81,100 @@ test("only the signer process resolves TEZORACLE_SIGNER_SECRET_KEY", async () =>
   await withEnv({ TEZORACLE_SIGNER_SECRET_KEY: signer.secret_key }, async () => {
     assert.equal(await resolveSignerSecret(), signer.secret_key);
   });
-  await withEnv({ TEZORACLE_SIGNER_SECRET_KEY: undefined, TEZORACLE_SIGNER_SECRET_NAME: "tezoracle/testnet/class-a-signer" }, async () => {
-    await assert.rejects(() => resolveSignerSecret(), /Secrets Manager fetch is injected/);
+  const provider = createSecretsManagerSecretProvider(
+    "tezoracle/testnet/class-a-signer",
+    {
+      async send(command) {
+        assert.equal(command.input.SecretId, "tezoracle/testnet/class-a-signer");
+        return { SecretString: signer.secret_key };
+      },
+    },
+  );
+  assert.equal(await provider(), signer.secret_key);
+});
+
+test("governance Lambda signs only its signer-local artifact and sidecar", async () => {
+  const { snapshot } = loadCommittedRegister(CONFIG_DIR);
+  const sidecar: GovernanceSidecar = {
+    schema_version: 1,
+    admin: "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+    guardian: "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+    threshold_n: "1",
+    threshold_m: "1",
+    signers: {
+      "0": { public_key: signer.public_key, class_id: "A", active: true },
+    },
+    class_minima: {},
+  };
+  const intent = {
+    domain: "TEZORACLE_CONFIG_V1" as const,
+    chain_id: CHAIN_ID,
+    oracle_address: ORACLE_ADDRESS,
+    current_config_version: String(snapshot.register.config_version - 1),
+    governance_nonce: "0",
+    valid_until: String(NOW + 600),
+    init: buildPinnedInit(snapshot, sidecar),
+  };
+  const packed = packConfigIntent(intent);
+  const handler = createSignerHandlers({
+    configDir: CONFIG_DIR,
+    now: () => NOW,
+    secretProvider: async () => signer.secret_key,
+    governanceArtifactProvider: async () => ({
+      intent,
+      packed_hex: packed.packedHex,
+    }),
+    governanceSidecarProvider: async () => sidecar,
+    governanceChainId: CHAIN_ID,
+    governanceOracleAddress: ORACLE_ADDRESS,
   });
+  const signed = await handler.signGovernance({ action: "config", index: "0" });
+  assert.equal(signed.ok, true);
+  assert.equal(signed.packed_hex, packed.packedHex);
+  assert.equal(
+    verifySignature(
+      String(signed.packed_hex),
+      String(signed.public_key),
+      String(signed.signature),
+    ),
+    true,
+  );
+
+  for (const field of [
+    "intent",
+    "init",
+    "packed_hex",
+    "sidecar",
+    "config",
+    "policy_hash",
+    "signers",
+    "payload",
+    "arbitrary",
+  ]) {
+    const injected = await handler.signGovernance({
+      action: "config",
+      [field]: field === "intent" ? intent : "injected",
+    });
+    assert.equal(injected.ok, false, field);
+    assert.equal(injected.error_code, "POLICY_PIN", field);
+  }
+  const badIndex = await handler.signGovernance({ action: "config", index: 0 });
+  assert.equal(badIndex.ok, false);
+  assert.equal(badIndex.error_code, "POLICY_PIN");
+});
+
+test("governance deployment files are bound to SHA-256 pins", () => {
+  const dir = mkdtempSync(join(tmpdir(), "tezoracle-governance-pin-"));
+  const path = join(dir, "intent.json");
+  const bytes = '{"intent":"approved"}\n';
+  writeFileSync(path, bytes);
+  const digest = createHash("sha256").update(bytes).digest("hex");
+  assert.doesNotThrow(() => assertPinnedFileDigest(path, digest, "intent"));
+  assert.throws(
+    () => assertPinnedFileDigest(path, "0".repeat(64), "intent"),
+    /differs from deployment pin/,
+  );
+  assert.throws(() => assertPinnedFileDigest(path, undefined, "intent"), /pin is required/);
 });
 
 test("thin handlers compose trigger, candidate, 1-of-1 sign, collect, assemble, verify, submit", async () => {

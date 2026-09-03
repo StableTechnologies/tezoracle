@@ -152,6 +152,10 @@ There is no degraded “publish anyway” path.
 npm run validator -- derive  --group CORE [--config dir] [--fixtures file] [--now unix]
 npm run validator -- verify  --candidate file [--config dir] [--fixtures file] [--now unix]
 npm run validator -- sign    --candidate file [--config dir] [--fixtures file] [--now unix] [--state file]
+npm run validator -- sign-governance --intent artifact.json [--sidecar governance.json] [--config dir] [--now unix]
+
+Committee sidecar defaults to `config/governance/v<config_version>/sidecar.json`.
+`config/governance/intent.example.json` is the per-action envelope template.
 ```
 
 | Flag / env | Role |
@@ -162,8 +166,16 @@ npm run validator -- sign    --candidate file [--config dir] [--fixtures file] [
 | `--candidate` | `{ payload, evidence }` JSON. |
 | `--state` | Local round-state JSON. Also `TEZORACLE_ROUND_STATE_PATH`. |
 | `TEZORACLE_SIGNER_SECRET_KEY` | Testnet `edsk...` for `sign` only. |
+| `TEZORACLE_GOVERNANCE_SIDECAR` | Override sidecar path. Default `config/governance/v<config_version>/sidecar.json`. |
 | `TEZORACLE_SIGNER_ID` | Signer-local record id. Default `class-a`. |
 | `TEZOS_CHAIN_ID` / `ORACLE_ADDRESS` | Optional; used when `derive` emits a payload envelope. |
+
+`sign-governance` never signs `artifact.packed_hex` directly. For config
+governance it rebuilds `init` from the local `config/` pin plus the sidecar
+for that register version, computes its own `PACK`, compares that result to
+the artifact, and signs only the locally computed bytes. For unpause/cancel
+intents it parses and repacks the operation-specific domain. Expired or
+mismatched artifacts are refused.
 
 `--fixtures` is the supported CI path. Live venue calls are optional local operation and are not required for a green build.
 

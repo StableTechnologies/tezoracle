@@ -1,0 +1,50 @@
+{
+  "id": "GI-01",
+  "description": "1-of-1 config intent; packing fixture edpk; empty class_minima",
+  "kind": "config",
+  "intent": {
+    "domain": "TEZORACLE_CONFIG_V1",
+    "chain_id": "NetXsqzbfFenSTS",
+    "oracle_address": "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy",
+    "current_config_version": "1",
+    "governance_nonce": "0",
+    "valid_until": "1800000180",
+    "init": {
+      "admin": "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+      "guardian": "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+      "config_version": "2",
+      "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "threshold_n": "1",
+      "threshold_m": "1",
+      "activation_delay_levels": "8",
+      "min_activation_delay_levels": "1",
+      "max_clock_skew_seconds": "5",
+      "validity_window_seconds": "180",
+      "price_nat_max": "79228162514264337593543950335",
+      "signers": {
+        "0": {
+          "public_key": "edpktnrDwsBBd5M2N9TGquSrUZP28q44GnvahhD3QQNMNQmbGTDGhb",
+          "class_id": "A",
+          "active": true
+        }
+      },
+      "class_minima": {},
+      "groups": {
+        "CORE": [
+          "XTZ_USD"
+        ]
+      },
+      "assets": {
+        "XTZ_USD": {
+          "decimals": "6",
+          "max_observation_age_seconds": "120",
+          "absolute_min_price": "10000",
+          "absolute_max_price": "100000000",
+          "max_movement_bps": "10000"
+        }
+      }
+    }
+  },
+  "packed_hex": "050707010000001354455a4f5241434c455f434f4e4649475f563107070a00000004d052218e07070a00000016019142eb01374f37f03023eefc82f2ede96e8ae515000707000107070000070700b4caceb40d0707000807070a000000160000bfbf1a0900331bfd281a8898bd9235c9e97f245e070702000000280704010000000758545a5f55534407070006070700b801070700909c010707008084af5f00909c0107070200000000070700020707020000001c07040100000004434f5245020000000c010000000758545a5f55534407070a000000160000bfbf1a0900331bfd281a8898bd9235c9e97f245e070700050707000107070a000000201111111111111111111111111111111111111111111111111111111111111111070700bfffffffffffffffffffffffff3f070702000000360704000007070a00000021001395e801a1b212e184de86f61d7e40606095684ef11c66ea6d65132c4a628ef70707010000000141030a070700010707000100b402",
+  "blake2b_hex": "2531cc6f0669a24147eb1672dc6bc615604a185b2780b38801819939570a8571"
+}

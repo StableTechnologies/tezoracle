@@ -1,9 +1,25 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+
+import {
+  GetSecretValueCommand,
+  SecretsManagerClient,
+} from "@aws-sdk/client-secrets-manager";
+
 import { defaultHttpTransport, type HttpTransport } from "../validator/adapters/http.js";
 import type { PoolRpcClient } from "../validator/adapters/dex/rpc.js";
 import { createTzktPoolRpcClient } from "../validator/adapters/dex/tzkt_rpc.js";
 import type { PoolSampleStore } from "../validator/adapters/dex/state.js";
 import { verifyCandidate } from "../validator/candidate.js";
 import { ValidatorError } from "../validator/errors.js";
+import {
+  loadGovernanceArtifact,
+  loadGovernanceSidecar,
+  signGovernanceArtifact,
+  sidecarPathForVersion,
+  type GovernanceArtifact,
+  type GovernanceSidecar,
+} from "../validator/governance.js";
 import { defaultConfigDir, pinSnapshot } from "../validator/policy.js";
 import {
   commitRound,
@@ -18,6 +34,13 @@ import { unwrapEvent } from "./event.js";
 
 export type SecretProvider = () => Promise<string>;
 
+type SecretsManagerLike = {
+  send(command: GetSecretValueCommand): Promise<{
+    SecretString?: string;
+    SecretBinary?: Uint8Array;
+  }>;
+};
+
 export type SignerDeps = {
   transport?: HttpTransport;
   configDir?: string;
@@ -26,9 +49,37 @@ export type SignerDeps = {
   poolRpc?: PoolRpcClient;
   dexStateStoreFor?: (group: string) => PoolSampleStore | undefined;
   roundStateStore?: RoundStateStore;
+  governanceArtifactProvider?: () => Promise<GovernanceArtifact>;
+  governanceSidecarProvider?: () => Promise<GovernanceSidecar | undefined>;
+  governanceChainId?: string;
+  governanceOracleAddress?: string;
 };
 
 export type HandlerResult = Record<string, unknown>;
+
+const GOVERNANCE_INTENT_PATH = "config/governance/intent.json";
+const GOVERNANCE_MANIFEST_PATH = "config/governance/manifest.json";
+
+type GovernanceDeploymentManifest = {
+  schema_version: 1;
+  intent_sha256: string;
+};
+
+export function createSecretsManagerSecretProvider(
+  name: string,
+  client: SecretsManagerLike = new SecretsManagerClient({}),
+): SecretProvider {
+  return async () => {
+    const result = await client.send(new GetSecretValueCommand({ SecretId: name }));
+    const secret =
+      result.SecretString ??
+      (result.SecretBinary ? Buffer.from(result.SecretBinary).toString("utf8") : undefined);
+    if (!secret) {
+      throw new ValidatorError("INTERNAL", "Secrets Manager returned an empty signer secret");
+    }
+    return secret;
+  };
+}
 
 /**
  * Only the Class A signer process may resolve the oracle signing secret.
@@ -45,10 +96,7 @@ export async function resolveSignerSecret(provider?: SecretProvider): Promise<st
   if (fromEnv) return fromEnv;
   const name = process.env[SIGNER_SECRET_NAME_ENV];
   if (name) {
-    throw new ValidatorError(
-      "INTERNAL",
-      "Secrets Manager fetch is injected at deploy time; this process has a secret name but no provider",
-    );
+    return createSecretsManagerSecretProvider(name)();
   }
   throw new ValidatorError("INTERNAL", "TEZORACLE_SIGNER_SECRET_KEY is required to sign");
 }
@@ -72,6 +120,76 @@ function groupFromCandidate(candidate: unknown): string {
   if (typeof payload !== "object" || payload === null) return "CORE";
   const group = (payload as Record<string, unknown>).publication_group;
   return typeof group === "string" && group.length > 0 ? group : "CORE";
+}
+
+const ACTION_DOMAIN: Record<string, string> = {
+  config: "TEZORACLE_CONFIG_V1",
+  config_cancel: "TEZORACLE_CONFIG_CANCEL_V1",
+  unpause: "TEZORACLE_UNPAUSE_V1",
+  unpause_cancel: "TEZORACLE_UNPAUSE_CANCEL_V1",
+  asset_unpause: "TEZORACLE_ASSET_UNPAUSE_V1",
+  asset_unpause_cancel: "TEZORACLE_ASSET_UNPAUSE_CANCEL_V1",
+};
+
+function governanceDomain(artifact: GovernanceArtifact): string | undefined {
+  if (typeof artifact.intent !== "object" || artifact.intent === null || Array.isArray(artifact.intent)) {
+    return undefined;
+  }
+  const domain = (artifact.intent as Record<string, unknown>).domain;
+  return typeof domain === "string" ? domain : undefined;
+}
+
+export function assertPinnedFileDigest(
+  path: string,
+  expectedSha256: string | undefined,
+  label: string,
+): void {
+  if (!/^[0-9a-f]{64}$/.test(expectedSha256 ?? "")) {
+    throw new ValidatorError("POLICY_PIN", `${label} SHA-256 pin is required`);
+  }
+  const actual = createHash("sha256").update(readFileSync(path)).digest("hex");
+  if (actual !== expectedSha256) {
+    throw new ValidatorError("POLICY_PIN", `${label} SHA-256 differs from deployment pin`);
+  }
+}
+
+function governanceDeploymentManifest(): GovernanceDeploymentManifest {
+  const value = JSON.parse(readFileSync(GOVERNANCE_MANIFEST_PATH, "utf8")) as unknown;
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new ValidatorError("POLICY_PIN", "governance manifest must be an object");
+  }
+  const raw = value as Record<string, unknown>;
+  const keys = Object.keys(raw).sort();
+  if (
+    keys.join(",") !== "intent_sha256,schema_version" ||
+    raw.schema_version !== 1 ||
+    typeof raw.intent_sha256 !== "string"
+  ) {
+    throw new ValidatorError("POLICY_PIN", "governance manifest is malformed");
+  }
+  return raw as GovernanceDeploymentManifest;
+}
+
+async function governanceArtifact(deps: SignerDeps): Promise<GovernanceArtifact> {
+  if (deps.governanceArtifactProvider) return deps.governanceArtifactProvider();
+  const manifest = governanceDeploymentManifest();
+  assertPinnedFileDigest(
+    GOVERNANCE_INTENT_PATH,
+    manifest.intent_sha256,
+    "governance intent",
+  );
+  return loadGovernanceArtifact(GOVERNANCE_INTENT_PATH);
+}
+
+async function governanceSidecar(
+  deps: SignerDeps,
+  configDir: string,
+): Promise<GovernanceSidecar | undefined> {
+  if (deps.governanceSidecarProvider) return deps.governanceSidecarProvider();
+  const { snapshot } = pinSnapshot(configDir);
+  return loadGovernanceSidecar(
+    sidecarPathForVersion(configDir, snapshot.register.config_version),
+  );
 }
 
 export function createSignerHandlers(deps: SignerDeps = {}) {
@@ -136,9 +254,65 @@ export function createSignerHandlers(deps: SignerDeps = {}) {
         return fail(error);
       }
     },
+    async signGovernance(event: unknown): Promise<HandlerResult> {
+      try {
+        const body = unwrapEvent(event);
+        const extra = Object.keys(body).filter(
+          (key) => key !== "action" && key !== "index",
+        );
+        if (extra.length > 0) {
+          throw new ValidatorError(
+            "POLICY_PIN",
+            `unknown governance event field(s): ${extra.join(", ")}`,
+          );
+        }
+        if (typeof body.action !== "string" || ACTION_DOMAIN[body.action] === undefined) {
+          throw new ValidatorError("POLICY_PIN", "a supported governance action is required");
+        }
+        if (body.index !== undefined && typeof body.index !== "string") {
+          throw new ValidatorError("POLICY_PIN", "governance index must be a string");
+        }
+        const artifact = await governanceArtifact(deps);
+        if (governanceDomain(artifact) !== ACTION_DOMAIN[body.action]) {
+          throw new ValidatorError("POLICY_PIN", "action does not match signer-local intent domain");
+        }
+        const { snapshot } = pinSnapshot(configDir);
+        const expectedChainId = deps.governanceChainId ?? process.env.TEZOS_CHAIN_ID;
+        const expectedOracleAddress =
+          deps.governanceOracleAddress ?? process.env.ORACLE_ADDRESS;
+        if (!expectedChainId || !expectedOracleAddress) {
+          throw new ValidatorError(
+            "POLICY_PIN",
+            "TEZOS_CHAIN_ID and ORACLE_ADDRESS are required for governance signing",
+          );
+        }
+        const signed = await signGovernanceArtifact({
+          artifact,
+          snapshot,
+          sidecar: await governanceSidecar(deps, configDir),
+          secretKey: await resolveSignerSecret(deps.secretProvider),
+          now: clock(),
+          expectedChainId,
+          expectedOracleAddress,
+        });
+        const index = typeof body.index === "string" ? body.index : "0";
+        return {
+          ok: true,
+          index,
+          intent: signed.intent,
+          packed_hex: signed.packed_hex,
+          blake2b_hex: signed.blake2b_hex,
+          public_key: signed.public_key,
+          signature: signed.signature.edsig,
+        };
+      } catch (error) {
+        return fail(error);
+      }
+    },
   };
 }
 
 const handlers = createSignerHandlers();
 
 export const sign = handlers.sign;
+export const signGovernance = handlers.signGovernance;

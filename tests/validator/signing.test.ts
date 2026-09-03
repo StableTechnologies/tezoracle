@@ -7,8 +7,19 @@ import test from "node:test";
 import { verifySignature } from "@taquito/utils";
 
 import { packPayload } from "../../src/packing/index.js";
+import { packConfigIntent } from "../../src/packing/governance.js";
+import { loadCommittedRegister } from "../../src/config/policy.js";
 import { candidateFromDerivation, verifyCandidate } from "../../src/validator/candidate.js";
 import { derivePublicationGroup } from "../../src/validator/derive.js";
+import {
+  buildPinnedInit,
+  loadGovernanceSidecar,
+  parseGovernanceArtifact,
+  rebuildAndPackGovernanceIntent,
+  sidecarPathForVersion,
+  signGovernanceArtifact,
+  type GovernanceSidecar,
+} from "../../src/validator/governance.js";
 import { assertFreshRound, commitRound, signPackedPayload } from "../../src/validator/signer.js";
 import { ValidatorError } from "../../src/validator/errors.js";
 import { NOW, ROOT, coreMockTransport, pinnedRegister } from "./helpers.js";
@@ -107,4 +118,98 @@ test("verified mock CORE candidate can be signed", async () => {
   assert.equal(signed.payload.policy_hash, policy_hash);
   assert.equal(verifySignature(signed.packed_hex, signed.public_key, signed.signature.edsig), true);
   assert.equal(signed.local_record.decision, "sign");
+});
+
+function governanceFixture() {
+  const { snapshot } = loadCommittedRegister();
+  const sidecar: GovernanceSidecar = {
+    schema_version: 1,
+    admin: "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+    guardian: "tz1d7tgjjqBB3nNpsB5NtqA2gFZQEU9eAdpC",
+    threshold_n: "1",
+    threshold_m: "1",
+    signers: {
+      "0": { public_key: keys.public_key, class_id: "A", active: true },
+    },
+    class_minima: {},
+  };
+  const intent = {
+    domain: "TEZORACLE_CONFIG_V1" as const,
+    chain_id: "NetXsqzbfFenSTS",
+    oracle_address: "KT1Mpqi89gRyUuoXUPAWjHkqkk1F48eUKUVy",
+    current_config_version: String(snapshot.register.config_version - 1),
+    governance_nonce: "7",
+    valid_until: String(NOW + 600),
+    init: buildPinnedInit(snapshot, sidecar),
+  };
+  const packed = packConfigIntent(intent);
+  return {
+    snapshot,
+    sidecar,
+    artifact: { intent, packed_hex: packed.packedHex },
+  };
+}
+
+test("governance signer rebuilds config from local pin and signs its own PACK", async () => {
+  const fixture = governanceFixture();
+  const signed = await signGovernanceArtifact({
+    ...fixture,
+    secretKey: keys.secret_key,
+    now: NOW,
+  });
+  assert.equal(signed.packed_hex, fixture.artifact.packed_hex);
+  assert.equal(verifySignature(signed.packed_hex, keys.public_key, signed.signature.edsig), true);
+  assert.equal(
+    (signed.intent as { init: { policy_hash: string } }).init.policy_hash,
+    fixture.artifact.intent.init.policy_hash,
+  );
+});
+
+test("governance signer refuses artifact bytes or config outside its local pin", () => {
+  const fixture = governanceFixture();
+  const changedArtifact = {
+    ...fixture.artifact,
+    intent: {
+      ...fixture.artifact.intent,
+      init: { ...fixture.artifact.intent.init, threshold_n: "2" },
+    },
+  };
+  changedArtifact.packed_hex = packConfigIntent(changedArtifact.intent).packedHex;
+  assert.throws(
+    () =>
+      rebuildAndPackGovernanceIntent({
+        artifact: changedArtifact,
+        snapshot: fixture.snapshot,
+        sidecar: fixture.sidecar,
+        now: NOW,
+      }),
+    (error: unknown) => error instanceof ValidatorError && error.code === "CANDIDATE_MISMATCH",
+  );
+  assert.throws(
+    () =>
+      rebuildAndPackGovernanceIntent({
+        artifact: { ...fixture.artifact, packed_hex: `05${"00".repeat(8)}` },
+        snapshot: fixture.snapshot,
+        sidecar: fixture.sidecar,
+        now: NOW,
+      }),
+    (error: unknown) => error instanceof ValidatorError && error.code === "CANDIDATE_MISMATCH",
+  );
+});
+
+test("committed governance examples PACK against the current register pin", () => {
+  const { snapshot } = loadCommittedRegister();
+  const artifact = parseGovernanceArtifact(
+    JSON.parse(readFileSync(join(ROOT, "config/governance/intent.example.json"), "utf8")) as unknown,
+  );
+  const sidecar = loadGovernanceSidecar(
+    sidecarPathForVersion(join(ROOT, "config"), snapshot.register.config_version),
+  );
+  const packed = rebuildAndPackGovernanceIntent({
+    artifact,
+    snapshot,
+    sidecar,
+    now: NOW,
+  });
+  assert.equal(packed.packedHex, artifact.packed_hex);
 });

@@ -14,11 +14,11 @@ This contract does **not** implement TezFin aliases, `configureMaxPriceAge`, `co
 | Role | May | Must not |
 | --- | --- | --- |
 | Anyone (relayer) | `submit` a fully signed payload; `promote` a mature pending quote; activate a matured timelock | Hold signer keys; change signed bytes |
-| Admin | Immediate pause; `discard_pending`; propose delayed unpause and delayed config | Instantly unpause, lower `N`, replace signers, or change policy |
-| Guardian | Immediate global or per-asset pause; `discard_pending` | Unpause, propose config, or change thresholds |
-| Signers | Off-chain: sign `PACK(payload)` | On-chain authority beyond `CHECK_SIGNATURE` |
+| Admin | Immediate pause; `discard_pending` | Instantly unpause, or change config/keys/policy without the full signer set |
+| Guardian | Immediate global or per-asset pause; `discard_pending` | Unpause or propose config |
+| Signers | Off-chain: sign `PACK(payload)` and `PACK(governance intent)` | On-chain authority beyond `CHECK_SIGNATURE` |
 
-Admin and guardian may be the same address in 1-of-1 testnet.
+Admin and guardian may be the same address in 1-of-1 testnet. Lost-key recovery for a full-committee governance threshold is **not** on-chain: originate a new oracle and retarget the consumer.
 
 ## 2. Storage
 
@@ -42,6 +42,7 @@ Admin and guardian may be the same address in 1-of-1 testnet.
 | `assets` | Per-asset policy and pending/active quotes |
 | `last_round` | Last **accepted** round per publication group |
 | `pending_config` | Delayed replacement of governable parameters |
+| `governance_nonce` | Replay counter for signed `propose_*` / `cancel_*`; starts at 0 |
 
 ### 2.1 Signer set
 
@@ -126,7 +127,7 @@ Payload codes match [PAYLOAD_SPEC.md](PAYLOAD_SPEC.md) §5. Contract-only codes 
 | `INACTIVE_SIGNER` | signer exists but `active = false` |
 | `SIGNATURE` | `CHECK_SIGNATURE` failed |
 | `CLASS_MIN` | a configured class minimum was not met |
-| `NOT_ADMIN` | caller is not admin |
+| `NONCE` | governance intent nonce ≠ `governance_nonce` |
 | `NOT_AUTHORIZED` | caller is neither admin nor guardian |
 | `BAD_CONFIG` | proposed or originated quorum/policy is impossible |
 | `NO_PENDING` | activate/cancel with nothing pending |
@@ -182,19 +183,21 @@ Emergency pause is bounded: it does not iterate configured assets and does not c
 - `pause` (admin or guardian) sets the global flag, records `last_global_pause_level = now_level`, and clears a pending global unpause. Pending quotes stay in storage but are quarantined and never become active from this operation.
 - `pause_asset` pauses that asset, clears its pending unpause, and **discards** its pending quote. It does not promote.
 - `discard_pending(asset_id)` (admin or guardian) drops a pending quote without activating it. Use this to quarantine a suspicious quote before restoration.
-- `propose_unpause` / `propose_asset_unpause` are admin-only and set `pending_unpause_level = now_level + activation_delay_levels`.
+- `propose_unpause` / `propose_asset_unpause` require a packed intent signed by **every active signer** (`valid_count == threshold_m`). They set `pending_unpause_level = now_level + activation_delay_levels` and increment `governance_nonce`.
 - `activate_unpause` / `activate_asset_unpause` are permissionless after that level. They do not promote and do not resurrect quarantined pending quotes.
-- Admin may `cancel_pending_unpause` or `cancel_asset_unpause`.
+- `cancel_pending_unpause` / `cancel_asset_unpause` require the same full-committee signatures over a distinct domain and increment `governance_nonce`.
 
 Paused assets reject `submit` for any batch that includes them. Views fail closed. After a global pause, restoration requires a fresh, mature publication (quarantined pending is not visible).
 
 ## 7. Delayed governance
 
-`propose_config` (admin) stores a full replacement of:
+`propose_config` is permissionless to **call**. Authorization is `CHECK_SIGNATURE` over `PACK` of a `TEZORACLE_CONFIG_V1` intent ([GOVERNANCE_PACK_SPEC.md](GOVERNANCE_PACK_SPEC.md)) by every **active** signer (`M-of-M`, not price `N`). The intent binds `current_config_version`, `governance_nonce`, `valid_until`, and the full `t_init` (`t_init` has an explicit alphabetical `.layout(...)`).
 
-admin, guardian, `config_version` (must be current `+ 1`), `policy_hash`, `N`, `M`, class minima, signer set, groups, asset policies, activation delay, skew, validity window, and `price_nat_max`.
+`init.config_version` must be current `+ 1`. The replacement covers admin, guardian, `policy_hash`, `N`, `M`, class minima, signer set, groups, asset policies, activation delay, skew, validity window, and `price_nat_max`.
 
-Activation uses the **current** delay so a proposal that shortens delay cannot apply itself sooner. `activate_config` is permissionless after `activate_at_level`. `cancel_pending_config` is admin-only.
+Activation uses the **current** delay so a proposal that shortens delay cannot apply itself sooner. `activate_config` is permissionless after `activate_at_level`. `cancel_pending_config` requires a full-committee signature over `TEZORACLE_CONFIG_CANCEL_V1` and increments `governance_nonce` (it does not change `config_version`).
+
+A successful signed `propose_*` or `cancel_*` increments `governance_nonce`. Replaying the same signatures after cancel fails `NONCE`. An expired `valid_until` fails `WINDOW`.
 
 On activation the contract **does not promote**. It then:
 
